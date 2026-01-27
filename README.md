@@ -1,5 +1,7 @@
 # Tale — Tales for AI agents  
-<img src="tale_logo_readme_small.png" alt="Tale logo" width="250" height="250" />
+<p align="center">
+  <img src="tale_logo_readme_small.png" alt="Tale logo" width="250" height="250" />
+</p>
 
 ## TALE — Task Agreement & Logic Engine
 

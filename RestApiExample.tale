@@ -1,0 +1,88 @@
+TALE v0
+META
+  ID rest.api.three_endpoints
+  TITLE Three-endpoint REST API with Agentic Contract Tests
+
+  # Technology stack (mandatory)
+  LANGUAGE TypeScript
+  RUNTIME Node.js
+  FRAMEWORK Express
+  DATABASE none
+  TEST_FRAMEWORK Jest
+  HTTP_TEST_TOOL Supertest
+
+GOAL
+  Provide a REST API with exactly these endpoints and stable behavior:
+
+  1) GET /health
+     - status: 200
+     - response: JSON { "status": "ok" }
+
+  2) GET /hello
+     - status: 200
+     - response: JSON { "message": "Hello, world!" }
+
+  3) POST /echo
+     - status: 200
+     - accepts: any JSON body
+     - response: JSON { "received": <request_json_body> }
+
+  These behaviors become a long-term contract enforced by Agentic Tests
+  after the task is proven and frozen.
+
+SCOPE allow
+  src/**
+  test/**
+  __tests__/**
+SCOPE deny
+  package.json
+  pnpm-lock.yaml
+  package-lock.json
+  yarn.lock
+
+DETERMINISM
+  mode strict
+  canonicalize
+    - prettier
+    - sort_imports
+  rerun_check runs=2
+
+AGENTIC_TESTS
+  pattern **/*.ai.test.ts
+  allow_create true
+  allow_modify within_task
+  freeze_after proof_pass
+
+PLAN
+  # High-level intent only. No inline source code.
+  #
+  # Implementation rules:
+  # - Use Express with TypeScript.
+  # - Export the Express app so it can be imported by tests.
+  # - Do not introduce new dependencies.
+  # - Follow existing project structure if present.
+
+  ensure_endpoint method=GET path=/health
+    response.status 200
+    response.json {"status":"ok"}
+
+  ensure_endpoint method=GET path=/hello
+    response.status 200
+    response.json {"message":"Hello, world!"}
+
+  ensure_endpoint method=POST path=/echo
+    request.body json
+    response.status 200
+    response.json {"received":"$request.body"}
+
+  generate_agentic_tests
+    suggested_path "src/server.ai.test.ts"
+    must_cover
+      - "GET /health returns {status:'ok'}"
+      - "GET /hello returns {message:'Hello, world!'}"
+      - "POST /echo echoes request body verbatim"
+
+PROOF
+  run "npm test" expect exit=0
+  run "npm run lint" expect exit=0
+  deterministic_rerun runs=2

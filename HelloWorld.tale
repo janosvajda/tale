@@ -1,0 +1,20 @@
+TALE v0
+META
+  ID hello.world
+
+GOAL
+  Create a simple Hello World text file.
+
+SCOPE allow
+  ./hello.txt
+
+DETERMINISM
+  mode strict
+  rerun_check runs=2
+
+PLAN
+  +file hello.txt content "Hello, World!"
+
+PROOF
+  file_exists "hello.txt"
+  file_contains "hello.txt" "Hello, World!"

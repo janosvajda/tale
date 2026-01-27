@@ -1,0 +1,121 @@
+TALE v0
+META
+  ID rest.api.dynamodb.cdk
+  TITLE REST API with DynamoDB and CDK Subproject
+
+  # Technology stack (mandatory)
+  LANGUAGE TypeScript
+  RUNTIME Node.js
+  FRAMEWORK Express
+  DATABASE DynamoDB
+  IAC AWS CDK
+  TEST_FRAMEWORK Jest
+  HTTP_TEST_TOOL Supertest
+
+GOAL
+  Provide a REST API that stores names in DynamoDB and exposes exactly
+  these endpoints with stable behavior:
+
+  1) POST /names
+     - request: JSON { "name": "<string>" }
+     - status: 201
+     - response: JSON { "id": "<uuid>", "name": "<string>" }
+     - errors: 400 if name is missing or empty
+
+  2) GET /names
+     - status: 200
+     - response: JSON { "items": [ { "id": "<uuid>", "name": "<string>" }, ... ] }
+     - ordering: items sorted by name asc, then id asc
+
+  3) PUT /names/:id
+     - request: JSON { "name": "<string>" }
+     - status: 200
+     - response: JSON { "id": "<id>", "name": "<string>" }
+     - errors: 400 if name is missing or empty, 404 if id not found
+
+  4) DELETE /names/:id
+     - status: 204
+     - response: no body
+     - errors: 404 if id not found
+
+  The API uses a DynamoDB table with partition key "id" (string).
+  Table name is provided to the app via environment variable NAMES_TABLE.
+
+SCOPE allow
+  src/**
+  test/**
+  __tests__/**
+  cdk/**
+  package.json
+  tsconfig.json
+  jest.config.*
+  .eslintrc.*
+  .prettierrc*
+SCOPE deny
+  pnpm-lock.yaml
+  package-lock.json
+  yarn.lock
+
+DETERMINISM
+  mode strict
+  canonicalize
+    - prettier
+    - sort_imports
+  rerun_check runs=2
+
+AGENTIC_TESTS
+  pattern **/*.ai.test.ts
+  allow_create true
+  allow_modify within_task
+  freeze_after proof_pass
+
+PLAN
+  # High-level intent only. No inline source code.
+  #
+  # Implementation rules:
+  # - Use Express with TypeScript.
+  # - Export the Express app so it can be imported by tests.
+  # - Use AWS SDK v3 DynamoDB DocumentClient.
+  # - Generate UUIDs for new names.
+  # - Follow existing project structure if present.
+
+  ensure_endpoint method=POST path=/names
+    request.body json {"name":"<string>"}
+    response.status 201
+    response.json {"id":"<uuid>","name":"<string>"}
+
+  ensure_endpoint method=GET path=/names
+    response.status 200
+    response.json {"items":[{"id":"<uuid>","name":"<string>"}]}
+    response.ordering "name asc, id asc"
+
+  ensure_endpoint method=PUT path=/names/:id
+    request.body json {"name":"<string>"}
+    response.status 200
+    response.json {"id":"<id>","name":"<string>"}
+
+  ensure_endpoint method=DELETE path=/names/:id
+    response.status 204
+
+  ensure_cdk_subproject path=cdk
+    stack "NamesApiStack"
+    creates
+      - "DynamoDB table with partition key id (string)"
+    outputs
+      - "Table name"
+
+  generate_agentic_tests
+    suggested_path "src/names.api.ai.test.ts"
+    must_cover
+      - "POST /names creates a record and returns id + name"
+      - "GET /names returns items sorted by name, then id"
+      - "PUT /names/:id updates existing name and returns updated record"
+      - "DELETE /names/:id removes existing record"
+      - "400 for missing/empty name"
+      - "404 for update/delete of missing id"
+
+PROOF
+  run "npm test" expect exit=0
+  run "npm run lint" expect exit=0
+  run "npm --prefix cdk run synth" expect exit=0
+  deterministic_rerun runs=2

@@ -15,7 +15,7 @@ The reason I created Tale is that I felt we are still trying to communicate with
 
 I believe we need to change the way we communicate if we want to work successfully with AI in the future. **Communication is the key.**
 
-We also need to change our mindset. We do not necessarily need rigid, predefined languages like HTML, traditional configuration formats, interfaces, or pseudo-languages for every kind of interaction. AI can understand many different kinds of structures, concepts, relationships, and logic.
+We also need to change our mindset. We do not necessarily need rigid, predefined languages like HTML, traditional configuration formats, interfaces, or pseudo-languages for every kind of interaction. AI can understand many different kinds of structures, concepts, relationships, and logic — much like we humans do.
 
 Because of that, I believe the whole concept of **how humans communicate with AI needs to evolve**.
 
@@ -50,11 +50,15 @@ The aim is not to force every interaction into a fixed schema. It is to provide 
 
 ## Tale diagrams are made for humans
 
-People do not naturally think in configuration files, schemas, or isolated rule sets. We think in **ideas, relationships, intentions, examples, warnings, priorities, exceptions, and associations**.
+People do not naturally think in configuration files, schemas, or isolated rule sets. We think in ideas, relationships, intentions, examples, warnings, priorities, exceptions, and associations.
 
-Some of those thoughts may be very high-level — such as the purpose of a project or the way we want an AI agent to behave — while others may be extremely specific, such as **which compiler option to use, which files must not change, or which linter must pass**.
+Those thoughts also exist at very different levels. We may start with a broad idea such as what a project is trying to achieve, then move gradually toward more concrete decisions about how the work should be done, what should be protected, and what technical rules should be followed.
 
-**Tale allows all of these different kinds of thoughts to exist together.**
+That means one conversation may contain both high-level intentions — such as the purpose of a project or the way we want an AI agent to behave — and very specific instructions, such as *hich compiler option to use, which files must not change, or which linter must pass.
+
+Tale is designed to let all of these levels of thought exist together instead of forcing them into separate configuration systems.
+
+Tale allows all of these different kinds of thoughts to exist together, and concider them to a **two ways communication**. 
 
 This is one of the central ideas behind Tale:
 
@@ -62,13 +66,27 @@ This is one of the central ideas behind Tale:
 
 Traditional software needs strict formats because a parser must understand them. A configuration file separates concepts into predefined fields because software can only process the structures that its developers explicitly implemented.
 
-**An AI agent is different.**
+Now we can finally communicate with our software the way we always wanted to — we just need to believe that this is actually possible. :)
+
+Yes, it happened. Really.
+
+You can start forgetting about some of those painfully strict configuration files and simply **tell the AI what you want**. It can understand concepts, intentions, rules, examples, and relationships without requiring everything to be squeezed into a rigid predefined format.
+
+I think we humans sometimes still struggle to accept this. We have spent decades learning how to communicate with machines through strict languages, schemas, interfaces, and configuration files, so naturally we keep trying to drag AI back into those familiar old methods.
+
+But something has changed.
+
+**We can talk to our machines now.**
+
+So yes, the Terminator is here — but instead of travelling back in time to destroy humanity, it mostly wants to write you a new Tetris game, fix your build, or implement your cool — or perhaps not-so-cool — idea. :)
+
+**So yes, an AI agent is different when it comes to communication.**
 
 It can understand **natural language, concepts, relationships, examples, technical instructions, and project-specific terminology**.
 
 Because of this, humans do not necessarily need one configuration system for architecture, another for coding rules, another for project requirements, another for workflow, and another document explaining the original intention behind all of them.
 
-**They can tell one coherent Tale.**
+**We can tell one coherent Tale.**
 
 The challenge is no longer only making information machine-readable.
 

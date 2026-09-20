@@ -16,7 +16,9 @@ test('CLI requires an external pinned approval and returns nonzero for failed ev
 			rm(trusted, { recursive: true, force: true }),
 		]),
 	);
-	const project = parseProject(await readFile('tale.project.json', 'utf8'));
+	const project = parseProject(
+		await readFile('project/tale.project.json', 'utf8'),
+	);
 	project.diagram.items = project.diagram.items.filter(
 		(item) => !['no-project-json', 'preserve-project'].includes(item.id),
 	);

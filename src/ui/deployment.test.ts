@@ -50,12 +50,30 @@ export async function run(project: Project) {
 	};
 	const messages: string[] = [];
 	try {
-		openDeployment(project, (message) => messages.push(message), api);
+		openDeployment(
+			{ ...project, deploymentDirectory: '/saved/suggestion' },
+			(message) => messages.push(message),
+			api,
+		);
+		check(
+			control<HTMLElement>('.deployment-folder').textContent?.includes(
+				'/saved/suggestion',
+			),
+			'Saved directory is shown as a suggestion',
+		);
+		check(
+			calls.length === 0,
+			'A saved directory must not automatically preview or deploy',
+		);
 		const deploy = control<HTMLButtonElement>('#confirm-deployment');
 		check(deploy.disabled, 'Deploy needs a preview');
 		control<HTMLButtonElement>('[aria-label="Choose project folder"]').click();
 		await settled();
 		check(deploy.disabled, 'Existing .tale needs explicit approval');
+		check(
+			JSON.stringify(calls[0]).includes('\"chooseTarget\":true'),
+			'First preview must ask for the destination',
+		);
 		check(
 			!document.querySelector('#deployment script'),
 			'Preview content must remain inert',

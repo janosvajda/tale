@@ -52,6 +52,6 @@ test('startup wires native file actions to the correct named renderer commands',
 	for (const item of file.submenu) item.click?.();
 	assert.deepEqual(
 		sent.map((args) => args[1]),
-		['new', 'open', 'save', 'saveAs', 'deploy', 'compile', 'verify'],
+		['new', 'open', 'save', 'saveAs', 'deploy', 'compile', 'verify', 'exit'],
 	);
 });

@@ -1,65 +1,42 @@
-import { conditions, itemTag } from '../model/contract.js';
-import { fieldLabel, readable } from '../model/fields.js';
 import {
-	type DiagramItem,
-	id,
-	type Json,
-	type Project,
-} from '../model/project.js';
-import { ruleSection } from './fields.js';
+	definition,
+	type FieldDefinition,
+	itemRole,
+} from '../model/catalogue.js';
+import { fieldLabel } from '../model/fields.js';
+import { type DiagramItem, id, type Project } from '../model/project.js';
+import { control, ruleSection } from './fields.js';
 
 export function contractFields(
 	project: Project,
 	item: DiagramItem,
 	mutate: (edit: (project: Project) => void) => void,
 ): HTMLElement {
-	const tag = itemTag(project, item);
+	const tag = project.itemTypes.find((tag) => tag.id === item.typeId)!;
+	const spec = definition(tag);
 	const host = document.createElement('div');
 	host.className = 'contract-fields';
-	const fields =
-		tag === 'REQUIREMENT'
-			? ['action', 'condition', 'subject', 'expected', 'mandatory']
-			: ['action', 'executable', 'timeout_ms'];
-	for (const key of fields) {
-		if (hiddenField(key, item)) continue;
+	for (const field of spec.fields ?? []) {
+		if (field.source || hiddenField(field, item)) continue;
+		const key = field.key;
+		const value = item.properties[key] ?? field.initial ?? '';
+		const update = (value: import('../model/project.js').Json) =>
+			mutate((p) => {
+				const target = p.diagram.items.find((entry) => entry.id === item.id);
+				if (target) target.properties[key] = value;
+			});
 		host.append(
-			control(key, item.properties[key] ?? '', (value) =>
-				mutate((p) => {
-					const target = p.diagram.items.find((entry) => entry.id === item.id);
-					if (target) target.properties[key] = value;
-				}),
-			),
+			Array.isArray(value)
+				? ruleSection(tag, key, value, update, () => update([]))
+				: control(tag, key, value, update, fieldLabel(key, tag)),
 		);
 	}
-	if (tag === 'CHECK') {
-		for (const key of ['arguments', 'protected_files'])
-			host.append(
-				ruleSection(
-					tag,
-					key,
-					item.properties[key] ?? [],
-					(value) =>
-						mutate((p) => {
-							const target = p.diagram.items.find(
-								(entry) => entry.id === item.id,
-							);
-							if (target) target.properties[key] = value;
-						}),
-					() =>
-						mutate((p) => {
-							const target = p.diagram.items.find(
-								(entry) => entry.id === item.id,
-							);
-							if (target) target.properties[key] = [];
-						}),
-				),
-			);
-	} else {
+	if (spec.role === 'requirement') {
 		const label = document.createElement('strong');
 		label.textContent = 'Verified by';
 		host.append(label);
 		for (const candidate of project.diagram.items.filter(
-			(entry) => itemTag(project, entry) === 'CHECK',
+			(entry) => itemRole(project, entry) === 'check',
 		)) {
 			const row = document.createElement('label');
 			row.className = 'contract-link';
@@ -103,52 +80,11 @@ export function contractFields(
 	}
 	return host;
 }
-function hiddenField(key: string, item: DiagramItem) {
-	return (
-		(key === 'subject' && item.properties.condition === 'command_succeeds') ||
-		(key === 'expected' && item.properties.condition !== 'equals_file')
-	);
-}
-function control(
-	key: string,
-	value: Json,
-	update: (value: Json) => void,
-): HTMLElement {
-	const label = document.createElement('label');
-	label.className = 'field';
-	const title = document.createElement('span');
-	title.textContent = fieldLabel(key);
-	const input =
-		key === 'condition'
-			? document.createElement('select')
-			: document.createElement('input');
-	input.setAttribute('aria-label', fieldLabel(key));
-	if (input instanceof HTMLSelectElement)
-		for (const condition of conditions) {
-			const option = document.createElement('option');
-			option.value = condition;
-			option.textContent = readable(condition);
-			input.append(option);
-		}
-	if (input instanceof HTMLInputElement) {
-		input.type =
-			typeof value === 'boolean'
-				? 'checkbox'
-				: typeof value === 'number'
-					? 'number'
-					: 'text';
-		if (typeof value === 'boolean') input.checked = value;
-	}
-	input.value = String(value);
-	input.addEventListener('change', () =>
-		update(
-			input instanceof HTMLInputElement && input.type === 'checkbox'
-				? input.checked
-				: typeof value === 'number'
-					? Number(input.value)
-					: input.value,
-		),
-	);
-	label.append(title, input);
-	return label;
+function hiddenField(field: FieldDefinition, item: DiagramItem) {
+	const condition = field.visibleWhen;
+	if (!condition) return false;
+	const value = item.properties[condition.key];
+	return condition.equals !== undefined
+		? value !== condition.equals
+		: value === condition.notEquals;
 }

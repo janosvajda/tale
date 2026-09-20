@@ -37,7 +37,11 @@
 				"noUselessUndefined": "error",
 				"useArrowFunction": "error",
 				"useFlatMap": "error",
-				"useOptionalChain": "error"
+				"useOptionalChain": "error",
+				"noBannedTypes": "error",
+				"noForEach": "error",
+				"noRedundantDefaultExport": "error",
+				"useRegexLiterals": "error"
 			},
 			"correctness": {
 				"noConstAssign": "error",
@@ -47,7 +51,8 @@
 				"noUnusedPrivateClassMembers": "error",
 				"noUnusedFunctionParameters": "error",
 				"noUnusedImports": "error",
-				"noUnusedVariables": "error"
+				"noUnusedVariables": "error",
+				"noSelfAssign": "error"
 			},
 			"performance": {
 				"noAccumulatingSpread": "error",

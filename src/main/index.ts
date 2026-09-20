@@ -29,8 +29,9 @@ void app
 					{ type: 'separator' },
 					action('Deploy…', 'deploy'),
 					action('Preview compiled Tales', 'compile'),
-					action('Verify agreement…', 'verify'),
-					{ role: 'close' },
+					action('Check agreement…', 'verify'),
+					{ type: 'separator' },
+					action('Exit', 'exit', 'CmdOrCtrl+Q'),
 				],
 			},
 			{

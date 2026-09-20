@@ -2,6 +2,7 @@ import { type Artifact, compile } from '../application/compiler.js';
 import { Editor } from '../editor/editor.js';
 import { navigationMode } from '../editor/navigation.js';
 import { type MenuAction, type Reply, validateReply } from '../model/bridge.js';
+import { definition, itemRole } from '../model/catalogue.js';
 import { inspectContract } from '../model/contract.js';
 import {
 	check,
@@ -15,7 +16,8 @@ import { tags, unusedTagColor, validTag } from '../model/tags.js';
 import { contractFields } from './contract-fields.js';
 import { openDeployment } from './deployment.js';
 import { ruleFields } from './fields.js';
-import { decorateIcon, type IconName, iconButton } from './icons.js';
+import { decorateIcon, type IconName, icon, iconButton } from './icons.js';
+import { openNewProject } from './new-project.js';
 import { openVerification } from './verification.js';
 
 function get<T extends HTMLElement = HTMLElement>(selector: string): T {
@@ -155,7 +157,7 @@ function refresh(edited: boolean) {
 	get('#zoom').textContent =
 		`${Math.round(editor.project.diagram.viewport.zoom * ui.percent)}%`;
 	get('#board-count').textContent =
-		`${editor.project.diagram.items.length} items · ${editor.project.diagram.connections.length} connections`;
+		`${editor.project.diagram.items.length} tags · ${editor.project.diagram.connections.length} connections`;
 	for (const tool of ['select', 'hand', 'arrow'])
 		get(`#${tool}-tool`).classList.toggle('active', editor.tool === tool);
 	palette();
@@ -167,8 +169,8 @@ function refresh(edited: boolean) {
 			affected.has(node.dataset.node ?? ''),
 		);
 	get('#contract-status').textContent = issues.length
-		? `${issues.length} contract issue${issues.length === 1 ? '' : 's'}`
-		: 'Verify';
+		? `Check agreement · ${issues.length}`
+		: 'Check agreement';
 	inspector();
 }
 function palette() {
@@ -198,13 +200,32 @@ function palette() {
 function itemActions(item: DiagramItem): HTMLElement {
 	const row = element('div', undefined, 'inspector-item-actions');
 	row.append(
-		iconButton('copy', 'Duplicate item', () =>
+		iconButton('save', 'Save as predefined tag', () =>
+			change((project) => {
+				const type = project.itemTypes.find((type) => type.id === item.typeId);
+				check(type, 'Missing tag definition');
+				project.itemTypes.push({
+					...structuredClone(type),
+					id: id(),
+					label: item.title,
+					definition: {
+						...structuredClone(definition(type)),
+						initial: {
+							properties: structuredClone(item.properties),
+							sections: structuredClone(item.sections ?? []),
+						},
+					},
+				});
+				notify('Predefined tag added to the palette');
+			}),
+		),
+		iconButton('copy', 'Duplicate tag', () =>
 			guarded(() => {
 				editor.selected = new Set([item.id]);
 				editor.duplicate();
 			}),
 		),
-		iconButton('trash', 'Delete item', () =>
+		iconButton('trash', 'Delete tag', () =>
 			guarded(() => {
 				editor.selected = new Set([item.id]);
 				editor.remove();
@@ -290,8 +311,13 @@ function restoreInspector(
 function knownRelationship(kind: string) {
 	return ['contains', 'verified_by'].includes(kind);
 }
-function isContractType(type: { tag: string } | undefined) {
-	return type !== undefined && ['REQUIREMENT', 'CHECK'].includes(type.tag);
+function isContractType(
+	type: import('../model/project.js').ItemType | undefined,
+) {
+	return (
+		type !== undefined &&
+		['requirement', 'check'].includes(definition(type).role ?? '')
+	);
 }
 function relationshipOptions(kind: string) {
 	return [
@@ -347,7 +373,7 @@ function renderInspector() {
 		}
 		pane.append(
 			ruleFields(
-				type?.tag ?? '',
+				type ?? '',
 				item.properties,
 				(key, value) =>
 					change((p) => {
@@ -478,15 +504,56 @@ function projectSettings() {
 			'wide quiet',
 		),
 	);
-	heading('Item types');
+	heading('Tags');
+	const newLabel = field('Tag name', '', () => {});
+	newLabel.placeholder = 'Tag name';
+	newLabel.setAttribute('aria-label', 'New tag name');
+
+	const newTag = field('Tag identifier', '', () => {});
+	newTag.setAttribute('aria-label', 'New tag identifier');
+	newTag.placeholder = 'e.g. TEAM_RULES';
+	newTag.setAttribute('list', 'tag-suggestions');
+	const suggestions = element('datalist');
+	suggestions.id = 'tag-suggestions';
+	for (const tag of tags) {
+		const option = element('option', tag);
+		option.value = tag;
+		suggestions.append(option);
+	}
+	pane.append(suggestions);
+	pane.append(
+		button(
+			'＋ Add tag',
+			() =>
+				change((p) => {
+					check(newLabel.value.trim(), 'Give the tag a name');
+					const tag = newTag.value.trim().toUpperCase();
+					check(
+						validTag(tag),
+						'Use a tag starting with a letter, then letters, numbers, or underscores',
+					);
+					const same = p.itemTypes.find((t) => t.tag === tag);
+					p.itemTypes.push({
+						id: id(),
+						label: newLabel.value.trim(),
+						tag,
+						definition: structuredClone(definition(tag)),
+						color:
+							same?.color ??
+							unusedTagColor(p.itemTypes.map((type) => type.color)),
+					});
+				}),
+			'wide quiet',
+		),
+	);
+	heading('Tags in this project');
 	for (const type of editor.project.itemTypes) {
-		const row = element('div', undefined, 'field-row');
+		const row = element('div', undefined, 'tag-definition');
 		const color = element('input');
 		color.type = 'color';
 		color.value = type.color;
 		color.setAttribute('aria-label', `${type.label} colour`);
-		color.style.width = '32px';
-		color.style.flex = 'none';
+		color.className = 'tag-color';
 		color.addEventListener('change', () =>
 			change((p) => {
 				check(isColor(color.value), 'Invalid colour');
@@ -503,119 +570,65 @@ function projectSettings() {
 				if (t) t.label = label.value;
 			}),
 		);
-		row.append(color, label);
+		const name = element('label', undefined, 'tag-label');
+		name.append(element('span', type.tag), label);
+		row.append(color, name);
 		pane.append(row);
 	}
-	const newLabel = element('input');
-	newLabel.placeholder = 'Type name';
-	newLabel.setAttribute('aria-label', 'New type name');
-	pane.append(newLabel);
-	const newTag = element('input');
-	newTag.setAttribute('aria-label', 'New type tag');
-	newTag.placeholder = 'Choose or enter a tag, e.g. TEAM_RULES';
-	newTag.setAttribute('list', 'tag-suggestions');
-	const suggestions = element('datalist');
-	suggestions.id = 'tag-suggestions';
-	for (const tag of tags) {
-		const option = element('option', tag);
-		option.value = tag;
-		suggestions.append(option);
-	}
-	pane.append(newTag, suggestions);
-	pane.append(
-		button(
-			'＋ Item type',
-			() =>
-				change((p) => {
-					check(newLabel.value.trim(), 'Give the type a name');
-					const tag = newTag.value.trim().toUpperCase();
-					check(
-						validTag(tag),
-						'Use a tag starting with a letter, then letters, numbers, or underscores',
-					);
-					const same = p.itemTypes.find((t) => t.tag === tag);
-					p.itemTypes.push({
-						id: id(),
-						label: newLabel.value.trim(),
-						tag,
-						color:
-							same?.color ??
-							unusedTagColor(p.itemTypes.map((type) => type.color)),
-					});
-				}),
-			'wide quiet',
-		),
-	);
-	heading('Tale outputs');
-	const roots = editor.project.diagram.items.filter(
-		(i) =>
-			editor.project.itemTypes.find((t) => t.id === i.typeId)?.tag === 'TALE',
-	);
-	for (const output of editor.project.exports) {
-		field('Output path', output.path, (path) =>
-			change((p) => {
-				const e = p.exports.find((e) => e.id === output.id);
-				if (e) e.path = path;
-			}),
-		);
-		selection(
-			'Root',
-			output.rootItemId,
-			roots.map((i) => ({ value: i.id, label: i.title })),
-			(root) =>
-				change((p) => {
-					const e = p.exports.find((e) => e.id === output.id);
-					if (e) e.rootItemId = root;
-				}),
-		);
-		selection(
-			'Environment',
-			output.environmentId ?? '',
-			[
-				{ value: '', label: 'Project-wide' },
-				...editor.project.environments.map((e) => ({
-					value: e.id,
-					label: e.name,
-				})),
-			],
-			(env) =>
-				change((p) => {
-					const e = p.exports.find((e) => e.id === output.id);
-					if (e) e.environmentId = env || null;
-				}),
-		);
-		pane.append(
-			button(
-				'Remove output',
-				() =>
-					change((p) => {
-						p.exports = p.exports.filter((e) => e.id !== output.id);
-					}),
-				'danger',
-			),
-		);
-	}
-	pane.append(
-		button(
-			'＋ Tale output',
-			() =>
-				change((p) => {
-					const root = roots[0];
-					check(root, 'Add a Tale item first');
-					p.exports.push({
-						id: id(),
-						rootItemId: root.id,
-						environmentId: null,
-						path: `.tale/output-${p.exports.length + 1}.tale`,
-					});
-				}),
-			'wide quiet',
-		),
-	);
+	deploymentSettings();
 }
+function deploymentSettings() {
+	const pane = get('#inspector');
+	heading('Deployment');
+	pane.append(
+		element(
+			'p',
+			'One Tale file. Environments are listed in the agent instructions.',
+			'small-note',
+		),
+	);
+	pane.append(
+		element(
+			'p',
+			editor.project.exports[0]?.path ?? '.tale/project.tale',
+			'small-note',
+		),
+	);
+	const roots = editor.project.diagram.items.filter(
+		(item) => itemRole(editor.project, item) === 'document',
+	);
+	if (roots.length > 1 || editor.project.exports.length > 1) {
+		selection(
+			'Tale to deploy',
+			editor.project.exports.length === 1
+				? editor.project.exports[0]!.rootItemId
+				: '',
+			[
+				{ value: '', label: 'Choose a Tale' },
+				...roots.map((root) => ({ value: root.id, label: root.title })),
+			],
+			(rootItemId) =>
+				change((project) => {
+					check(rootItemId, 'Choose a Tale to deploy');
+					project.exports = [
+						{
+							id: 'project',
+							rootItemId,
+							environmentId: null,
+							path: project.exports[0]?.path ?? '.tale/project.tale',
+						},
+					];
+				}),
+		);
+	}
+}
+
 function previewTales() {
 	artifacts = compile(editor.project);
-	check(artifacts.length, 'Add a Tale output in Project settings');
+	check(
+		artifacts.length,
+		'Add a Tale tag and connect your tags before previewing',
+	);
 	const select = get<HTMLSelectElement>('#artifact-select');
 	select.replaceChildren();
 	for (const artifact of artifacts) {
@@ -627,57 +640,44 @@ function previewTales() {
 	get<HTMLDialogElement>('#preview').showModal();
 }
 async function newProject() {
-	if (
-		serializeProject(editor.project) !== saved &&
-		!window.confirm('Discard unsaved changes and start a new project?')
-	)
-		return;
-	await reply(window.tale.newProject());
-	const project = structuredClone(editor.project);
-	project.id = id();
-	project.name = 'Untitled';
-	project.environments = [];
-	project.diagram = {
-		items: [],
-		connections: [],
-		viewport: { x: 0, y: 0, zoom: 1 },
-	};
-	project.exports = [];
-	editor.setProject(project);
-	saved = serializeProject(project);
+	const document = await openNewProject();
+	if (!document) return;
+	editor.setProject(document.project);
+	saved = '';
 	workingPath = null;
-	await reply(window.tale.setDirty(false));
+	settings = false;
+	if (document.project.diagram.items.length) editor.fit();
 	refresh(false);
 }
 
 async function action(command: MenuAction) {
-	if (command === 'verify') {
-		openVerification(structuredClone(editor.project), (ids) => {
-			editor.selected = new Set(ids);
-			settings = false;
-			editor.render();
-			refresh(false);
-		});
-		return;
-	}
-
 	if (busy) return;
 	setBusy(true);
 	get<HTMLDetailsElement>('#file-menu').open = false;
 	try {
-		if (command === 'deploy') {
-			openDeployment(structuredClone(editor.project), (message) =>
-				notify(message),
-			);
-			return;
-		}
-		if (command === 'compile') {
-			previewTales();
-			return;
-		}
-		if (command === 'new') {
-			await newProject();
-			return;
+		switch (command) {
+			case 'verify':
+				openVerification(structuredClone(editor.project), (ids) => {
+					editor.selected = new Set(ids);
+					settings = false;
+					editor.render();
+					refresh(false);
+				});
+				return;
+			case 'exit':
+				await reply(window.tale.exit());
+				return;
+			case 'deploy':
+				openDeployment(structuredClone(editor.project), (message) =>
+					notify(message),
+				);
+				return;
+			case 'compile':
+				previewTales();
+				return;
+			case 'new':
+				await newProject();
+				return;
 		}
 		const result = await reply(
 			command === 'open'
@@ -717,12 +717,16 @@ function toolbarIcons() {
 		['#select-tool', 'select', 'Select and move'],
 		['#hand-tool', 'hand', 'Pan'],
 		['#arrow-tool', 'arrow', 'Draw arrow'],
-		['#palette > summary', 'plus', 'Add item'],
+		['#palette > summary', 'plus', 'Add tag'],
 		['#close-preview', 'close', 'Close preview'],
 		['.appbar > [data-action="save"]', 'save', 'Save'],
-		['.appbar > [data-action="deploy"]', 'deploy', 'Deploy'],
+		['.appbar > [data-action="exit"]', 'exit', 'Exit Tale'],
 		['.appbar > [data-action="compile"]', 'eye', 'Preview Tale'],
 	];
+	get('.appbar > [data-action="deploy"]').replaceChildren(
+		icon('deploy'),
+		element('span', 'Deploy Tale'),
+	);
 	for (const [selector, name, label] of controls)
 		decorateIcon(get(selector), name, label);
 }

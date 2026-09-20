@@ -5,7 +5,7 @@ import {
 	type DeploymentPreview,
 } from '../model/deployment.js';
 import type { Project } from '../model/project.js';
-import { iconButton } from './icons.js';
+import { icon, iconButton } from './icons.js';
 
 function el<K extends keyof HTMLElementTagNameMap>(
 	tag: K,
@@ -42,7 +42,12 @@ export function openDeployment(
 	content.className = 'deployment-content';
 	const folder = el('div');
 	folder.className = 'deployment-folder';
-	const target = el('span', 'Choose the destination project');
+	const target = el(
+		'span',
+		project.deploymentDirectory
+			? `Suggested: ${project.deploymentDirectory} — choose the destination to continue`
+			: 'Choose the destination project',
+	);
 	const choose = iconButton('folder', 'Choose project folder', () => {
 		void prepare(true);
 	});
@@ -78,10 +83,11 @@ export function openDeployment(
 	cancel.addEventListener('click', () => {
 		if (!busy) dialog.close();
 	});
-	const deploy = el('button', 'Deploy');
+	const deploy = el('button');
+	deploy.append(icon('deploy'), el('span', 'Deploy Tale'));
 	deploy.type = 'button';
 	deploy.id = 'confirm-deployment';
-	deploy.className = 'primary';
+	deploy.className = 'deploy-button';
 	deploy.disabled = true;
 	footer.append(cancel, deploy);
 	content.append(folder, el('h3', 'Agents'), choices, preview);

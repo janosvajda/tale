@@ -26,15 +26,19 @@ export function openVerification(
 	if (document.querySelector('#verification')) return;
 	const dialog = el('dialog');
 	dialog.id = 'verification';
-	dialog.setAttribute('aria-label', 'Verify agreement');
+	dialog.setAttribute('aria-label', 'Check agreement');
 	const header = el('div');
 	header.className = 'dialog-header';
 	const close = iconButton('close', 'Close verification', () => {
 		if (!busy) dialog.close();
 	});
-	header.append(el('h2', 'Verify agreement'), close);
+	header.append(el('h2', 'Check agreement'), close);
 	const content = el('div');
 	content.className = 'verification-content';
+	const intro = el(
+		'p',
+		'Run the automated checks linked to your agreement against a chosen project. Review and approve their commands before running. Written rules alone are not automatically tested.',
+	);
 	const state = el('p', 'Not verified');
 	state.setAttribute('role', 'status');
 	const issues = el('div');
@@ -61,7 +65,7 @@ export function openVerification(
 		'Approval is stored outside the project. Protect that location, its digest, and the verifier from agent writes. Commands run with your account permissions.',
 	);
 	boundary.className = 'small-note';
-	content.append(state, issues, review, reason, evidence, boundary);
+	content.append(intro, state, issues, review, reason, evidence, boundary);
 	dialog.append(header, content, footer);
 	let plan: VerificationPreview | undefined;
 	let busy = false;
@@ -76,13 +80,18 @@ export function openVerification(
 		});
 		issues.append(button);
 	}
-	if (!inspection.contract.requirements.length)
+	if (!inspection.contract.requirements.length) {
+		state.textContent = 'No automated checks configured';
+		reason.hidden = true;
+		footer.hidden = true;
+		boundary.hidden = true;
 		issues.append(
 			el(
 				'p',
-				'Add Requirement and Check items, then connect them with Verified by arrows.',
+				'Add Requirement and Check tags, then connect them with Verified by arrows.',
 			),
 		);
+	}
 	const invalid =
 		inspection.issues.length > 0 || !inspection.contract.requirements.length;
 	function update() {

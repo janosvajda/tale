@@ -1,5 +1,6 @@
 const fixtureValues = {
-	buttonZoom: 0.84,
+	buttonZoomStep: 1.2,
+	percent: 100,
 	deploySettleMs: 150,
 	dragSteps: 5,
 	errorLogLevel: 3,
@@ -13,13 +14,10 @@ const fixtureValues = {
 	largeWidth: 1440,
 	moveY: 35,
 	originalItemCount: 22,
-	originalMetaY: 200,
-	originalZoom: 0.7,
 	pointerStepMs: 20,
 	pollMs: 40,
 	resizeX: 28,
 	resizeY: 14,
-	resizedWidth: 360,
 	smallHeight: 680,
 	smallWidth: 960,
 	timeoutMs: 10000,
@@ -60,16 +58,20 @@ let openPath: string | undefined;
 let savePath: string | undefined;
 let target: string | undefined;
 let discard = true;
+const openSuggestions: (string | undefined)[] = [];
+const targetSuggestions: (string | undefined)[] = [];
 let approveContract = false;
 let approvalReviews: string[] = [];
 const dialogs: FileDialogs = {
-	open() {
+	open(defaultPath) {
+		openSuggestions.push(defaultPath);
 		return Promise.resolve(openPath);
 	},
 	save() {
 		return Promise.resolve(savePath);
 	},
-	target() {
+	target(defaultPath) {
+		targetSuggestions.push(defaultPath);
 		return Promise.resolve(target);
 	},
 	discard() {
@@ -196,6 +198,7 @@ async function session(run: number, expected: Buffer) {
 	win = await createWindow(root, {
 		hidden: false,
 		dialogs,
+		preferencesPath: join(directory, 'file-dialogs.json'),
 		approvalStore: join(directory, 'trusted-approvals'),
 		confirmApproval: (details) => {
 			approvalReviews.push(details);
@@ -209,6 +212,52 @@ async function session(run: number, expected: Buffer) {
 		if (level >= fixtureValues.errorLogLevel) errors.push(message);
 	});
 	await until('document.body.dataset.ready === "true"');
+	assert.equal(await evaluate('document.querySelectorAll(".node").length'), 0);
+	await click('.appbar > [data-action="verify"]');
+	await until('document.querySelector("#verification")?.open');
+	assert.equal(
+		await evaluate(
+			'document.querySelector("#verification [role=status]").textContent',
+		),
+		'No automated checks configured',
+	);
+	await click('[aria-label="Close verification"]');
+	await until('!document.querySelector("#verification")');
+	openPath = undefined;
+	await click('[data-action="open"]');
+	if (run > 1)
+		assert.equal(
+			openSuggestions.at(-1),
+			JSON.parse(await readFile(join(directory, 'file-dialogs.json'), 'utf8'))
+				.openDirectory,
+		);
+	assert.equal(await evaluate('document.querySelectorAll(".node").length'), 0);
+	openPath = join(directory, 'missing.json');
+	await click('[data-action="open"]');
+	assert.ok(
+		await evaluate(
+			'document.querySelector("#status").textContent.includes("ENOENT")',
+		),
+	);
+	openPath = join(root, 'project/tale.project.json');
+	await click('[data-action="open"]');
+	assert.equal(
+		await evaluate('document.querySelectorAll(".node").length'),
+		fixtureValues.originalItemCount,
+	);
+
+	openPath = undefined;
+	await click('[data-action="open"]');
+	assert.equal(
+		openSuggestions.at(-1),
+		join(root, 'project'),
+		'Open reuses the successfully opened project folder',
+	);
+	assert.equal(
+		JSON.parse(await readFile(join(directory, 'file-dialogs.json'), 'utf8'))
+			.openDirectory,
+		join(root, 'project'),
+	);
 	assert.equal(await evaluate('typeof window.require'), 'undefined');
 	assert.equal(await evaluate('typeof window.tale.send'), 'undefined');
 	assert.equal(
@@ -248,7 +297,9 @@ async function session(run: number, expected: Buffer) {
 	assert.deepEqual(await readFile(file), savedProjectBytes);
 	if (run === 1) {
 		await verificationInteractions(expected);
-		const project = JSON.parse(await readFile('tale.project.json', 'utf8'));
+		const project = JSON.parse(
+			await readFile('project/tale.project.json', 'utf8'),
+		);
 		for (const path of (await readdir('src', { recursive: true })).sort()) {
 			if (
 				!path.endsWith('.test.ts') ||
@@ -314,6 +365,8 @@ async function navigationInteractions(originalFile: string) {
 	await loaded;
 	win.setIgnoreMouseEvents(true);
 	await until('document.body.dataset.ready === "true"');
+	openPath = originalFile;
+	await click('[data-action="open"]');
 	assert.equal(
 		await evaluate('document.querySelector("#navigation-mode").value'),
 		'mouse',
@@ -613,6 +666,10 @@ async function verificationInteractions(expected: Buffer) {
 	);
 }
 async function interactions() {
+	const initial = await saveAs(join(directory, 'before-drag.json'));
+	const original = initial.diagram.items.find((item) => item.id === 'meta');
+	assert.ok(original);
+	const originalZoom = initial.diagram.viewport.zoom;
 	// Actual pointer input, not direct mutation of the editor's model.
 	const before = await point('[data-node="meta"] .node-body');
 	await drag(before, { x: before.x + 60, y: before.y + fixtureValues.moveY });
@@ -620,12 +677,13 @@ async function interactions() {
 	const moved = await saveAs(join(directory, 'moved.json'));
 	const item = moved.diagram.items.find((i) => i.id === 'meta');
 	assert.ok(item);
-	assert.ok(Math.abs(item.position.x - 60 / fixtureValues.originalZoom) < 2);
+	assert.ok(
+		Math.abs(item.position.x - (original.position.x + 60 / originalZoom)) < 2,
+	);
 	assert.ok(
 		Math.abs(
 			item.position.y -
-				(fixtureValues.originalMetaY +
-					fixtureValues.moveY / fixtureValues.originalZoom),
+				(original.position.y + fixtureValues.moveY / originalZoom),
 		) < 2,
 	);
 	await evaluate(
@@ -645,7 +703,7 @@ async function interactions() {
 	assert.ok(
 		Math.abs(
 			(resized.diagram.items.find((i) => i.id === 'meta')?.size.width ?? 0) -
-				fixtureValues.resizedWidth,
+				(original.size.width + fixtureValues.resizeX / originalZoom),
 		) < 2,
 	);
 	await click('#arrow-tool');
@@ -700,18 +758,26 @@ async function interactions() {
 		`(() => { const input = document.querySelector('input[aria-label="Environment name"]'); input.value = 'Staging'; input.dispatchEvent(new Event('change', {bubbles:true})); })()`,
 	);
 	await evaluate(
-		`(() => { document.querySelector('input[aria-label="New type name"]').value = 'Team agreement'; document.querySelector('input[aria-label="New type tag"]').value = 'AGREEMENT'; Array.from(document.querySelectorAll('button')).find(b => b.textContent === '＋ Item type').click(); })()`,
+		`(() => { document.querySelector('input[aria-label="New tag name"]').value = 'Team agreement'; document.querySelector('input[aria-label="New tag identifier"]').value = 'AGREEMENT'; Array.from(document.querySelectorAll('button')).find(b => b.textContent === '＋ Add tag').click(); })()`,
 	);
 	const configured = await saveAs(join(directory, 'configured.json'));
 	assert.equal(configured.environments[0]?.name, 'Staging');
 	assert.ok(configured.itemTypes.some((t) => t.label === 'Team agreement'));
 	await evaluate(
+		`document.querySelector('[aria-label="AGREEMENT label"]').focus()`,
+	);
+	await writeFile(
+		join(root, 'artifacts/tag-settings.png'),
+		(await win.webContents.capturePage()).toPNG(),
+	);
+	await evaluate(
 		`document.querySelector('#inspector .inspector-header button').click()`,
 	);
+	const zoomBeforeButton = (await viewport()).zoom;
 	await click('#zoom-in');
 	assert.equal(
 		await evaluate('document.querySelector("#zoom").textContent'),
-		'84%',
+		`${Math.round(zoomBeforeButton * fixtureValues.buttonZoomStep * fixtureValues.percent)}%`,
 	);
 	await evaluate(
 		'document.querySelector(".board").dispatchEvent(new WheelEvent("wheel", {deltaY:-50,clientX:400,clientY:350,ctrlKey:true,bubbles:true,cancelable:true}))',
@@ -720,7 +786,10 @@ async function interactions() {
 		setTimeout(resolve, fixtureValues.zoomSettleMs),
 	);
 	const zoomed = await saveAs(join(directory, 'zoomed.json'));
-	assert.ok(zoomed.diagram.viewport.zoom > fixtureValues.buttonZoom);
+	assert.ok(
+		zoomed.diagram.viewport.zoom >
+			zoomBeforeButton * fixtureValues.buttonZoomStep,
+	);
 	await click('#fit');
 	await evaluate('document.querySelector("#palette").open = true');
 	assert.equal(
@@ -756,6 +825,7 @@ async function interactions() {
 	);
 	assert.equal(await readFile(join(deploy, 'agents.md'), 'utf8'), instructions);
 	assert.ok(instructions.startsWith("Keep the user's rules.\n"));
+	assert.ok(instructions.includes('- "Staging":'));
 	await deploymentChecks(deploy, instructions);
 	openPath = undefined;
 	await click('[data-action="open"]');
@@ -783,19 +853,22 @@ async function interactions() {
 	);
 	await paletteViewportChecks();
 	const previousSave = await readFile(join(directory, 'redone.json'));
-	await click('[data-action="new"]');
+	await openNewProjectDialog();
+	await setControl('#new-project input[name="title"]', 'My blank project');
+	await submitNewProject();
 	savePath = join(directory, 'new-project.json');
 	await click('[data-action="save"]');
 	const fresh = parseProject((await saved(savePath)).toString());
-	assert.equal(fresh.name, 'Untitled');
+	assert.equal(fresh.name, 'My blank project');
 	assert.equal(fresh.diagram.items.length, 0);
 	assert.deepEqual(
 		await readFile(join(directory, 'redone.json')),
 		previousSave,
 		'New must not overwrite the previous document',
 	);
+	await templateInteractions();
 	// Reopen the original sample for a useful screenshot of the actual application.
-	openPath = join(root, 'tale.project.json');
+	openPath = join(root, 'project/tale.project.json');
 	await click('[data-action="open"]');
 	await until('document.querySelectorAll(".node").length === 22');
 	const product = await point('[data-node="product"] .node-body');
@@ -831,7 +904,7 @@ async function paletteViewportChecks() {
 			return panel.left >= canvas.left && panel.right <= canvas.right && panel.top >= 0 && panel.bottom <= innerHeight;
 		})()`),
 			true,
-			'The entire Add item menu must remain inside the visible board and window',
+			'The entire Add tag menu must remain inside the visible board and window',
 		);
 		assert.equal(
 			await evaluate(`(() => {
@@ -1068,12 +1141,54 @@ async function customSectionInteractions(original: Buffer) {
 		'Custom sections: all three types, editable options, radio exclusivity, duplication, popup dismissal, JSON roundtrip, deployment and exact exports passed',
 	);
 }
+async function predefinedTagInteractions(originalTypeId: string) {
+	await click('[aria-label="Save as predefined tag"]');
+	const savedPath = join(directory, 'predefined-tag.json');
+	const project = await saveAs(savedPath);
+	const preset = project.itemTypes.at(-1)!;
+	assert.notEqual(preset.id, originalTypeId);
+	assert.equal(
+		preset.definition?.initial?.sections[0]?.title,
+		'Team communication',
+	);
+	openPath = savedPath;
+	await click('[data-action="open"]');
+	await click('#palette > summary');
+	await click(`.type-button[data-type-id="${preset.id}"]`);
+	const copy = await saveAs(join(directory, 'predefined-copy.json'));
+	const item = copy.diagram.items.at(-1)!;
+	assert.equal(item.sections?.[0]?.type, 'text');
+	assert.equal(
+		item.sections?.[0]?.type === 'text' ? item.sections[0].text : '',
+		'Ask before expanding scope.',
+	);
+	assert.notEqual(
+		item.sections?.[0]?.id,
+		preset.definition?.initial?.sections[0]?.id,
+	);
+	await setControl('#inspector textarea', 'Independent copy.');
+	const edited = await saveAs(join(directory, 'predefined-edited.json'));
+	const source = edited.itemTypes.find((tag) => tag.id === preset.id)
+		?.definition?.initial?.sections[0];
+	assert.equal(
+		source?.type === 'text' ? source.text : '',
+		'Ask before expanding scope.',
+	);
+	// Keep the authored tag and catalogue entry, removing only the extra copy from the test board.
+	await click('[aria-label="Delete tag"]');
+	const original = edited.diagram.items.find(
+		(item) => item.typeId === originalTypeId,
+	)!;
+	await evaluate(
+		`(() => { const node = document.querySelector('[data-node="${original.id}"] .node-body'); node.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerId:1})); node.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,button:0,pointerId:1})); })()`,
+	);
+}
 async function customTagInteractions(original: Buffer) {
 	await click('#project-settings');
-	await setControl('[aria-label="New type name"]', 'Team rules');
-	await setControl('[aria-label="New type tag"]', 'TEAM_RULES');
+	await setControl('[aria-label="New tag name"]', 'Team rules');
+	await setControl('[aria-label="New tag identifier"]', 'TEAM_RULES');
 	await evaluate(
-		`Array.from(document.querySelectorAll('button')).find(b => b.textContent === '＋ Item type').click()`,
+		`Array.from(document.querySelectorAll('button')).find(b => b.textContent === '＋ Add tag').click()`,
 	);
 	const configured = await saveAs(
 		join(directory, 'custom-tag-configured.json'),
@@ -1085,6 +1200,7 @@ async function customTagInteractions(original: Buffer) {
 	await click(`.type-button[data-type-id="${type.id}"]`);
 	const text = await addCustomSection('Free text', 'Team communication');
 	await setControl(`${text} textarea`, 'Ask before expanding scope.');
+	await predefinedTagInteractions(type.id);
 	const added = await saveAs(join(directory, 'custom-tag-added.json'));
 	const item = added.diagram.items.find((item) => item.typeId === type.id);
 	assert.ok(item);
@@ -1125,7 +1241,7 @@ async function customTagInteractions(original: Buffer) {
 		expected,
 	);
 	assert.deepEqual(await readdir(join(destination, '.tale')), ['project.tale']);
-	openPath = join(root, 'tale.project.json');
+	openPath = join(root, 'project/tale.project.json');
 	await click('[data-action="open"]');
 	console.log(
 		'Custom tags: define, add, connect, edit, save/reopen and byte-exact deployment passed',
@@ -1142,6 +1258,7 @@ void app
 		win = await createWindow(root, {
 			hidden: false,
 			dialogs,
+			preferencesPath: join(directory, 'file-dialogs.json'),
 			approvalStore: join(directory, 'trusted-approvals'),
 			confirmApproval: (details) => {
 				approvalReviews.push(details);
@@ -1151,6 +1268,18 @@ void app
 		await until('document.body.dataset.ready === "true"');
 		await evaluate('window.tale.setDirty(true)');
 		discard = false;
+		await click('#file-menu [data-action="exit"]');
+		assert.equal(
+			win.isDestroyed(),
+			false,
+			'Cancelled File Exit keeps unsaved work',
+		);
+		await click('.appbar > [data-action="exit"]');
+		assert.equal(
+			win.isDestroyed(),
+			false,
+			'Cancelled exit icon keeps unsaved work',
+		);
 		win.close();
 		await new Promise((resolve) =>
 			setTimeout(resolve, fixtureValues.windowSettleMs),
@@ -1166,7 +1295,7 @@ void app
 				'Lifecycle: closing the last window exits the app; cancel preserves unsaved work',
 			);
 		});
-		win.close();
+		win.webContents.send('tale:menu', 'exit');
 	})
 	.catch(async (error) => {
 		console.error(error);
@@ -1179,3 +1308,136 @@ void app
 		}
 		app.exit(1);
 	});
+
+async function openNewProjectDialog() {
+	await evaluate('document.querySelector(\'[data-action="new"]\').click()');
+	await until(
+		'document.querySelectorAll(\'#new-project select[name="template"] option\').length === 4',
+	);
+}
+async function submitNewProject() {
+	await evaluate(
+		'document.querySelector(\'#new-project button[type="submit"]\').click()',
+	);
+	await until(
+		'!document.querySelector("#new-project") && document.body.dataset.busy !== "true"',
+	);
+}
+async function templateInteractions() {
+	await openNewProjectDialog();
+	await setControl('#new-project input[name="title"]', 'Cancelled project');
+	await evaluate(
+		'document.querySelector(\'[aria-label="Close new project"]\').click()',
+	);
+	await until(
+		'!document.querySelector("#new-project") && document.body.dataset.busy !== "true"',
+	);
+	assert.equal(
+		await evaluate('document.querySelector("#project-name").textContent'),
+		'My blank project',
+	);
+	const suggestion = join(directory, 'not-created-yet');
+	for (const template of [
+		'node-typescript-eslint-webpack',
+		'node-typescript-biome-webpack',
+		'rust-clippy',
+	]) {
+		await openNewProjectDialog();
+		await setControl('#new-project input[name="title"]', template);
+		await setControl('#new-project input[name="directory"]', suggestion);
+		await setControl(
+			'#new-project select[name="template"]',
+			`${template}.json`,
+		);
+		await evaluate(
+			'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))',
+		);
+		await writeFile(
+			join(root, 'artifacts/new-project.png'),
+			(await win.webContents.capturePage()).toPNG(),
+		);
+		await submitNewProject();
+		assert.equal(
+			await evaluate(
+				'document.querySelector("#dirty").classList.contains("visible")',
+			),
+			true,
+		);
+		const file = join(directory, `${template}.json`);
+		const project = await saveAs(file);
+		const bytes = await readFile(file);
+		assert.equal(project.name, template);
+		assert.equal(project.deploymentDirectory, suggestion);
+		assert.ok(project.diagram.items.length);
+		const expected = Buffer.from(compile(project)[0]!.content);
+		openPath = file;
+		await click('[data-action="open"]');
+		target = join(directory, `${template}-deployed`);
+		await mkdir(target);
+		const before = targetSuggestions.length;
+		await deployCurrent();
+		assert.equal(
+			targetSuggestions.length,
+			before + 1,
+			'Deployment must ask for a directory even with a saved suggestion',
+		);
+		assert.equal(targetSuggestions.at(-1), suggestion);
+		assert.deepEqual(
+			await readFile(join(target, '.tale/project.tale')),
+			expected,
+		);
+		assert.deepEqual(await readdir(join(target, '.tale')), ['project.tale']);
+		assert.match(
+			await readFile(join(target, 'AGENTS.md'), 'utf8'),
+			/project.tale/,
+		);
+		assert.deepEqual(
+			await readFile(file),
+			bytes,
+			'Deployment must preserve the saved diagram',
+		);
+		await deployCurrent();
+		assert.equal(
+			targetSuggestions.length,
+			before + 2,
+			'Repeat deployment must ask again',
+		);
+		assert.deepEqual(
+			await readFile(join(target, '.tale/project.tale')),
+			expected,
+		);
+	}
+	const invalid = await evaluate<{ ok: boolean }>(
+		`window.tale.newProject({templateId: '../project/tale.project.json', title: 'Invalid'})`,
+	);
+	assert.equal(invalid.ok, false);
+	assert.equal(
+		await evaluate('document.querySelector("#project-name").textContent'),
+		'rust-clippy',
+	);
+	await evaluate('window.tale.setDirty(true)');
+	discard = false;
+	await openNewProjectDialog();
+	await setControl(
+		'#new-project input[name="title"]',
+		'Must not replace unsaved work',
+	);
+	await evaluate(
+		'document.querySelector(\'#new-project button[type="submit"]\').click()',
+	);
+	await until(
+		'!document.querySelector(\'#new-project button[type="submit"]\').disabled',
+	);
+	assert.equal(
+		await evaluate('document.querySelector("#project-name").textContent'),
+		'rust-clippy',
+	);
+	await evaluate(
+		'document.querySelector(\'[aria-label="Close new project"]\').click()',
+	);
+	await until('document.body.dataset.busy !== "true"');
+	discard = true;
+	console.log(
+		'New project: all templates, cancellation, Save/Open, destination confirmation and deterministic deployment passed',
+	);
+}

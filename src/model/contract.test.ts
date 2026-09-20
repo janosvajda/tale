@@ -6,7 +6,9 @@ import { contractFor, inspectContract, relativeFile } from './contract.js';
 import { parseProject } from './project.js';
 
 test('requirements link to checks in the compiled Tale; board positions are not contract semantics', async () => {
-	const project = parseProject(await readFile('tale.project.json', 'utf8'));
+	const project = parseProject(
+		await readFile('project/tale.project.json', 'utf8'),
+	);
 	const contract = contractFor(project);
 	assert.ok(
 		contract.requirements.every((entry) =>
@@ -28,7 +30,9 @@ test('requirements link to checks in the compiled Tale; board positions are not 
 	assert.throws(() => compile(project), /no linked check/);
 });
 test('contradictory conditions and wrong action links block compilation', async () => {
-	const project = parseProject(await readFile('tale.project.json', 'utf8'));
+	const project = parseProject(
+		await readFile('project/tale.project.json', 'utf8'),
+	);
 	const wrong = project.diagram.items.find(
 		(item) => item.id === 'no-project-json',
 	);
@@ -50,7 +54,9 @@ test('paths and incomplete executable contracts fail closed, while JSON can save
 	])
 		assert.equal(relativeFile(path), false);
 	assert.equal(relativeFile('reports/output.txt'), true);
-	const project = parseProject(await readFile('tale.project.json', 'utf8'));
+	const project = parseProject(
+		await readFile('project/tale.project.json', 'utf8'),
+	);
 	const check = project.diagram.items.find(
 		(item) => item.id === 'deploy-check',
 	);
@@ -62,7 +68,9 @@ test('paths and incomplete executable contracts fail closed, while JSON can save
 });
 
 test('proof policy cannot select self-approval and overrides remain explicit change requests', async () => {
-	const project = parseProject(await readFile('tale.project.json', 'utf8'));
+	const project = parseProject(
+		await readFile('project/tale.project.json', 'utf8'),
+	);
 	const proof = project.diagram.items.find((item) => item.id === 'proof');
 	assert.ok(proof);
 	proof.properties.steps = [

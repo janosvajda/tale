@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import { parseProject, serializeProject, validateProject } from './project.js';
 
 test('project roundtrip preserves typed values and rejects unsafe nested property keys', async () => {
-	const p = parseProject(await readFile('tale.project.json', 'utf8'));
+	const p = parseProject(await readFile('project/tale.project.json', 'utf8'));
 	assert.deepEqual(parseProject(serializeProject(p)), p);
 	const item = p.diagram.items[0];
 	assert.ok(item);
@@ -13,11 +13,14 @@ test('project roundtrip preserves typed values and rejects unsafe nested propert
 });
 
 test('custom tags survive project roundtrip and cannot inject Tale headers', async () => {
-	const project = parseProject(await readFile('tale.project.json', 'utf8'));
+	const project = parseProject(
+		await readFile('project/tale.project.json', 'utf8'),
+	);
 	const type = {
 		id: 'team',
 		label: 'Team rules',
 		tag: 'TEAM_RULES',
+		definition: {},
 		color: '#123456',
 	};
 	project.itemTypes.push(type);
@@ -30,7 +33,9 @@ test('custom tags survive project roundtrip and cannot inject Tale headers', asy
 });
 
 test('custom section types and selections survive JSON and invalid radio selections fail validation', async () => {
-	const project = parseProject(await readFile('tale.project.json', 'utf8'));
+	const project = parseProject(
+		await readFile('project/tale.project.json', 'utf8'),
+	);
 	const item = project.diagram.items[0];
 	assert.ok(item);
 	item.sections = [
@@ -75,4 +80,17 @@ test('custom section types and selections survive JSON and invalid radio selecti
 	radio.options.pop();
 	item.sections.push({ ...radio });
 	assert.throws(() => validateProject(project), /Duplicate sections ID/);
+});
+
+test('deployment directory is optional persisted metadata and rejects malformed paths', async () => {
+	const project = parseProject(
+		await readFile('project/tale.project.json', 'utf8'),
+	);
+	project.deploymentDirectory = '/future/project';
+	assert.equal(
+		parseProject(serializeProject(project)).deploymentDirectory,
+		'/future/project',
+	);
+	for (const deploymentDirectory of ['', 1, 'bad\0path'])
+		assert.throws(() => validateProject({ ...project, deploymentDirectory }));
 });

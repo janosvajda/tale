@@ -9,10 +9,12 @@ import {
 } from 'electron';
 import type { Reply } from '../model/bridge.js';
 import { validateAgentSelection } from '../model/deployment.js';
+import { newProject, validateNewProject } from '../model/new-project.js';
 import {
 	check,
 	record,
 	serializeProject,
+	validateDirectory,
 	validateProject,
 } from '../model/project.js';
 import {
@@ -21,13 +23,15 @@ import {
 	prepareDeployment,
 } from './deployment.js';
 import { atomicWrite, exportTales, readProject } from './files.js';
+import { lastOpenDirectory, rememberOpenDirectory } from './preferences.js';
+import { createFromTemplate, listTemplates } from './templates.js';
 import { VerificationSession } from './verification.js';
 
 const maxApprovalReasonLength = 2000;
 export interface FileDialogs {
-	open(): Promise<string | undefined>;
+	open(defaultPath?: string): Promise<string | undefined>;
 	save(): Promise<string | undefined>;
-	target(): Promise<string | undefined>;
+	target(defaultPath?: string): Promise<string | undefined>;
 	discard(): Promise<boolean>;
 }
 export function trustedSender(
@@ -46,6 +50,7 @@ export async function createWindow(
 		hidden?: boolean;
 		dialogs?: FileDialogs;
 		approvalStore?: string;
+		preferencesPath?: string;
 		confirmApproval?: (details: string) => Promise<boolean>;
 	} = {},
 ): Promise<BrowserWindow> {
@@ -66,10 +71,14 @@ export async function createWindow(
 			webSecurity: true,
 		},
 	});
+	const preferences =
+		options.preferencesPath ??
+		join(app.getPath('userData'), 'file-dialogs.json');
 	const dialogs: FileDialogs = options.dialogs ?? {
-		async open() {
+		async open(defaultPath) {
 			const r = await dialog.showOpenDialog(win, {
 				properties: ['openFile'],
+				defaultPath,
 				filters: [{ name: 'Tale project', extensions: ['json'] }],
 			});
 			return r.canceled ? undefined : r.filePaths[0];
@@ -81,9 +90,10 @@ export async function createWindow(
 			});
 			return r.canceled ? undefined : r.filePath;
 		},
-		async target() {
+		async target(defaultPath) {
 			const r = await dialog.showOpenDialog(win, {
-				title: 'Deploy to project',
+				title: 'Choose project directory',
+				defaultPath,
 				properties: ['openDirectory', 'createDirectory'],
 			});
 			return r.canceled ? undefined : r.filePaths[0];
@@ -147,11 +157,36 @@ export async function createWindow(
 			},
 		);
 	}
-	handler('tale:new', (payload) => {
-		check(payload === undefined, 'Unexpected new-project payload');
-		path = null;
-		dirty = false;
+	handler('tale:exit', async (payload) => {
+		check(payload === undefined, 'Unexpected exit payload');
+		if (dirty && !(await dialogs.discard()))
+			return { ok: true, cancelled: true };
+		closing = true;
+		setImmediate(() => win.close());
 		return { ok: true };
+	});
+	handler('tale:templates', async (payload) => {
+		check(payload === undefined, 'Unexpected templates payload');
+		return {
+			ok: true,
+			templates: await listTemplates(join(root, 'templates')),
+		};
+	});
+	handler('tale:choose-directory', async (payload) => {
+		if (payload !== undefined) validateDirectory(payload);
+		const directory = await dialogs.target(payload);
+		return directory ? { ok: true, directory } : { ok: true, cancelled: true };
+	});
+	handler('tale:new', async (payload) => {
+		validateNewProject(payload);
+		const project = await createFromTemplate(join(root, 'templates'), payload);
+		if (dirty && !(await dialogs.discard()))
+			return { ok: true, cancelled: true };
+		path = null;
+		dirty = true;
+		deploymentTarget = undefined;
+		deployment = undefined;
+		return { ok: true, document: { project, path: null } };
 	});
 	handler('tale:export', async (payload) => {
 		validateProject(payload);
@@ -163,12 +198,14 @@ export async function createWindow(
 			message: `Exported ${count} Tale file${count === 1 ? '' : 's'}`,
 		};
 	});
-	handler('tale:load', async (payload) => {
+	handler('tale:load', (payload) => {
 		check(payload === undefined, 'Unexpected load payload');
+		path = null;
+		dirty = false;
 		return {
 			ok: true,
 			document: {
-				project: await readProject(join(root, 'tale.project.json')),
+				project: newProject(),
 				path: null,
 			},
 		};
@@ -177,12 +214,20 @@ export async function createWindow(
 		check(payload === undefined, 'Unexpected open payload');
 		if (dirty && !(await dialogs.discard()))
 			return { ok: true, cancelled: true };
-		const selected = await dialogs.open();
+		const selected = await dialogs.open(await lastOpenDirectory(preferences));
 		if (!selected) return { ok: true, cancelled: true };
 		const project = await readProject(selected);
 		path = resolve(selected);
 		dirty = false;
-		return { ok: true, document: { project, path } };
+		deploymentTarget = undefined;
+		deployment = undefined;
+		let message: string | undefined;
+		try {
+			await rememberOpenDirectory(preferences, path);
+		} catch {
+			message = 'Project opened, but its folder could not be remembered.';
+		}
+		return { ok: true, document: { project, path }, message };
 	});
 	handler('tale:save', async (payload) => {
 		check(
@@ -212,7 +257,9 @@ export async function createWindow(
 		validateProject(payload.project);
 		validateAgentSelection(payload.agents);
 		if (payload.chooseTarget || !deploymentTarget) {
-			const selected = await dialogs.target();
+			const selected = await dialogs.target(
+				payload.project.deploymentDirectory,
+			);
 			if (!selected) return { ok: true, cancelled: true };
 			deploymentTarget = selected;
 		}
@@ -236,6 +283,7 @@ export async function createWindow(
 		);
 		const plan = deployment;
 		deployment = undefined;
+		deploymentTarget = undefined;
 		await commitDeployment(plan, payload.overwrite);
 		return {
 			ok: true,

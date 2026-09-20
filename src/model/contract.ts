@@ -1,4 +1,11 @@
-import { check, type DiagramItem, type Project, record } from './project.js';
+import { boundProperties, itemDefinition, itemRole } from './catalogue.js';
+import {
+	check,
+	type DiagramItem,
+	deploymentRoots,
+	type Project,
+	record,
+} from './project.js';
 
 export const conditions = [
 	'exists',
@@ -55,7 +62,7 @@ function stringList(value: unknown): value is string[] {
 	);
 }
 function requirement(project: Project, item: DiagramItem): Requirement {
-	const p = item.properties;
+	const p = boundProperties(project, item);
 	check(typeof p.action === 'string' && p.action.trim(), 'Choose an action');
 	check(
 		conditions.includes(p.condition as Condition),
@@ -88,8 +95,8 @@ function requirement(project: Project, item: DiagramItem): Requirement {
 			.sort(),
 	};
 }
-function contractCheck(item: DiagramItem): ContractCheck {
-	const p = item.properties;
+function contractCheck(project: Project, item: DiagramItem): ContractCheck {
+	const p = boundProperties(project, item);
 	check(typeof p.action === 'string' && p.action.trim(), 'Choose an action');
 	check(
 		typeof p.executable === 'string' &&
@@ -127,19 +134,19 @@ export function inspectContract(project: Project): {
 	const contract: Contract = { requirements: [], checks: [] };
 	const issues: ContractIssue[] = [];
 	for (const item of project.diagram.items) {
-		const tag = itemTag(project, item);
-		if (tag !== 'REQUIREMENT' && tag !== 'CHECK') continue;
+		const tag = itemRole(project, item);
+		if (tag !== 'requirement' && tag !== 'check') continue;
 		try {
-			if (tag === 'REQUIREMENT')
+			if (tag === 'requirement')
 				contract.requirements.push(requirement(project, item));
-			else contract.checks.push(contractCheck(item));
+			else contract.checks.push(contractCheck(project, item));
 		} catch (error) {
 			issues.push({
 				items: [item.id],
 				message: String(error instanceof Error ? error.message : error),
 			});
 		}
-		const roots = project.exports.map((output) => output.rootItemId);
+		const roots = deploymentRoots(project);
 		if (
 			!project.diagram.connections.some(
 				(edge) =>
@@ -150,7 +157,7 @@ export function inspectContract(project: Project): {
 		)
 			issues.push({
 				items: [item.id],
-				message: 'Connect this item to an exported Tale root',
+				message: 'Connect this tag to the Tale selected for deployment',
 			});
 	}
 	checkPolicySteps(project, contract, issues);
@@ -168,13 +175,14 @@ function checkPolicySteps(
 	issues: ContractIssue[],
 ) {
 	for (const item of project.diagram.items) {
-		const tag = itemTag(project, item);
-		if (
-			!['PROOF', 'OVERRIDES'].includes(tag) ||
-			!Array.isArray(item.properties.steps)
-		)
+		const tag = itemRole(project, item);
+		const field = itemDefinition(project, item).fields?.find(
+			(field) => field.format === 'steps',
+		);
+		const steps = field ? item.properties[field.key] : undefined;
+		if (!(tag === 'proof' || tag === 'override') || !Array.isArray(steps))
 			continue;
-		for (const step of item.properties.steps) {
+		for (const step of steps) {
 			const message = policyStepIssue(tag, step, contract);
 			if (message) issues.push({ items: [item.id], message });
 		}
@@ -189,7 +197,7 @@ function policyStepIssue(
 	const attributes = record(step.attributes) ? step.attributes : {};
 	if (step.operation === 'contract_verify') {
 		if (
-			tag !== 'PROOF' ||
+			tag !== 'proof' ||
 			attributes.baseline !== 'external' ||
 			attributes.coverage !== 'mandatory'
 		)
@@ -197,7 +205,7 @@ function policyStepIssue(
 	}
 	if (step.operation === 'request_change') {
 		if (
-			tag !== 'OVERRIDES' ||
+			tag !== 'override' ||
 			typeof attributes.reason !== 'string' ||
 			!attributes.reason.trim() ||
 			!contract.requirements.some(

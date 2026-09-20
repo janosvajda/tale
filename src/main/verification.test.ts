@@ -20,8 +20,14 @@ test('approval requires a human decision, invalidates changed contracts, and sta
 	const store = join(directory, 'trusted');
 	await mkdir(join(target, 'scripts'), { recursive: true });
 	await mkdir(join(target, '.tale'));
-	const project = parseProject(await readFile('tale.project.json', 'utf8'));
-	await writeFile(join(target, 'tale.project.json'), JSON.stringify(project));
+	const project = parseProject(
+		await readFile('project/tale.project.json', 'utf8'),
+	);
+	await mkdir(join(target, 'project'));
+	await writeFile(
+		join(target, 'project/tale.project.json'),
+		JSON.stringify(project),
+	);
 	await writeFile(join(target, '.tale/project.tale'), 'approved');
 	await writeFile(join(target, 'scripts/prove-deployment.mjs'), '');
 	const session = new VerificationSession(store);
@@ -67,7 +73,9 @@ test('proof changes between review and approval cannot be silently approved', as
 	t.after(() => rm(dir, { recursive: true, force: true }));
 	const target = join(dir, 'project');
 	await mkdir(target);
-	const project = parseProject(await readFile('tale.project.json', 'utf8'));
+	const project = parseProject(
+		await readFile('project/tale.project.json', 'utf8'),
+	);
 	const check = project.diagram.items.find(
 		(item) => item.id === 'deploy-check',
 	);

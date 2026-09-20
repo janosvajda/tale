@@ -189,8 +189,20 @@ function instructions(
 	path: string,
 	selected: AgentSelection[],
 	outputs: string[],
+	environments: Project['environments'],
 ): string {
-	const text = `Before planning or changing code, read ${outputs.map((output) => JSON.stringify(output)).join(', ')} from the project root and follow their agreements. If a file cannot be read, report that before implementation. Do not load a duplicate copy if it is already in context.`;
+	const reference = `Before planning or changing code, read ${outputs.map((output) => JSON.stringify(output)).join(', ')} from the project root and follow their agreements. If a file cannot be read, report that before implementation. Do not load a duplicate copy if it is already in context.`;
+	const environmentNotes = environments.length
+		? [
+				'Environments (all use the same Tale file):',
+				...environments.map(
+					(env) =>
+						`- ${JSON.stringify(env.name)}: follow the shared agreements and any instructions explicitly scoped to this environment in the Tale.`,
+				),
+				'If the target environment is unclear and affects the task, ask before proceeding. Do not infer environment-specific rules from its name.',
+			]
+		: [];
+	const text = [reference, ...environmentNotes].join('\n');
 	if (
 		!path.endsWith('CLAUDE.md') ||
 		!selected.some((agent) => agent.agent === 'claude')
@@ -206,9 +218,7 @@ export async function prepareDeployment(
 	selection: AgentSelection[],
 ): Promise<DeploymentPlan> {
 	validateAgentSelection(selection);
-	check(project.exports.length > 0, 'No Tale outputs configured');
 	const artifacts = compile(project);
-	check(artifacts.length > 0, 'No Tale outputs configured');
 	const root = await realpath(target);
 	await directory(root);
 	const taleExists = await directory(join(root, '.tale'));
@@ -240,6 +250,7 @@ export async function prepareDeployment(
 				path,
 				selected,
 				artifacts.map((artifact) => artifact.path),
+				project.environments,
 			),
 		);
 		changes.push({ path, before, after });

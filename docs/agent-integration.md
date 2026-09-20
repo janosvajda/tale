@@ -70,7 +70,10 @@ the referenced file and actually includes its content.
 3. If `.tale/` exists, confirm overwriting the generated `.tale` files. Other files
    inside `.tale/` are preserved. Changing agents or destination clears approval.
 4. Deploy compiles the current diagram, including unsaved edits, and writes only
-   the configured `.tale` outputs. It references those exact files in a single `tale:project` marker block per selected instruction file.
+   one compiled `.tale` file. It references that file and lists every project environment
+   in a single `tale:project` marker block per selected instruction file. All environments
+   share the file; agents follow shared agreements and explicitly scoped environment
+   instructions without inferring rules from environment names.
    Existing text outside that block is preserved; malformed markers are rejected.
    Cancel and folder-selection cancellation write nothing.
 5. Refresh the selected agents and verify they loaded the Tale before relying on

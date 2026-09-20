@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+    <title>Tale</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="appbar">
+      <span class="brand"><span class="brand-mark">t</span>Tale</span>
+      <span class="separator"></span>
+      <details id="file-menu" class="dropdown">
+        <summary>File <span class="chevron">⌄</span></summary>
+        <div class="menu">
+          <button type="button" data-action="new">New project <kbd>⌘N</kbd></button>
+          <button type="button" data-action="open">Open JSON… <kbd>⌘O</kbd></button>
+          <button type="button" data-action="save">Save <kbd>⌘S</kbd></button>
+          <button type="button" data-action="saveAs">Save As… <kbd>⇧⌘S</kbd></button>
+          <hr>
+          <button type="button" data-action="deploy">Deploy .tale files…</button>
+        </div>
+      </details>
+      <button type="button" id="project-settings" class="project-name" title="Project settings"><span id="project-name">Opening project…</span><span id="dirty" role="img" aria-label="Unsaved changes"></span></button>
+      <span class="appbar-space"></span>
+      <button type="button" data-action="verify" class="quiet" id="contract-status">Verify</button>
+      <button type="button" data-action="compile" class="quiet">Preview Tale</button>
+      <button type="button" data-action="save" class="quiet">Save</button>
+      <button type="button" data-action="deploy" class="primary">Deploy <span aria-hidden="true">↗</span></button>
+    </header>
+    <main class="workspace">
+      <section id="canvas" aria-label="Diagram workspace">
+        <nav class="tools" aria-label="Diagram tools">
+          <button type="button" id="select-tool" class="tool active" title="Select and move" aria-label="Select and move">↖ <span>Select</span></button>
+          <button type="button" id="hand-tool" class="tool" title="Pan (or hold Space)" aria-label="Pan">✥ <span>Pan</span></button>
+          <button type="button" id="arrow-tool" class="tool" title="Drag from one item to another" aria-label="Draw arrow">↗ <span>Arrow</span></button>
+          <span class="separator"></span>
+          <details id="palette" class="dropdown">
+            <summary class="add-summary">＋ Add item</summary>
+            <div class="palette-panel">
+              <input id="type-search" type="search" placeholder="Find a tag…" aria-label="Find a tag">
+              <div id="type-list" class="type-list"></div>
+              <button type="button" id="manage-types" class="wide quiet">Manage types & environments</button>
+            </div>
+          </details>
+        </nav>
+        <div class="history-controls">
+          <button type="button" id="undo" aria-label="Undo" title="Undo">↶</button>
+          <button type="button" id="redo" aria-label="Redo" title="Redo">↷</button>
+        </div>
+        <div class="board-footer">
+          <span id="board-count"></span>
+          <span class="hint" id="navigation-hint">Right / Space + drag to pan · Wheel or pinch to zoom</span>
+          <div class="zoom-controls">
+            <select id="navigation-mode" aria-label="Board navigation" title="Mouse or trackpad">
+              <option value="mouse">Mouse</option>
+              <option value="trackpad">Trackpad</option>
+            </select>
+            <button type="button" id="zoom-out" aria-label="Zoom out">−</button>
+            <output id="zoom">70%</output>
+            <button type="button" id="zoom-in" aria-label="Zoom in">＋</button>
+            <button type="button" id="fit" title="Fit diagram to view">Fit</button>
+          </div>
+        </div>
+      </section>
+      <aside id="inspector" aria-label="Selection details" hidden></aside>
+    </main>
+    <div id="status" role="status" aria-live="polite"></div>
+    <dialog id="preview">
+      <div class="dialog-header"><h2>Compiled Tale</h2><button type="button" id="close-preview" aria-label="Close preview">×</button></div>
+      <select id="artifact-select" aria-label="Output file"></select>
+      <textarea id="compiled-output" readonly spellcheck="false" aria-label="Compiled Tale output"></textarea>
+      <div class="dialog-footer"><span>Deterministic UTF-8 · LF</span><button type="button" id="export-tales" class="primary">Export .tale files…</button></div>
+    </dialog>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

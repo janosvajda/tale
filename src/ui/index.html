@@ -19,29 +19,32 @@
           <button type="button" data-action="save">Save <kbd>⌘S</kbd></button>
           <button type="button" data-action="saveAs">Save As… <kbd>⇧⌘S</kbd></button>
           <hr>
-          <button type="button" data-action="deploy">Deploy .tale files…</button>
+          <button type="button" data-action="deploy">Deploy Tale…</button>
+          <hr>
+          <button type="button" data-action="exit">Exit</button>
         </div>
       </details>
       <button type="button" id="project-settings" class="project-name" title="Project settings"><span id="project-name">Opening project…</span><span id="dirty" role="img" aria-label="Unsaved changes"></span></button>
       <span class="appbar-space"></span>
-      <button type="button" data-action="verify" class="quiet" id="contract-status">Verify</button>
+      <button type="button" data-action="verify" class="quiet" id="contract-status" title="Review and run automated agreement checks">Check agreement</button>
       <button type="button" data-action="compile" class="quiet">Preview Tale</button>
       <button type="button" data-action="save" class="quiet">Save</button>
-      <button type="button" data-action="deploy" class="primary">Deploy <span aria-hidden="true">↗</span></button>
+      <button type="button" data-action="deploy" class="deploy-button">Deploy Tale</button>
+      <button type="button" data-action="exit" class="quiet" aria-label="Exit Tale" title="Exit Tale">Exit</button>
     </header>
     <main class="workspace">
       <section id="canvas" aria-label="Diagram workspace">
         <nav class="tools" aria-label="Diagram tools">
           <button type="button" id="select-tool" class="tool active" title="Select and move" aria-label="Select and move">↖ <span>Select</span></button>
           <button type="button" id="hand-tool" class="tool" title="Pan (or hold Space)" aria-label="Pan">✥ <span>Pan</span></button>
-          <button type="button" id="arrow-tool" class="tool" title="Drag from one item to another" aria-label="Draw arrow">↗ <span>Arrow</span></button>
+          <button type="button" id="arrow-tool" class="tool" title="Drag from one tag to another" aria-label="Draw arrow">↗ <span>Arrow</span></button>
           <span class="separator"></span>
           <details id="palette" class="dropdown">
-            <summary class="add-summary">＋ Add item</summary>
+            <summary class="add-summary">＋ Add tag</summary>
             <div class="palette-panel">
               <input id="type-search" type="search" placeholder="Find a tag…" aria-label="Find a tag">
               <div id="type-list" class="type-list"></div>
-              <button type="button" id="manage-types" class="wide quiet">Manage types & environments</button>
+              <button type="button" id="manage-types" class="wide quiet">Manage tags & environments</button>
             </div>
           </details>
         </nav>
@@ -71,7 +74,7 @@
       <div class="dialog-header"><h2>Compiled Tale</h2><button type="button" id="close-preview" aria-label="Close preview">×</button></div>
       <select id="artifact-select" aria-label="Output file"></select>
       <textarea id="compiled-output" readonly spellcheck="false" aria-label="Compiled Tale output"></textarea>
-      <div class="dialog-footer"><span>Deterministic UTF-8 · LF</span><button type="button" id="export-tales" class="primary">Export .tale files…</button></div>
+      <div class="dialog-footer"><span>Deterministic UTF-8 · LF</span><button type="button" id="export-tales" class="primary">Export Tale…</button></div>
     </dialog>
     <script type="module" src="app.js"></script>
   </body>

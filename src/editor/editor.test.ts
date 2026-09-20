@@ -3,6 +3,50 @@
 import type { Project } from '../model/project.js';
 import { Editor } from './editor.js';
 
+function predefinedContent(editor: Editor) {
+	editor.mutate((project) =>
+		project.itemTypes.push({
+			id: 'prefilled-note',
+			tag: 'TEAM_NOTE',
+			label: 'Team note',
+			color: '#123456',
+			definition: {
+				initial: {
+					properties: { tone: 'concise' },
+					sections: [
+						{
+							id: 'choices',
+							title: 'Checks',
+							type: 'checkboxes',
+							options: [{ id: 'test', label: 'Run tests', selected: true }],
+						},
+					],
+				},
+			},
+		}),
+	);
+	editor.add('prefilled-note');
+	const first = editor.project.diagram.items.at(-1)!;
+	editor.add('prefilled-note');
+	const second = editor.project.diagram.items.at(-1)!;
+	const section = first.sections?.[0];
+	const other = second.sections?.[0];
+	if (!section || !other || section.type === 'text' || other.type === 'text')
+		throw new Error('Predefined content was not instantiated');
+	if (
+		section.id === other.id ||
+		section.options[0]?.id === other.options[0]?.id
+	)
+		throw new Error('Copies need independent section and option IDs');
+	section.options[0]!.selected = false;
+	first.properties.tone = 'detailed';
+	if (!other.options[0]?.selected || second.properties.tone !== 'concise')
+		throw new Error('Editing one predefined tag changed another');
+	editor.add('prefilled-note');
+	if (editor.project.diagram.items.at(-1)?.properties.tone !== 'concise')
+		throw new Error('Editing changed the catalogue default');
+}
+
 function scrollSelection(editor: Editor) {
 	const items = JSON.stringify(editor.project.diagram.items);
 	const initial = structuredClone(editor.project);
@@ -76,6 +120,7 @@ export function run(project: Project) {
 			project.diagram.items.length + 1
 		)
 			throw new Error('Redo failed');
+		predefinedContent(editor);
 	} finally {
 		host.remove();
 	}

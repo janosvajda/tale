@@ -43,20 +43,20 @@ function sectionActions() {
 		'Neighbouring sections must survive deletion',
 	);
 	undo();
-	press('Duplicate item');
+	press('Duplicate tag');
 	check(
 		document.querySelectorAll('.node').length === count + 1,
-		'Duplicate item must create one copy',
+		'Duplicate tag must create one copy',
 	);
 	undo();
-	press('Delete item');
+	press('Delete tag');
 	check(
 		!document.querySelector('[data-node="product"]'),
-		'Delete item must target the displayed item',
+		'Delete tag must target the displayed item',
 	);
 	check(
 		document.querySelector('[data-node="goal"]'),
-		'Delete item must preserve other items',
+		'Delete tag must preserve other items',
 	);
 	undo();
 }
@@ -128,17 +128,78 @@ function paletteBounds() {
 	const canvas = document.querySelector('#canvas')!.getBoundingClientRect();
 	check(
 		panel.left >= canvas.left && panel.right <= canvas.right,
-		'Add item menu must stay within the board horizontally',
+		'Add tag menu must stay within the board horizontally',
 	);
 	check(
 		panel.top >= 0 && panel.bottom <= innerHeight,
-		'Add item menu must stay within the window vertically',
+		'Add tag menu must stay within the window vertically',
 	);
 	palette.open = false;
 }
+function tagSettings() {
+	document.querySelector<HTMLButtonElement>('#manage-types')!.click();
+	const pane = document.querySelector<HTMLElement>('#inspector')!;
+	const text = pane.textContent ?? '';
+	check(
+		!text.includes('Item types') && !text.includes('Tale outputs'),
+		'Settings must use tag terminology and a single Tale file',
+	);
+	check(
+		!text.includes('Remove output') && !text.includes('＋ Tale output'),
+		'Settings must not offer arbitrary additional files',
+	);
+	const name = pane.querySelector<HTMLInputElement>(
+		'[aria-label="New tag name"]',
+	)!;
+	const identifier = pane.querySelector<HTMLInputElement>(
+		'[aria-label="New tag identifier"]',
+	)!;
+	name.focus();
+	check(
+		name.getBoundingClientRect().bottom <
+			identifier.getBoundingClientRect().top,
+		'New tag fields must be separated',
+	);
+	const rows = [...pane.querySelectorAll<HTMLElement>('.tag-definition')];
+	let previousBottom = 0;
+	for (const row of rows) {
+		const input = row.querySelector<HTMLInputElement>('.tag-label input')!;
+		input.focus();
+		const bounds = row.getBoundingClientRect();
+		const top = row.offsetTop;
+		check(top > previousBottom, 'Tag rows need space for focus outlines');
+		previousBottom = top + bounds.height;
+		check(
+			input.getBoundingClientRect().right <= pane.getBoundingClientRect().right,
+			'Tag inputs must stay within the inspector',
+		);
+	}
+	press('Close inspector');
+}
 export function run() {
+	const deploy = document.querySelector<HTMLButtonElement>(
+		'.appbar > [data-action="deploy"]',
+	);
+	check(
+		deploy?.textContent === 'Deploy Tale' && deploy.querySelector('svg'),
+		'Deploy has a visible label and icon',
+	);
+	check(
+		deploy && getComputedStyle(deploy).backgroundColor === 'rgb(21, 128, 61)',
+		'Deploy is green',
+	);
+	check(
+		document.querySelector('.appbar > [data-action="exit"] svg'),
+		'Exit icon is visible',
+	);
+	check(
+		document.querySelector('#file-menu [data-action="exit"]')?.textContent ===
+			'Exit',
+		'Exit is in the File menu',
+	);
 	menus();
 	paletteBounds();
+	tagSettings();
 	selectProduct();
 	sectionActions();
 	persistentActions();

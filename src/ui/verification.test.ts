@@ -1,5 +1,7 @@
 // @browser-test
+
 import type { Bridge } from '../model/bridge.js';
+import { newProject } from '../model/new-project.js';
 import type { Project } from '../model/project.js';
 import type { VerificationPreview } from '../model/verification.js';
 import { openVerification } from './verification.js';
@@ -59,6 +61,30 @@ export async function run(project: Project) {
 		},
 	};
 	try {
+		openVerification(newProject(), () => {}, api);
+		check(
+			control('[role="status"]').textContent ===
+				'No automated checks configured',
+			'Empty projects explain why checks cannot run',
+		);
+		check(
+			control<HTMLElement>('.verification-content').textContent?.includes(
+				'Written rules alone',
+			),
+			'The purpose and limits of automated checks are explained',
+		);
+		check(
+			getComputedStyle(control<HTMLElement>('.dialog-footer')).display ===
+				'none',
+			'Unconfigured checks do not show a row of disabled actions',
+		);
+		check(
+			calls.length === 0,
+			'Opening the explanation cannot execute commands',
+		);
+		const empty = document.querySelector<HTMLDialogElement>('#verification');
+		empty?.close();
+		empty?.remove();
 		openVerification(project, () => {}, api);
 		check(
 			control<HTMLButtonElement>('#run-checks').disabled,

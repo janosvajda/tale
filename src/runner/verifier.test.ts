@@ -12,7 +12,9 @@ async function setup(
 ) {
 	const target = await mkdtemp(join(tmpdir(), 'tale-verifier-'));
 	t.after(() => rm(target, { recursive: true, force: true }));
-	const project = parseProject(await readFile('tale.project.json', 'utf8'));
+	const project = parseProject(
+		await readFile('project/tale.project.json', 'utf8'),
+	);
 	const output = project.diagram.items.find(
 		(item) => item.id === 'deployment-bytes',
 	);

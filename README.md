@@ -199,7 +199,9 @@ Electron. Later runs rebuild and launch. Closing the last window exits the app
 
 and its launcher; there is no background development watcher.
 
-The editor opens `tale.project.json` as an unsaved example. Drag rectangles to
+The editor starts with an empty, unsaved project. Use **Open JSON** to load a project;
+
+the optional example is `project/tale.project.json`. Drag rectangles to
 
 move them, drag a corner to resize, and use Arrow or a node's connection port
 
@@ -209,13 +211,18 @@ Use the mouse wheel or pinch to zoom, hold Space and drag to pan, and use Fit to
 
 Select an item to edit its title and typed properties. The project name opens
 
-settings for types, colours, environments, and Tale outputs.
+settings for tags, colours, and environments.
+
+**New project** opens a dialog for the project title, an optional deployment directory,
+and a Tale template: Blank, Node/TypeScript with ESLint + Webpack, Node/TypeScript
+with Biome + Webpack, or Rust with Clippy. These editable diagram JSONs live in
+[`templates/`](templates/README.md). The destination is requested again before deployment.
 
 The File menu provides New, Open JSON, Save, Save As, and Deploy. Save and Save As write the
 
 editor's JSON project to your chosen file. Deploy compiles the current diagram
 
-and writes its deterministic `.tale` outputs into the destination project's
+and writes one deterministic `.tale` file into the destination project's
 
 `.tale/` directory. Its dialog lets
 
@@ -223,7 +230,9 @@ you choose agents and instruction files, preview changes, and confirm overwritin
 
 an existing Tale deployment. Existing instructions and unrelated files are preserved;
 
-missing instruction files are created. See [agent integration](docs/agent-integration.md).
+missing instruction files are created. Every defined environment is listed in the
+
+agent instructions and refers to the same Tale file. See [agent integration](docs/agent-integration.md).
 
 Preview Tale and Deploy use the same compiler and produce identical `.tale` bytes. Neither operation executes commands written in rules.
 
@@ -257,7 +266,7 @@ Nothing needs to be selected to navigate. Selection does not change wheel behavi
 
 and navigation never moves the selected items. Clicking the board dismisses open
 
-File and Add item menus; Escape dismisses them too. Scrolling a menu or inspector
+File and Add tag menus; Escape dismisses them too. Scrolling a menu or inspector
 
 stays within that control instead of navigating the board.
 
@@ -289,9 +298,9 @@ a closed list, and projects do not need to use every built-in tag. No code or ex
 
 library is needed to author a new tag.
 
-Open **Manage types & environments** from Add item (or click the project name),
+Open **Manage tags & environments** from Add tag (or click the project name),
 
-enter a type name and a new tag such as `TEAM_RULES`, and choose **＋ Item type**.
+enter a tag name and identifier such as `TEAM_RULES`, and choose **＋ Add tag**.
 
 The tag field also suggests built-in tags. Tags use uppercase letters, numbers, and
 
@@ -303,9 +312,19 @@ the definition and content in JSON; Preview and Deploy compile it into `.tale`.
 
 Colours and display labels can be changed in project settings.
 
-Built-in identifiers retain their defined syntax and validation. For example,
+The predefined Tags, their properties, choices, colours, and initial content live in
 
-renaming a display label does not turn `CHECK` into a different executable rule.
+[`src/model/catalogue.json`](src/model/catalogue.json), not TypeScript Tag switches.
+
+A predefined Tag is one card with content already inside it. Edit a card and use
+
+**Save as predefined tag** to put that populated Tag into the project's palette.
+
+Each addition makes an independent copy. Save embeds the definitions in project JSON.
+
+Serialization and optional verification roles are definition data; a Tag's name
+
+does not select compiler behavior. See [Tag catalogue](docs/tag-catalogue.md).
 
 New tags compile as declarative sections; assigning a tag name does not automatically
 

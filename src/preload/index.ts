@@ -12,10 +12,15 @@ const bridge: Bridge = {
 		}) as Promise<Reply>,
 	runVerification: (token) =>
 		ipcRenderer.invoke('tale:run-verification', token) as Promise<Reply>,
-	newProject: () => ipcRenderer.invoke('tale:new') as Promise<Reply>,
+	newProject: (request) =>
+		ipcRenderer.invoke('tale:new', request) as Promise<Reply>,
+	templates: () => ipcRenderer.invoke('tale:templates') as Promise<Reply>,
+	chooseDirectory: (initialPath) =>
+		ipcRenderer.invoke('tale:choose-directory', initialPath) as Promise<Reply>,
 	exportTales: (project) =>
 		ipcRenderer.invoke('tale:export', project) as Promise<Reply>,
 	load: () => ipcRenderer.invoke('tale:load') as Promise<Reply>,
+	exit: () => ipcRenderer.invoke('tale:exit') as Promise<Reply>,
 	open: () => ipcRenderer.invoke('tale:open') as Promise<Reply>,
 	save: (project, saveAs) =>
 		ipcRenderer.invoke('tale:save', { project, saveAs }) as Promise<Reply>,
@@ -41,6 +46,7 @@ const bridge: Bridge = {
 					'deploy',
 					'compile',
 					'verify',
+					'exit',
 				].includes(action)
 			)
 				callback(action as MenuAction);

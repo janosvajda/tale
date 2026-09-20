@@ -1,5 +1,9 @@
-import { itemTag } from '../model/contract.js';
-import { itemSummary, sectionSummary } from '../model/fields.js';
+import { definition, itemRole } from '../model/catalogue.js';
+import {
+	duplicateSection,
+	itemSummary,
+	sectionSummary,
+} from '../model/fields.js';
 import {
 	id,
 	type Point,
@@ -201,7 +205,10 @@ export class Editor {
 					y: position.y - interaction.newHeight / 2,
 				},
 				size: { width: 280, height: 180 },
-				properties: defaults(type.tag),
+				properties: defaults(type),
+				sections: (definition(type).initial?.sections ?? []).map(
+					duplicateSection,
+				),
 			}),
 		);
 		this.selected = new Set([itemId]);
@@ -414,10 +421,10 @@ export class Editor {
 				from: g.node,
 				to: hit.id,
 				kind:
-					itemTag(
+					itemRole(
 						this.project,
 						this.project.diagram.items.find((item) => item.id === g.node)!,
-					) === 'REQUIREMENT' && itemTag(this.project, hit) === 'CHECK'
+					) === 'requirement' && itemRole(this.project, hit) === 'check'
 						? 'verified_by'
 						: 'contains',
 				order: siblings.length

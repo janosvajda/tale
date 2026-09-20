@@ -3,7 +3,15 @@ import {
 	type DeploymentPreview,
 	validateDeploymentPreview,
 } from './deployment.js';
-import { check, type Project, record, validateProject } from './project.js';
+import type { NewProjectRequest, TemplateSummary } from './new-project.js';
+import {
+	check,
+	type Project,
+	record,
+	text,
+	validateDirectory,
+	validateProject,
+} from './project.js';
 import {
 	type VerificationPreview,
 	type VerificationResult,
@@ -18,7 +26,8 @@ export type MenuAction =
 	| 'saveAs'
 	| 'deploy'
 	| 'compile'
-	| 'verify';
+	| 'verify'
+	| 'exit';
 export const menuActions: MenuAction[] = [
 	'new',
 	'open',
@@ -27,6 +36,7 @@ export const menuActions: MenuAction[] = [
 	'deploy',
 	'compile',
 	'verify',
+	'exit',
 ];
 export interface Document {
 	project: Project;
@@ -36,6 +46,8 @@ export type Reply =
 	| {
 			ok: true;
 			document?: Document;
+			templates?: TemplateSummary[];
+			directory?: string;
 			message?: string;
 			cancelled?: boolean;
 			deployment?: DeploymentPreview;
@@ -48,8 +60,11 @@ export interface Bridge {
 	approveVerification(token: string, reason: string): Promise<Reply>;
 	runVerification(token: string): Promise<Reply>;
 	load(): Promise<Reply>;
-	newProject(): Promise<Reply>;
+	newProject(request: NewProjectRequest): Promise<Reply>;
+	templates(): Promise<Reply>;
+	chooseDirectory(initialPath?: string): Promise<Reply>;
 	open(): Promise<Reply>;
+	exit(): Promise<Reply>;
 	save(project: Project, saveAs: boolean): Promise<Reply>;
 	prepareDeployment(
 		project: Project,
@@ -69,6 +84,15 @@ export function validateReply(value: unknown): asserts value is Reply {
 	if (!value.ok) {
 		check(typeof value.error === 'string', 'Invalid error response');
 		return;
+	}
+	if (value.directory !== undefined) validateDirectory(value.directory);
+	if (value.templates !== undefined) {
+		check(Array.isArray(value.templates), 'Invalid templates response');
+		for (const entry of value.templates) {
+			check(record(entry), 'Invalid template');
+			text(entry.id, 'template ID');
+			text(entry.name, 'template name');
+		}
 	}
 	if (value.verification !== undefined)
 		validateVerificationPreview(value.verification);

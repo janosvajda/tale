@@ -183,7 +183,7 @@ REQUIREMENT
 REQUIREMENT
   id preserve-project
   action deploy
-  subject tale.project.json
+  subject project/tale.project.json
   condition unchanged
   expected ""
   mandatory true

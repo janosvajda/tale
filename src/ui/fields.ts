@@ -1,4 +1,9 @@
 import {
+	catalogue,
+	definition,
+	type TagReference,
+} from '../model/catalogue.js';
+import {
 	availableFields,
 	duplicateSection,
 	fieldChoices,
@@ -65,7 +70,7 @@ function choiceControl(
 	return group;
 }
 function scalar(
-	tag: string,
+	tag: TagReference,
 	key: string,
 	value: Json,
 	update: Update,
@@ -75,7 +80,11 @@ function scalar(
 	if (options.length && typeof value === 'string') {
 		return choiceControl(options, value, update, label);
 	}
-	const node = key === 'text' ? el('textarea') : el('input');
+	const node =
+		definition(tag).fields?.find((field) => field.key === key)?.format ===
+		'lines'
+			? el('textarea')
+			: el('input');
 	node.setAttribute('aria-label', label);
 	if (node instanceof HTMLInputElement) {
 		node.type =
@@ -144,7 +153,7 @@ function checklist(
 	return group;
 }
 function list(
-	tag: string,
+	tag: TagReference,
 	key: string,
 	values: Json[],
 	update: Update,
@@ -213,8 +222,8 @@ function listAdder(key: string, values: Json[], update: Update): HTMLElement {
 	row.className = 'list-add';
 	if (key === 'steps' || key === 'children') {
 		const operation = select(
-			['run', 'review', 'stop', 'contract_verify', 'request_change'],
-			'run',
+			Object.keys(catalogue.steps),
+			Object.keys(catalogue.steps)[0] ?? '',
 			'New step action',
 		);
 		row.append(
@@ -232,7 +241,7 @@ function listAdder(key: string, values: Json[], update: Update): HTMLElement {
 	return row;
 }
 function object(
-	tag: string,
+	tag: TagReference,
 	value: Record<string, Json>,
 	update: Update,
 	label: string,
@@ -253,16 +262,16 @@ function object(
 				update(stepTemplate(next));
 			} else update({ ...value, [key]: next });
 		};
-		group.append(control(tag, key, child, updateChild, fieldLabel(key)));
+		group.append(control(tag, key, child, updateChild, fieldLabel(key, tag)));
 	}
 	return group;
 }
 export function control(
-	tag: string,
+	tag: TagReference,
 	key: string,
 	value: Json,
 	update: Update,
-	label = fieldLabel(key),
+	label = fieldLabel(key, tag),
 ): HTMLElement {
 	if (Array.isArray(value)) {
 		const group = el('fieldset');
@@ -278,7 +287,7 @@ export function control(
 	return wrapper;
 }
 export function ruleSection(
-	tag: string,
+	tag: TagReference,
 	key: string,
 	value: Json,
 	update: Update,
@@ -290,10 +299,17 @@ export function ruleSection(
 	const header = el('summary');
 	const title = el('span');
 	title.className = 'rule-section-title';
-	title.append(el('strong', fieldLabel(key)), el('small', summary(value, key)));
-	const removeButton = iconButton('trash', `Delete ${fieldLabel(key)}`, remove);
+	title.append(
+		el('strong', fieldLabel(key, tag)),
+		el('small', summary(value, key)),
+	);
+	const removeButton = iconButton(
+		'trash',
+		`Delete ${fieldLabel(key, tag)}`,
+		remove,
+	);
 	removeButton.classList.add('danger');
-	removeButton.setAttribute('aria-label', `Delete ${fieldLabel(key)}`);
+	removeButton.setAttribute('aria-label', `Delete ${fieldLabel(key, tag)}`);
 	removeButton.addEventListener('click', (event) => event.preventDefault());
 	header.append(title, removeButton);
 	const body = el('div');
@@ -303,7 +319,7 @@ export function ruleSection(
 	return section;
 }
 export function ruleFields(
-	tag: string,
+	tag: TagReference,
 	properties: Record<string, Json>,
 	update: (key: string, value: Json) => void,
 	remove: (key: string) => void,
@@ -321,7 +337,7 @@ export function ruleFields(
 			availableFields(tag)
 				.filter((key) => !(key in properties))
 				.map((key) => ({
-					label: fieldLabel(key),
+					label: fieldLabel(key, tag),
 					add: () => update(key, initialValue(tag, key)),
 				})),
 		),

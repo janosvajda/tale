@@ -39,12 +39,24 @@ test('preload exposes a frozen allowlist, filters menu events and removes subscr
 	assert.equal('send' in bridge, false);
 	await bridge.setDirty(true);
 	assert.deepEqual(calls, [['tale:dirty', true]]);
+	const request = { templateId: 'blank.json', title: 'My project' };
+	await bridge.templates();
+	await bridge.chooseDirectory('/suggested');
+	await bridge.newProject(request);
+	assert.deepEqual(calls.slice(1), [
+		['tale:templates'],
+		['tale:choose-directory', '/suggested'],
+		['tale:new', request],
+	]);
+	await bridge.exit();
+	assert.deepEqual(calls.at(-1), ['tale:exit']);
 	const actions: string[] = [];
 	const unsubscribe = bridge.onMenu((action) => actions.push(action));
 	listener?.({}, 'open');
+	listener?.({}, 'exit');
 	listener?.({}, 'arbitrary-channel');
 	listener?.({}, {});
-	assert.deepEqual(actions, ['open']);
+	assert.deepEqual(actions, ['open', 'exit']);
 	unsubscribe();
 	assert.equal(removed, true);
 });

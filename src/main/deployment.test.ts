@@ -20,7 +20,9 @@ const codex: AgentSelection[] = [{ agent: 'codex', location: 'auto' }];
 async function fixture(t: TestContext) {
 	const root = await mkdtemp(join(tmpdir(), 'tale-deployment-'));
 	t.after(() => rm(root, { recursive: true, force: true }));
-	const project = parseProject(await readFile('tale.project.json', 'utf8'));
+	const project = parseProject(
+		await readFile('project/tale.project.json', 'utf8'),
+	);
 	return { root, project };
 }
 test('preview writes nothing; deploy creates selected entry points and preserves other Tale files', async (t) => {
@@ -175,36 +177,65 @@ test('write failures roll back created directories and prior instruction updates
 	);
 });
 
-test('all configured Tale outputs deploy deterministically with exact agent references', async (t) => {
+test('one Tale serves every environment with deterministic, preserved agent instructions', async (t) => {
 	const { root, project } = await fixture(t);
-	project.exports.push({
-		id: 'additional',
-		rootItemId: 'project',
-		environmentId: null,
-		path: '.tale/team/rules.tale',
-	});
+	project.environments = [
+		{ id: 'test', name: 'Test' },
+		{ id: 'prod', name: 'Production' },
+	];
+	await writeFile(join(root, 'AGENTS.md'), 'Keep my project notes.\n');
 	const selection: AgentSelection[] = [
+		...codex,
 		{ agent: 'claude', location: '.claude/CLAUDE.md' },
 	];
 	const plan = await prepareDeployment(root, project, selection);
 	await commitDeployment(plan, false);
 	const expected = await readFile('.tale/project.tale');
-	for (const output of project.exports)
-		assert.deepEqual(await readFile(join(root, output.path)), expected);
-	const instructions = await readFile(join(root, '.claude/CLAUDE.md'), 'utf8');
-	assert.ok(
-		instructions.includes('@../.tale/project.tale\n@../.tale/team/rules.tale'),
-	);
+	assert.deepEqual(await readFile(join(root, '.tale/project.tale')), expected);
+	assert.deepEqual(await readdir(join(root, '.tale')), ['project.tale']);
+	const instructions = await readFile(join(root, 'AGENTS.md'), 'utf8');
+	assert.ok(instructions.startsWith('Keep my project notes.\n'));
+	assert.ok(instructions.includes('- "Test":'));
+	assert.ok(instructions.includes('- "Production":'));
+	assert.ok(instructions.includes('all use the same Tale file'));
 	assert.ok(!instructions.includes('.json'));
-	project.exports.reverse();
+	assert.ok(
+		(await readFile(join(root, '.claude/CLAUDE.md'), 'utf8')).includes(
+			'@../.tale/project.tale',
+		),
+	);
 	const again = await prepareDeployment(root, project, selection);
 	assert.deepEqual(
 		again.preview.files,
 		plan.preview.files.map((file) => ({ ...file, action: 'unchanged' })),
 	);
 	await commitDeployment(again, true);
-	for (const output of project.exports)
-		assert.deepEqual(await readFile(join(root, output.path)), expected);
+	project.environments = [{ id: 'stage', name: 'Staging' }];
+	await commitDeployment(
+		await prepareDeployment(root, project, selection),
+		true,
+	);
+	const changed = await readFile(join(root, 'AGENTS.md'), 'utf8');
+	assert.ok(changed.includes('- "Staging":'));
+	assert.ok(!changed.includes('- "Production":'));
+	assert.ok(changed.startsWith('Keep my project notes.\n'));
+	assert.deepEqual(await readFile(join(root, '.tale/project.tale')), expected);
+});
+test('legacy multiple-file projects require an explicit choice without writing or discarding data', async (t) => {
+	const { root, project } = await fixture(t);
+	project.exports.push({
+		id: 'additional',
+		rootItemId: 'project',
+		environmentId: null,
+		path: '.tale/other.tale',
+	});
+	const before = JSON.stringify(project);
+	await assert.rejects(
+		prepareDeployment(root, project, codex),
+		/Choose one Tale/,
+	);
+	assert.equal(JSON.stringify(project), before);
+	assert.deepEqual(await readdir(root), []);
 });
 test('invalid compilation or missing outputs cannot write deployment files', async (t) => {
 	const { root, project } = await fixture(t);
@@ -213,13 +244,15 @@ test('invalid compilation or missing outputs cannot write deployment files', asy
 	goal.properties.unsupported = true;
 	await assert.rejects(
 		prepareDeployment(root, project, codex),
-		/GOAL requires/,
+		/Unsupported property in GOAL/,
 	);
 	assert.deepEqual(await readdir(root), []);
 	project.exports = [];
+	project.diagram.items = [];
+	project.diagram.connections = [];
 	await assert.rejects(
 		prepareDeployment(root, project, codex),
-		/No Tale outputs/,
+		/Add a document tag/,
 	);
 	assert.deepEqual(await readdir(root), []);
 });

@@ -1,3 +1,4 @@
+import { definition, itemRole, type TagDefinition } from './catalogue.js';
 import { validTag } from './tags.js';
 
 export const MAX_PROJECT_BYTES = 8_000_000;
@@ -26,6 +27,7 @@ export interface Viewport extends Point {
 	zoom: number;
 }
 export interface ItemType {
+	definition?: TagDefinition;
 	id: string;
 	label: string;
 	tag: string;
@@ -63,6 +65,7 @@ export interface Project {
 	formatVersion: 1;
 	id: string;
 	name: string;
+	deploymentDirectory?: string;
 	environments: { id: string; name: string }[];
 	itemTypes: ItemType[];
 	diagram: {
@@ -80,6 +83,15 @@ export interface Project {
 
 export function record(value: unknown): value is Record<string, unknown> {
 	return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+export function deploymentRoots(project: Project): string[] {
+	if (project.exports.length)
+		return project.exports.map((entry) => entry.rootItemId);
+	const roots = project.diagram.items.filter(
+		(item) => itemRole(project, item) === 'document',
+	);
+	return roots.length === 1 ? roots.map((item) => item.id) : [];
 }
 export function check(condition: unknown, message: string): asserts condition {
 	if (!condition) throw new Error(message);
@@ -161,6 +173,8 @@ export function validateProject(value: unknown): asserts value is Project {
 	);
 	text(value.id, 'project ID');
 	text(value.name, 'project name');
+	if (value.deploymentDirectory !== undefined)
+		validateDirectory(value.deploymentDirectory);
 	list(value.itemTypes, 'item types');
 	list(value.environments, 'environments');
 	list(value.exports, 'exports');
@@ -168,6 +182,7 @@ export function validateProject(value: unknown): asserts value is Project {
 	const tagByColor = new Map<string, string>();
 	const colorByTag = new Map<string, string>();
 	for (const t of value.itemTypes) {
+		validateDefinition(t.definition);
 		text(t.label, 'type label');
 		text(t.tag, 'type tag');
 		check(
@@ -234,6 +249,159 @@ export function validateProject(value: unknown): asserts value is Project {
 		check(safeRelativePath(output.path), 'Export path must stay within .tale/');
 	}
 }
+function validateDefinition(value: unknown) {
+	if (value === undefined) return;
+	check(record(value), 'Invalid tag definition');
+	check(
+		value.role === undefined ||
+			['document', 'requirement', 'check', 'proof', 'override'].includes(
+				String(value.role),
+			),
+		'Invalid tag capability',
+	);
+	check(
+		value.additionalProperties === undefined ||
+			typeof value.additionalProperties === 'boolean',
+		'Invalid property policy',
+	);
+	if (value.fields !== undefined) {
+		check(Array.isArray(value.fields), 'Invalid tag fields');
+		const keys = new Set<string>();
+		for (const field of value.fields) {
+			validateFieldDefinition(field);
+			check(!keys.has(field.key), 'Duplicate tag field');
+			keys.add(field.key);
+		}
+	}
+	if (value.initial !== undefined) {
+		check(
+			record(value.initial) && record(value.initial.properties),
+			'Invalid initial tag content',
+		);
+		validateSections(value.initial.sections);
+	}
+	if (value.bindings !== undefined)
+		check(
+			record(value.bindings) &&
+				Object.values(value.bindings).every(
+					(field) => typeof field === 'string',
+				),
+			'Invalid verifier bindings',
+		);
+	validateTagRequirements(value.requiredTags);
+	validateStepDefinitions(value.steps);
+}
+function validateFieldDefinition(
+	value: unknown,
+): asserts value is import('./catalogue.js').FieldDefinition {
+	check(record(value), 'Invalid tag field');
+	text(value.key, 'field key');
+	if (value.label !== undefined) text(value.label, 'field label');
+	check(
+		value.format === undefined ||
+			['directive', 'header', 'lines', 'values', 'bullets', 'steps'].includes(
+				String(value.format),
+			),
+		'Invalid field format',
+	);
+	check(
+		value.source === undefined ||
+			['id', 'links'].includes(String(value.source)),
+		'Invalid field source',
+	);
+	check(
+		value.valueType === undefined ||
+			['string', 'array'].includes(String(value.valueType)),
+		'Invalid field value type',
+	);
+	check(
+		value.choices === undefined ||
+			(Array.isArray(value.choices) &&
+				value.choices.every((choice) => typeof choice === 'string')),
+		'Invalid field choices',
+	);
+	check(
+		value.enum === undefined || Array.isArray(value.enum),
+		'Invalid field enum',
+	);
+	for (const key of ['required', 'allowSections'])
+		check(
+			value[key] === undefined || typeof value[key] === 'boolean',
+			'Invalid field flag',
+		);
+	if (value.visibleWhen !== undefined) {
+		check(record(value.visibleWhen), 'Invalid field visibility');
+		text(value.visibleWhen.key, 'visibility field');
+	}
+}
+function validateTagRequirements(value: unknown) {
+	if (value === undefined) return;
+	check(Array.isArray(value), 'Invalid required tags');
+	for (const requirement of value) {
+		check(
+			record(requirement) &&
+				typeof requirement.tag === 'string' &&
+				validTag(requirement.tag),
+			'Invalid required tag',
+		);
+		check(
+			Number.isSafeInteger(requirement.min) && Number(requirement.min) >= 0,
+			'Invalid tag minimum',
+		);
+		check(
+			requirement.max === undefined ||
+				(Number.isSafeInteger(requirement.max) &&
+					Number(requirement.max) >= Number(requirement.min)),
+			'Invalid tag maximum',
+		);
+		if (requirement.when !== undefined) {
+			check(record(requirement.when), 'Invalid tag condition');
+			text(requirement.when.tag, 'conditional tag');
+			text(requirement.when.key, 'conditional field');
+		}
+	}
+}
+function validateStepDefinitions(value: unknown) {
+	if (value === undefined) return;
+	check(record(value), 'Invalid step definitions');
+	for (const step of Object.values(value)) {
+		check(record(step) && record(step.initial), 'Invalid step definition');
+		if (step.fields === undefined) continue;
+		check(Array.isArray(step.fields), 'Invalid step fields');
+		for (const field of step.fields) {
+			check(record(field), 'Invalid step field');
+			text(field.key, 'step field key');
+			check(
+				field.valueType === undefined ||
+					['string', 'array', 'object', 'number'].includes(
+						String(field.valueType),
+					),
+				'Invalid step value type',
+			);
+			check(
+				field.properties === undefined ||
+					(record(field.properties) &&
+						Object.values(field.properties).every((kind) =>
+							['string', 'number'].includes(String(kind)),
+						)),
+				'Invalid step properties',
+			);
+			check(
+				field.required === undefined || typeof field.required === 'boolean',
+				'Invalid required step field',
+			);
+
+			check(
+				field.prefix === undefined || typeof field.prefix === 'string',
+				'Invalid step prefix',
+			);
+			check(
+				field.quote === undefined || typeof field.quote === 'boolean',
+				'Invalid step quoting',
+			);
+		}
+	}
+}
 function validateSections(
 	value: unknown,
 ): asserts value is ItemSection[] | undefined {
@@ -280,6 +448,8 @@ export function parseProject(source: string): Project {
 	check(source.length <= MAX_PROJECT_BYTES, 'Project exceeds 8 MB');
 	const value: unknown = JSON.parse(source);
 	validateProject(value);
+	for (const tag of value.itemTypes)
+		tag.definition ??= structuredClone(definition(tag));
 	return value;
 }
 export function serializeProject(project: Project): string {
@@ -288,4 +458,9 @@ export function serializeProject(project: Project): string {
 }
 export function id(): string {
 	return crypto.randomUUID();
+}
+
+export function validateDirectory(value: unknown): asserts value is string {
+	text(value, 'deployment directory');
+	check(!value.includes('\0'), 'Invalid deployment directory');
 }

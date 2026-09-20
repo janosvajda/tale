@@ -4,8 +4,27 @@ import { test } from 'node:test';
 import { parseProject } from '../model/project.js';
 import { compile } from './compiler.js';
 
+test('a diagram with one Tale compiles without manually configuring a file', async () => {
+	const project = parseProject(
+		await readFile('project/tale.project.json', 'utf8'),
+	);
+	const expected = compile(project);
+	project.exports = [];
+	project.environments = [
+		{ id: 'test', name: 'Test' },
+		{ id: 'production', name: 'Production' },
+	];
+	assert.deepEqual(compile(project), expected);
+	assert.deepEqual(compile(parseProject(JSON.stringify(project))), expected);
+	const root = project.diagram.items.find((item) => item.id === 'project')!;
+	project.diagram.items.push({ ...structuredClone(root), id: 'second-tale' });
+	assert.throws(() => compile(project), /Choose one Tale/);
+});
+
 test('paired-test and semantic-control policy compiles exactly from the authoring JSON', async () => {
-	const project = parseProject(await readFile('tale.project.json', 'utf8'));
+	const project = parseProject(
+		await readFile('project/tale.project.json', 'utf8'),
+	);
 	const output = compile(project)[0];
 	assert.ok(output);
 	assert.deepEqual(
@@ -17,7 +36,9 @@ test('paired-test and semantic-control policy compiles exactly from the authorin
 });
 
 test('user-defined tags compile deterministically with custom sections and sorted properties', async () => {
-	const project = parseProject(await readFile('tale.project.json', 'utf8'));
+	const project = parseProject(
+		await readFile('project/tale.project.json', 'utf8'),
+	);
 	const item = project.diagram.items.find((item) => item.id === 'product');
 	assert.ok(item);
 	project.itemTypes.push({
@@ -49,7 +70,9 @@ test('user-defined tags compile deterministically with custom sections and sorte
 });
 
 test('custom sections compile deterministically with literal titles, text and selected choices', async () => {
-	const project = parseProject(await readFile('tale.project.json', 'utf8'));
+	const project = parseProject(
+		await readFile('project/tale.project.json', 'utf8'),
+	);
 	const item = project.diagram.items.find((item) => item.id === 'goal');
 	assert.ok(item);
 	item.sections = [

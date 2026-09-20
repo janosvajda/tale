@@ -1,0 +1,1592 @@
+{
+	"version": 1,
+	"tags": [
+		{
+			"id": "tale",
+			"label": "Tale",
+			"tag": "TALE",
+			"color": "#475569",
+			"definition": {
+				"fields": [
+					{
+						"key": "version",
+						"label": "Version",
+						"initial": "v0",
+						"format": "header",
+						"required": true,
+						"equals": "v0"
+					}
+				],
+				"initial": {
+					"properties": {
+						"version": "v0"
+					},
+					"sections": []
+				},
+				"role": "document",
+				"additionalProperties": false,
+				"requiredTags": [
+					{
+						"tag": "META",
+						"min": 1,
+						"max": 1
+					},
+					{
+						"tag": "GOAL",
+						"min": 1
+					},
+					{
+						"tag": "SCOPE",
+						"min": 1
+					},
+					{
+						"tag": "PROOF",
+						"min": 1
+					},
+					{
+						"tag": "PLAN",
+						"min": 1,
+						"when": {
+							"tag": "META",
+							"key": "TYPE",
+							"notEquals": "project"
+						}
+					}
+				]
+			}
+		},
+		{
+			"id": "meta",
+			"label": "Project",
+			"tag": "META",
+			"color": "#2563EB",
+			"definition": {
+				"fields": [
+					{
+						"key": "ID",
+						"label": "Identifier",
+						"initial": "",
+						"required": true
+					},
+					{
+						"key": "TYPE",
+						"label": "Tale type",
+						"initial": "project",
+						"choices": ["project", "task"]
+					},
+					{
+						"key": "TITLE",
+						"label": "TITLE",
+						"initial": ""
+					},
+					{
+						"key": "LANGUAGE",
+						"label": "Programming language",
+						"initial": ""
+					},
+					{
+						"key": "RUNTIME",
+						"label": "RUNTIME",
+						"initial": ""
+					},
+					{
+						"key": "FRAMEWORK",
+						"label": "FRAMEWORK",
+						"initial": ""
+					},
+					{
+						"key": "DATABASE",
+						"label": "DATABASE",
+						"initial": ""
+					},
+					{
+						"key": "IAC",
+						"label": "IAC",
+						"initial": ""
+					},
+					{
+						"key": "TEST_FRAMEWORK",
+						"label": "Test framework",
+						"initial": ""
+					},
+					{
+						"key": "HTTP_TEST_TOOL",
+						"label": "Http test tool",
+						"initial": ""
+					}
+				],
+				"initial": {
+					"properties": {
+						"ID": "new.tale",
+						"TYPE": "project"
+					},
+					"sections": []
+				},
+				"additionalProperties": false
+			}
+		},
+		{
+			"id": "goal",
+			"label": "Purpose",
+			"tag": "GOAL",
+			"color": "#15803D",
+			"definition": {
+				"fields": [
+					{
+						"key": "text",
+						"label": "Description",
+						"initial": "",
+						"format": "lines",
+						"required": true,
+						"allowSections": true,
+						"valueType": "string"
+					}
+				],
+				"initial": {
+					"properties": {
+						"text": "Describe the intended outcome."
+					},
+					"sections": []
+				},
+				"additionalProperties": false
+			}
+		},
+		{
+			"id": "product",
+			"label": "Product",
+			"tag": "PRODUCT",
+			"color": "#7C3AED",
+			"definition": {
+				"fields": [
+					{
+						"key": "platforms",
+						"label": "Supported platforms",
+						"initial": [],
+						"choices": ["macOS", "Windows", "Linux"]
+					},
+					{
+						"key": "editor",
+						"label": "Editor style",
+						"initial": "miro_style",
+						"choices": ["miro_style"]
+					},
+					{
+						"key": "items",
+						"label": "Diagram shapes",
+						"initial": [],
+						"choices": ["rectangle", "arrow"]
+					},
+					{
+						"key": "connections",
+						"label": "Allowed connections",
+						"initial": [],
+						"choices": ["branches", "loops", "multiple"]
+					},
+					{
+						"key": "project_format",
+						"label": "Project format",
+						"initial": "JSON",
+						"choices": ["JSON"]
+					},
+					{
+						"key": "tags",
+						"label": "Tags",
+						"initial": "diagram_items",
+						"choices": ["diagram_items"]
+					},
+					{
+						"key": "tag_coverage",
+						"label": "Tag coverage",
+						"initial": "all_defined",
+						"choices": ["all_defined"]
+					},
+					{
+						"key": "rule_types",
+						"label": "Rule types",
+						"initial": "user_defined",
+						"choices": ["user_defined"]
+					},
+					{
+						"key": "environments",
+						"label": "Environments",
+						"initial": "user_defined",
+						"choices": ["user_defined"]
+					},
+					{
+						"key": "output",
+						"label": "Output",
+						"initial": ""
+					},
+					{
+						"key": "agent_entrypoints",
+						"label": "Agent entrypoints",
+						"initial": "official",
+						"choices": ["official"]
+					}
+				],
+				"initial": {
+					"properties": {},
+					"sections": []
+				},
+				"additionalProperties": false
+			}
+		},
+		{
+			"id": "architecture",
+			"label": "Architecture",
+			"tag": "ARCHITECTURE",
+			"color": "#0E7490",
+			"definition": {
+				"fields": [
+					{
+						"key": "separate",
+						"label": "Separate components",
+						"initial": [],
+						"choices": [
+							"visual_editor",
+							"svg_library",
+							"electron_ui",
+							"application",
+							"preload"
+						]
+					},
+					{
+						"key": "svg_library",
+						"label": "Svg library",
+						"initial": "first_party_reusable",
+						"choices": ["first_party_reusable"]
+					},
+					{
+						"key": "editor_dependencies",
+						"label": "Editor dependencies",
+						"initial": [],
+						"choices": ["svg_library", "project_model"]
+					},
+					{
+						"key": "ui",
+						"label": "Ui",
+						"initial": "native_html_css_browser_apis",
+						"choices": ["native_html_css_browser_apis"]
+					},
+					{
+						"key": "application_dependencies",
+						"label": "Application dependencies",
+						"initial": "no_ui_or_svg",
+						"choices": ["no_ui_or_svg"]
+					},
+					{
+						"key": "filesystem",
+						"label": "Filesystem",
+						"initial": "electron_main",
+						"choices": ["electron_main"]
+					},
+					{
+						"key": "ipc",
+						"label": "Ipc",
+						"initial": "typed_allowlisted_preload_api",
+						"choices": ["typed_allowlisted_preload_api"]
+					},
+					{
+						"key": "ipc_validation",
+						"label": "Ipc validation",
+						"initial": "sender_payload_result",
+						"choices": ["sender_payload_result"]
+					},
+					{
+						"key": "context_isolation",
+						"label": "Context isolation",
+						"initial": true
+					},
+					{
+						"key": "node_integration",
+						"label": "Node integration",
+						"initial": false
+					},
+					{
+						"key": "renderer_sandbox",
+						"label": "Renderer sandbox",
+						"initial": true
+					},
+					{
+						"key": "project_content",
+						"label": "Project content",
+						"initial": "inert_data",
+						"choices": ["inert_data"]
+					}
+				],
+				"initial": {
+					"properties": {},
+					"sections": []
+				},
+				"additionalProperties": false
+			}
+		},
+		{
+			"id": "editor",
+			"label": "Editor",
+			"tag": "EDITOR",
+			"color": "#A21CAF",
+			"definition": {
+				"fields": [
+					{
+						"key": "layout",
+						"label": "Layout",
+						"initial": "board_first",
+						"choices": ["board_first"]
+					},
+					{
+						"key": "viewport",
+						"label": "Viewport",
+						"initial": "fit_app_window",
+						"choices": ["fit_app_window"]
+					},
+					{
+						"key": "app_scroll",
+						"label": "App scroll",
+						"initial": "deny",
+						"choices": ["allow", "require_approval", "deny"]
+					},
+					{
+						"key": "canvas_navigation",
+						"label": "Canvas navigation",
+						"initial": "pan_zoom",
+						"choices": ["pan_zoom"]
+					},
+					{
+						"key": "zoom_input",
+						"label": "Zoom input",
+						"initial": [],
+						"choices": ["touchpad", "mouse"]
+					},
+					{
+						"key": "zoom_anchor",
+						"label": "Zoom anchor",
+						"initial": "pointer",
+						"choices": ["pointer"]
+					},
+					{
+						"key": "chrome",
+						"label": "Chrome",
+						"initial": "compact",
+						"choices": ["compact"]
+					},
+					{
+						"key": "copy",
+						"label": "Copy",
+						"initial": "concise",
+						"choices": ["concise"]
+					},
+					{
+						"key": "oversized_headings",
+						"label": "Oversized headings",
+						"initial": "deny",
+						"choices": ["allow", "require_approval", "deny"]
+					},
+					{
+						"key": "item_titles",
+						"label": "Item titles",
+						"initial": "required_editable",
+						"choices": ["required_editable"]
+					},
+					{
+						"key": "item_text",
+						"label": "Item text",
+						"initial": "editable",
+						"choices": ["editable"]
+					},
+					{
+						"key": "dragging",
+						"label": "Dragging",
+						"initial": "pointer_accurate",
+						"choices": ["pointer_accurate"]
+					},
+					{
+						"key": "draggable",
+						"label": "Draggable",
+						"initial": "all_diagram_objects",
+						"choices": ["all_diagram_objects"]
+					},
+					{
+						"key": "connections",
+						"label": "Allowed connections",
+						"initial": "anchored_precise",
+						"choices": ["anchored_precise"]
+					},
+					{
+						"key": "tag_colors",
+						"label": "Tag colors",
+						"initial": "distinct_stable",
+						"choices": ["distinct_stable"]
+					},
+					{
+						"key": "tag_labels",
+						"label": "Tag labels",
+						"initial": "visible",
+						"choices": ["visible"]
+					},
+					{
+						"key": "toolbar",
+						"label": "Toolbar",
+						"initial": "all_diagram_items",
+						"choices": ["all_diagram_items"]
+					},
+					{
+						"key": "toolbar_labels",
+						"label": "Toolbar labels",
+						"initial": "visible",
+						"choices": ["visible"]
+					},
+					{
+						"key": "menu",
+						"label": "Menu",
+						"initial": [],
+						"choices": ["open_json", "save", "save_as", "deploy"]
+					},
+					{
+						"key": "property_controls",
+						"label": "Property controls",
+						"initial": "semantic_typed",
+						"choices": ["semantic_typed"]
+					},
+					{
+						"key": "raw_json_editing",
+						"label": "Raw json editing",
+						"initial": "deny",
+						"choices": ["allow", "require_approval", "deny"]
+					}
+				],
+				"initial": {
+					"properties": {},
+					"sections": []
+				},
+				"additionalProperties": false
+			}
+		},
+		{
+			"id": "deployment",
+			"label": "Deployment",
+			"tag": "DEPLOYMENT",
+			"color": "#92400E",
+			"definition": {
+				"fields": [
+					{
+						"key": "mode",
+						"label": "Policy",
+						"initial": "compiled_tales",
+						"choices": ["compiled_tales"]
+					},
+					{
+						"key": "project_json",
+						"label": "Project json",
+						"initial": "save_save_as_only",
+						"choices": ["save_save_as_only"]
+					},
+					{
+						"key": "target",
+						"label": "Target",
+						"initial": "selected_project",
+						"choices": ["selected_project"]
+					},
+					{
+						"key": "output",
+						"label": "Output",
+						"initial": ""
+					},
+					{
+						"key": "agents",
+						"label": "Agents",
+						"initial": "user_selected",
+						"choices": ["user_selected"]
+					},
+					{
+						"key": "agent_file",
+						"label": "Agent file",
+						"initial": "selected_official_entrypoint",
+						"choices": ["selected_official_entrypoint"]
+					},
+					{
+						"key": "agent_update",
+						"label": "Agent update",
+						"initial": "preserve_content_upsert_reference",
+						"choices": ["preserve_content_upsert_reference"]
+					},
+					{
+						"key": "preview",
+						"label": "Preview",
+						"initial": "required",
+						"choices": ["required"]
+					},
+					{
+						"key": "existing_tale",
+						"label": "Existing tale",
+						"initial": "confirm_overwrite",
+						"choices": ["confirm_overwrite"]
+					},
+					{
+						"key": "unrelated_files",
+						"label": "Unrelated files",
+						"initial": "preserve",
+						"choices": ["preserve"]
+					},
+					{
+						"key": "repeat",
+						"label": "Repeat",
+						"initial": "idempotent",
+						"choices": ["idempotent"]
+					}
+				],
+				"initial": {
+					"properties": {},
+					"sections": []
+				},
+				"additionalProperties": false
+			}
+		},
+		{
+			"id": "dependencies",
+			"label": "Dependencies",
+			"tag": "DEPENDENCIES",
+			"color": "#B45309",
+			"definition": {
+				"fields": [
+					{
+						"key": "default",
+						"label": "Default",
+						"initial": "deny",
+						"choices": ["allow", "require_approval", "deny"]
+					},
+					{
+						"key": "allow",
+						"label": "Allowed",
+						"initial": []
+					},
+					{
+						"key": "development_allow",
+						"label": "Allowed development tools",
+						"initial": []
+					},
+					{
+						"key": "changes",
+						"label": "Changes",
+						"initial": "require_approval",
+						"choices": ["allow", "require_approval", "deny"]
+					}
+				],
+				"initial": {
+					"properties": {},
+					"sections": []
+				},
+				"additionalProperties": false
+			}
+		},
+		{
+			"id": "agreement",
+			"label": "Agreement",
+			"tag": "AGREEMENT",
+			"color": "#BE185D",
+			"definition": {
+				"fields": [
+					{
+						"key": "before_implementation",
+						"label": "Before implementation",
+						"initial": "agree_goal_scope_checks",
+						"choices": ["agree_goal_scope_checks"]
+					},
+					{
+						"key": "unclear_requirements",
+						"label": "Unclear requirements",
+						"initial": "ask_user",
+						"choices": ["ask_user"]
+					},
+					{
+						"key": "scope_expansion",
+						"label": "Scope expansion",
+						"initial": "require_approval",
+						"choices": ["allow", "require_approval", "deny"]
+					},
+					{
+						"key": "existing_approval",
+						"label": "Existing approval",
+						"initial": "reuse",
+						"choices": ["reuse"]
+					},
+					{
+						"key": "contract_changes",
+						"label": "Contract changes",
+						"initial": "require_approval",
+						"choices": ["allow", "require_approval", "deny"]
+					},
+					{
+						"key": "structured_conflicts",
+						"label": "Structured conflicts",
+						"initial": "block",
+						"choices": ["block"]
+					},
+					{
+						"key": "approval_baseline",
+						"label": "Approval baseline",
+						"initial": "external",
+						"choices": ["external"]
+					}
+				],
+				"initial": {
+					"properties": {},
+					"sections": []
+				},
+				"additionalProperties": false
+			}
+		},
+		{
+			"id": "changes",
+			"label": "Changes",
+			"tag": "CHANGES",
+			"color": "#C2410C",
+			"definition": {
+				"fields": [
+					{
+						"key": "default",
+						"label": "Default",
+						"initial": "minimal",
+						"choices": ["minimal"]
+					},
+					{
+						"key": "refactor",
+						"label": "Refactor",
+						"initial": "require_approval",
+						"choices": ["allow", "require_approval", "deny"]
+					},
+					{
+						"key": "rename",
+						"label": "Rename",
+						"initial": "require_approval",
+						"choices": ["allow", "require_approval", "deny"]
+					},
+					{
+						"key": "delete",
+						"label": "Delete",
+						"initial": "require_approval",
+						"choices": ["allow", "require_approval", "deny"]
+					},
+					{
+						"key": "unrelated_changes",
+						"label": "Unrelated changes",
+						"initial": "deny",
+						"choices": ["allow", "require_approval", "deny"]
+					},
+					{
+						"key": "preserve_user_changes",
+						"label": "Preserve user changes",
+						"initial": true
+					},
+					{
+						"key": "restore_deleted_code",
+						"label": "Restore deleted code",
+						"initial": "require_approval",
+						"choices": ["allow", "require_approval", "deny"]
+					}
+				],
+				"initial": {
+					"properties": {},
+					"sections": []
+				},
+				"additionalProperties": false
+			}
+		},
+		{
+			"id": "scope",
+			"label": "Scope",
+			"tag": "SCOPE",
+			"color": "#B91C1C",
+			"definition": {
+				"fields": [
+					{
+						"key": "mode",
+						"label": "Policy",
+						"initial": "allow",
+						"choices": ["allow", "require_approval", "deny"],
+						"format": "header",
+						"required": true,
+						"enum": ["allow", "deny", "require_approval"]
+					},
+					{
+						"key": "paths",
+						"label": "Files and folders",
+						"initial": [],
+						"format": "values",
+						"required": true,
+						"valueType": "array"
+					}
+				],
+				"initial": {
+					"properties": {
+						"mode": "allow",
+						"paths": []
+					},
+					"sections": []
+				},
+				"additionalProperties": false
+			}
+		},
+		{
+			"id": "quality",
+			"label": "Quality",
+			"tag": "QUALITY",
+			"color": "#047857",
+			"definition": {
+				"fields": [
+					{
+						"key": "typescript_strict",
+						"label": "Typescript strict",
+						"initial": true
+					},
+					{
+						"key": "lint",
+						"label": "Lint",
+						"initial": "biome",
+						"choices": ["biome"]
+					},
+					{
+						"key": "format",
+						"label": "Format",
+						"initial": "biome",
+						"choices": ["biome"]
+					},
+					{
+						"key": "weaken_checks",
+						"label": "Weaken checks",
+						"initial": "deny",
+						"choices": ["allow", "require_approval", "deny"]
+					}
+				],
+				"initial": {
+					"properties": {},
+					"sections": []
+				},
+				"additionalProperties": false
+			}
+		},
+		{
+			"id": "testing",
+			"label": "Testing",
+			"tag": "TESTING",
+			"color": "#4338CA",
+			"definition": {
+				"fields": [
+					{
+						"key": "assertions",
+						"label": "Assertions",
+						"initial": "observable_behavior",
+						"choices": ["observable_behavior"]
+					},
+					{
+						"key": "bugfix",
+						"label": "Bugfix",
+						"initial": "regression_test",
+						"choices": ["regression_test"]
+					},
+					{
+						"key": "changed_behavior",
+						"label": "Changed behavior",
+						"initial": "require_coverage",
+						"choices": ["require_coverage"]
+					},
+					{
+						"key": "editor_changes",
+						"label": "Editor changes",
+						"initial": "interaction_check",
+						"choices": ["interaction_check"]
+					},
+					{
+						"key": "editor_cases",
+						"label": "Editor cases",
+						"initial": []
+					},
+					{
+						"key": "ui_cases",
+						"label": "Ui cases",
+						"initial": []
+					},
+					{
+						"key": "ipc_changes",
+						"label": "Ipc changes",
+						"initial": "boundary_tests",
+						"choices": ["boundary_tests"]
+					},
+					{
+						"key": "editor_e2e",
+						"label": "Editor e2e",
+						"initial": "json_to_tale_determinism",
+						"choices": ["json_to_tale_determinism"]
+					},
+					{
+						"key": "deploy_e2e",
+						"label": "Deploy e2e",
+						"initial": "compiled_tales_agent_entrypoint",
+						"choices": ["compiled_tales_agent_entrypoint"]
+					},
+					{
+						"key": "weaken_expectations",
+						"label": "Weaken expectations",
+						"initial": "deny",
+						"choices": ["allow", "require_approval", "deny"]
+					},
+					{
+						"key": "test_files",
+						"label": "Test files",
+						"initial": "paired_sibling",
+						"choices": ["paired_sibling"]
+					},
+					{
+						"key": "test_pattern",
+						"label": "Test pattern",
+						"initial": ""
+					},
+					{
+						"key": "test_scope",
+						"label": "Test scope",
+						"initial": "application_typescript",
+						"choices": ["application_typescript"]
+					},
+					{
+						"key": "test_pair_check",
+						"label": "Test pair check",
+						"initial": "npm_run_lint",
+						"choices": ["npm_run_lint"]
+					}
+				],
+				"initial": {
+					"properties": {},
+					"sections": []
+				},
+				"additionalProperties": false
+			}
+		},
+		{
+			"id": "agentic-tests",
+			"label": "Agentic tests",
+			"tag": "AGENTIC_TESTS",
+			"color": "#4D7C0F",
+			"definition": {
+				"fields": [
+					{
+						"key": "pattern",
+						"label": "Pattern",
+						"initial": ""
+					},
+					{
+						"key": "allow_create",
+						"label": "Allow creating tests",
+						"initial": true
+					},
+					{
+						"key": "allow_modify",
+						"label": "Allow modify",
+						"initial": "within_task",
+						"choices": ["within_task"]
+					},
+					{
+						"key": "freeze_after",
+						"label": "Freeze after",
+						"initial": "proof_pass",
+						"choices": ["proof_pass"]
+					},
+					{
+						"key": "freeze_mode",
+						"label": "Freeze mode",
+						"initial": ""
+					}
+				],
+				"initial": {
+					"properties": {},
+					"sections": []
+				},
+				"additionalProperties": false
+			}
+		},
+		{
+			"id": "proof",
+			"label": "Proof",
+			"tag": "PROOF",
+			"color": "#0369A1",
+			"definition": {
+				"fields": [
+					{
+						"key": "steps",
+						"label": "Steps",
+						"initial": [],
+						"format": "steps",
+						"required": true,
+						"valueType": "array"
+					}
+				],
+				"initial": {
+					"properties": {
+						"steps": []
+					},
+					"sections": []
+				},
+				"role": "proof",
+				"additionalProperties": false,
+				"steps": {
+					"run": {
+						"initial": {
+							"operation": "run",
+							"command": "",
+							"expect": {
+								"exit": 0
+							},
+							"when": "code_changed"
+						},
+						"fields": [
+							{
+								"key": "command",
+								"quote": true,
+								"required": true,
+								"valueType": "string"
+							},
+							{
+								"key": "expect",
+								"prefix": "expect ",
+								"required": true,
+								"valueType": "object",
+								"properties": {
+									"exit": "number"
+								}
+							},
+							{
+								"key": "when",
+								"prefix": "when=",
+								"valueType": "string"
+							}
+						]
+					},
+					"review": {
+						"initial": {
+							"operation": "review",
+							"checks": []
+						},
+						"fields": [
+							{
+								"key": "checks",
+								"required": true,
+								"valueType": "array"
+							}
+						]
+					},
+					"stop": {
+						"initial": {
+							"operation": "stop",
+							"when": "after_agreed_checks"
+						},
+						"fields": [
+							{
+								"key": "when",
+								"required": true,
+								"valueType": "string"
+							}
+						]
+					},
+					"contract_verify": {
+						"initial": {
+							"operation": "contract_verify",
+							"attributes": {
+								"baseline": "external",
+								"coverage": "mandatory"
+							}
+						}
+					},
+					"request_change": {
+						"initial": {
+							"operation": "request_change",
+							"attributes": {
+								"requirement": "",
+								"reason": ""
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"id": "plan",
+			"label": "Plan",
+			"tag": "PLAN",
+			"color": "#7E22CE",
+			"definition": {
+				"fields": [
+					{
+						"key": "steps",
+						"label": "Steps",
+						"initial": [],
+						"format": "steps",
+						"required": true,
+						"valueType": "array"
+					}
+				],
+				"initial": {
+					"properties": {
+						"steps": []
+					},
+					"sections": []
+				},
+				"additionalProperties": false,
+				"steps": {
+					"run": {
+						"initial": {
+							"operation": "run",
+							"command": "",
+							"expect": {
+								"exit": 0
+							},
+							"when": "code_changed"
+						},
+						"fields": [
+							{
+								"key": "command",
+								"quote": true,
+								"required": true,
+								"valueType": "string"
+							},
+							{
+								"key": "expect",
+								"prefix": "expect ",
+								"required": true,
+								"valueType": "object",
+								"properties": {
+									"exit": "number"
+								}
+							},
+							{
+								"key": "when",
+								"prefix": "when=",
+								"valueType": "string"
+							}
+						]
+					},
+					"review": {
+						"initial": {
+							"operation": "review",
+							"checks": []
+						},
+						"fields": [
+							{
+								"key": "checks",
+								"required": true,
+								"valueType": "array"
+							}
+						]
+					},
+					"stop": {
+						"initial": {
+							"operation": "stop",
+							"when": "after_agreed_checks"
+						},
+						"fields": [
+							{
+								"key": "when",
+								"required": true,
+								"valueType": "string"
+							}
+						]
+					},
+					"contract_verify": {
+						"initial": {
+							"operation": "contract_verify",
+							"attributes": {
+								"baseline": "external",
+								"coverage": "mandatory"
+							}
+						}
+					},
+					"request_change": {
+						"initial": {
+							"operation": "request_change",
+							"attributes": {
+								"requirement": "",
+								"reason": ""
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"id": "determinism",
+			"label": "Determinism",
+			"tag": "DETERMINISM",
+			"color": "#0F766E",
+			"definition": {
+				"fields": [
+					{
+						"key": "mode",
+						"label": "Policy",
+						"initial": "strict",
+						"choices": ["strict", "normalized"]
+					},
+					{
+						"key": "target",
+						"label": "Target",
+						"initial": "compiled_tales",
+						"choices": ["compiled_tales"]
+					},
+					{
+						"key": "comparison",
+						"label": "Comparison",
+						"initial": "byte_exact",
+						"choices": ["byte_exact"]
+					},
+					{
+						"key": "encoding",
+						"label": "Encoding",
+						"initial": "utf8",
+						"choices": ["utf8"]
+					},
+					{
+						"key": "line_endings",
+						"label": "Line endings",
+						"initial": "lf",
+						"choices": ["lf"]
+					},
+					{
+						"key": "final_newline",
+						"label": "Final newline",
+						"initial": true
+					},
+					{
+						"key": "canonicalize",
+						"label": "Canonicalize",
+						"initial": [],
+						"format": "bullets"
+					},
+					{
+						"key": "rerun_check",
+						"label": "Rerun check",
+						"initial": {
+							"runs": 2
+						}
+					},
+					{
+						"key": "clean_build_check",
+						"label": "Clean build check",
+						"initial": {
+							"runs": 2
+						}
+					}
+				],
+				"initial": {
+					"properties": {
+						"mode": "strict",
+						"rerun_check": {
+							"runs": 2
+						}
+					},
+					"sections": []
+				},
+				"additionalProperties": false
+			}
+		},
+		{
+			"id": "overrides",
+			"label": "Overrides",
+			"tag": "OVERRIDES",
+			"color": "#9F1239",
+			"definition": {
+				"fields": [
+					{
+						"key": "steps",
+						"label": "Steps",
+						"initial": [],
+						"format": "steps",
+						"required": true,
+						"valueType": "array"
+					}
+				],
+				"initial": {
+					"properties": {
+						"steps": []
+					},
+					"sections": []
+				},
+				"role": "override",
+				"additionalProperties": false,
+				"steps": {
+					"run": {
+						"initial": {
+							"operation": "run",
+							"command": "",
+							"expect": {
+								"exit": 0
+							},
+							"when": "code_changed"
+						},
+						"fields": [
+							{
+								"key": "command",
+								"quote": true,
+								"required": true,
+								"valueType": "string"
+							},
+							{
+								"key": "expect",
+								"prefix": "expect ",
+								"required": true,
+								"valueType": "object",
+								"properties": {
+									"exit": "number"
+								}
+							},
+							{
+								"key": "when",
+								"prefix": "when=",
+								"valueType": "string"
+							}
+						]
+					},
+					"review": {
+						"initial": {
+							"operation": "review",
+							"checks": []
+						},
+						"fields": [
+							{
+								"key": "checks",
+								"required": true,
+								"valueType": "array"
+							}
+						]
+					},
+					"stop": {
+						"initial": {
+							"operation": "stop",
+							"when": "after_agreed_checks"
+						},
+						"fields": [
+							{
+								"key": "when",
+								"required": true,
+								"valueType": "string"
+							}
+						]
+					},
+					"contract_verify": {
+						"initial": {
+							"operation": "contract_verify",
+							"attributes": {
+								"baseline": "external",
+								"coverage": "mandatory"
+							}
+						}
+					},
+					"request_change": {
+						"initial": {
+							"operation": "request_change",
+							"attributes": {
+								"requirement": "",
+								"reason": ""
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"id": "requirement",
+			"label": "Requirement",
+			"tag": "REQUIREMENT",
+			"color": "#A16207",
+			"definition": {
+				"fields": [
+					{
+						"key": "id",
+						"label": "Id",
+						"initial": "",
+						"source": "id"
+					},
+					{
+						"key": "action",
+						"label": "Action being checked",
+						"initial": ""
+					},
+					{
+						"key": "subject",
+						"label": "File to inspect",
+						"initial": "",
+						"visibleWhen": {
+							"key": "condition",
+							"notEquals": "command_succeeds"
+						}
+					},
+					{
+						"key": "condition",
+						"label": "Required behavior",
+						"initial": "exists",
+						"choices": [
+							"exists",
+							"absent",
+							"equals_file",
+							"unchanged",
+							"command_succeeds"
+						]
+					},
+					{
+						"key": "expected",
+						"label": "Approved reference file",
+						"initial": "",
+						"visibleWhen": {
+							"key": "condition",
+							"equals": "equals_file"
+						}
+					},
+					{
+						"key": "mandatory",
+						"label": "Required for completion",
+						"initial": true
+					},
+					{
+						"key": "verified_by",
+						"label": "Verified by",
+						"initial": "",
+						"source": "links"
+					}
+				],
+				"initial": {
+					"properties": {
+						"action": "",
+						"subject": "",
+						"condition": "exists",
+						"expected": "",
+						"mandatory": true
+					},
+					"sections": []
+				},
+				"role": "requirement",
+				"additionalProperties": false,
+				"bindings": {
+					"id": "id",
+					"action": "action",
+					"subject": "subject",
+					"condition": "condition",
+					"expected": "expected",
+					"mandatory": "mandatory",
+					"verified_by": "verified_by"
+				}
+			}
+		},
+		{
+			"id": "check",
+			"label": "Check",
+			"tag": "CHECK",
+			"color": "#0D9488",
+			"definition": {
+				"fields": [
+					{
+						"key": "id",
+						"label": "Id",
+						"initial": "",
+						"source": "id"
+					},
+					{
+						"key": "action",
+						"label": "Action being checked",
+						"initial": ""
+					},
+					{
+						"key": "executable",
+						"label": "Program to run",
+						"initial": ""
+					},
+					{
+						"key": "arguments",
+						"label": "Arguments",
+						"initial": []
+					},
+					{
+						"key": "protected_files",
+						"label": "Tests and adapters to protect",
+						"initial": []
+					},
+					{
+						"key": "timeout_ms",
+						"label": "Timeout (milliseconds)",
+						"initial": 30000
+					}
+				],
+				"initial": {
+					"properties": {
+						"action": "",
+						"executable": "",
+						"arguments": [],
+						"protected_files": [],
+						"timeout_ms": 30000
+					},
+					"sections": []
+				},
+				"role": "check",
+				"additionalProperties": false,
+				"bindings": {
+					"id": "id",
+					"action": "action",
+					"executable": "executable",
+					"arguments": "arguments",
+					"protected_files": "protected_files",
+					"timeout_ms": "timeout_ms"
+				}
+			}
+		}
+	],
+	"labels": {
+		"contract_verify": "Verify approved contract",
+		"request_change": "Request a requirement change",
+		"requirement": "Requirement ID",
+		"reason": "Reason for change",
+		"action": "Action being checked",
+		"subject": "File to inspect",
+		"condition": "Required behavior",
+		"expected": "Approved reference file",
+		"mandatory": "Required for completion",
+		"executable": "Program to run",
+		"arguments": "Arguments",
+		"protected_files": "Tests and adapters to protect",
+		"timeout_ms": "Timeout (milliseconds)",
+		"exists": "File must exist",
+		"absent": "File must not exist",
+		"equals_file": "Match the approved reference exactly",
+		"unchanged": "File must remain unchanged",
+		"command_succeeds": "Linked command must succeed",
+		"platforms": "Supported platforms",
+		"items": "Diagram shapes",
+		"connections": "Allowed connections",
+		"editor": "Editor style",
+		"text": "Description",
+		"paths": "Files and folders",
+		"mode": "Policy",
+		"development_allow": "Allowed development tools",
+		"separate": "Separate components",
+		"steps": "Steps",
+		"expect": "Expected result",
+		"exit": "Exit code",
+		"runs": "Number of runs",
+		"TYPE": "Tale type",
+		"ID": "Identifier",
+		"LANGUAGE": "Programming language",
+		"TEST_FRAMEWORK": "Test framework",
+		"command": "Command",
+		"when": "When",
+		"operation": "Action",
+		"require_approval": "Needs approval",
+		"allow_create": "Allow creating tests",
+		"miro_style": "Freeform board",
+		"allow": "Allowed",
+		"deny": "Forbidden",
+		"rectangle": "Rectangle",
+		"arrow": "Arrow",
+		"branches": "Branching paths",
+		"loops": "Loops",
+		"multiple": "Multiple connections",
+		"code_changed": "When code changes",
+		"after_agreed_checks": "After agreed checks pass",
+		"paired_sibling": "One test file beside each source file",
+		"application_typescript": "All application TypeScript files",
+		"npm_run_lint": "Checked by npm run lint",
+		"semantic_typed": "Controls suited to each rule"
+	},
+	"policies": ["allow", "require_approval", "deny"],
+	"literalFields": [
+		"subject",
+		"expected",
+		"executable",
+		"arguments",
+		"protected_files",
+		"command",
+		"paths",
+		"args",
+		"output",
+		"pattern",
+		"test_pattern",
+		"ID",
+		"text"
+	],
+	"stepChoices": {
+		"operation": ["run", "review", "stop", "contract_verify", "request_change"],
+		"checks": ["scope", "unrelated_behavior", "added_lines"],
+		"when": ["code_changed", "after_agreed_checks"]
+	},
+	"steps": {
+		"run": {
+			"initial": {
+				"operation": "run",
+				"command": "",
+				"expect": {
+					"exit": 0
+				},
+				"when": "code_changed"
+			},
+			"fields": [
+				{
+					"key": "command",
+					"quote": true,
+					"required": true,
+					"valueType": "string"
+				},
+				{
+					"key": "expect",
+					"prefix": "expect ",
+					"required": true,
+					"valueType": "object",
+					"properties": {
+						"exit": "number"
+					}
+				},
+				{
+					"key": "when",
+					"prefix": "when=",
+					"valueType": "string"
+				}
+			]
+		},
+		"review": {
+			"initial": {
+				"operation": "review",
+				"checks": []
+			},
+			"fields": [
+				{
+					"key": "checks",
+					"required": true,
+					"valueType": "array"
+				}
+			]
+		},
+		"stop": {
+			"initial": {
+				"operation": "stop",
+				"when": "after_agreed_checks"
+			},
+			"fields": [
+				{
+					"key": "when",
+					"required": true,
+					"valueType": "string"
+				}
+			]
+		},
+		"contract_verify": {
+			"initial": {
+				"operation": "contract_verify",
+				"attributes": {
+					"baseline": "external",
+					"coverage": "mandatory"
+				}
+			}
+		},
+		"request_change": {
+			"initial": {
+				"operation": "request_change",
+				"attributes": {
+					"requirement": "",
+					"reason": ""
+				}
+			}
+		}
+	}
+}

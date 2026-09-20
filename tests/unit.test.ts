@@ -43,7 +43,7 @@ async function temporary() {
 	return dir;
 }
 async function fixture(): Promise<Project> {
-	return parseProject(await readFile('tale.project.json', 'utf8'));
+	return parseProject(await readFile('project/tale.project.json', 'utf8'));
 }
 
 async function deployProject(target: string, project: Project) {
@@ -101,7 +101,7 @@ test('rejects ambiguous outputs and missing required sections', async () => {
 	const output = project.exports[0];
 	assert.ok(output);
 	project.exports.push({ ...output, id: 'second' });
-	assert.throws(() => compile(project), /Duplicate output/);
+	assert.throws(() => compile(project), /Choose one Tale/);
 	project.exports.pop();
 	project.diagram.connections = project.diagram.connections.filter(
 		(e) => e.to !== 'goal',

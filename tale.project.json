@@ -1,0 +1,931 @@
+{
+  "format": "tale-project",
+  "formatVersion": 1,
+  "id": "tale-project",
+  "name": "Tale",
+  "environments": [],
+  "itemTypes": [
+    {
+      "id": "tale",
+      "label": "Tale",
+      "tag": "TALE",
+      "color": "#475569"
+    },
+    {
+      "id": "meta",
+      "label": "Project",
+      "tag": "META",
+      "color": "#2563EB"
+    },
+    {
+      "id": "goal",
+      "label": "Purpose",
+      "tag": "GOAL",
+      "color": "#15803D"
+    },
+    {
+      "id": "product",
+      "label": "Product",
+      "tag": "PRODUCT",
+      "color": "#7C3AED"
+    },
+    {
+      "id": "architecture",
+      "label": "Architecture",
+      "tag": "ARCHITECTURE",
+      "color": "#0E7490"
+    },
+    {
+      "id": "editor",
+      "label": "Editor",
+      "tag": "EDITOR",
+      "color": "#A21CAF"
+    },
+    {
+      "id": "deployment",
+      "label": "Deployment",
+      "tag": "DEPLOYMENT",
+      "color": "#92400E"
+    },
+    {
+      "id": "dependencies",
+      "label": "Dependencies",
+      "tag": "DEPENDENCIES",
+      "color": "#B45309"
+    },
+    {
+      "id": "agreement",
+      "label": "Agreement",
+      "tag": "AGREEMENT",
+      "color": "#BE185D"
+    },
+    {
+      "id": "changes",
+      "label": "Changes",
+      "tag": "CHANGES",
+      "color": "#C2410C"
+    },
+    {
+      "id": "scope",
+      "label": "Scope",
+      "tag": "SCOPE",
+      "color": "#B91C1C"
+    },
+    {
+      "id": "quality",
+      "label": "Quality",
+      "tag": "QUALITY",
+      "color": "#047857"
+    },
+    {
+      "id": "testing",
+      "label": "Testing",
+      "tag": "TESTING",
+      "color": "#4338CA"
+    },
+    {
+      "id": "agentic-tests",
+      "label": "Agentic tests",
+      "tag": "AGENTIC_TESTS",
+      "color": "#4D7C0F"
+    },
+    {
+      "id": "proof",
+      "label": "Proof",
+      "tag": "PROOF",
+      "color": "#0369A1"
+    },
+    {
+      "id": "plan",
+      "label": "Plan",
+      "tag": "PLAN",
+      "color": "#7E22CE"
+    },
+    {
+      "id": "determinism",
+      "label": "Determinism",
+      "tag": "DETERMINISM",
+      "color": "#0F766E"
+    },
+    {
+      "id": "overrides",
+      "label": "Overrides",
+      "tag": "OVERRIDES",
+      "color": "#9F1239"
+    },
+    {
+      "id": "requirement",
+      "label": "Requirement",
+      "tag": "REQUIREMENT",
+      "color": "#A16207"
+    },
+    {
+      "id": "check",
+      "label": "Check",
+      "tag": "CHECK",
+      "color": "#0D9488"
+    }
+  ],
+  "diagram": {
+    "viewport": {
+      "x": 40,
+      "y": 40,
+      "zoom": 0.7
+    },
+    "items": [
+      {
+        "id": "project",
+        "typeId": "tale",
+        "shape": "rectangle",
+        "position": {
+          "x": 540,
+          "y": 0
+        },
+        "size": {
+          "width": 320,
+          "height": 100
+        },
+        "properties": {
+          "version": "v0"
+        },
+        "title": "Tale project"
+      },
+      {
+        "id": "meta",
+        "typeId": "meta",
+        "shape": "rectangle",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "size": {
+          "width": 320,
+          "height": 240
+        },
+        "properties": {
+          "ID": "tale.project",
+          "TYPE": "project",
+          "LANGUAGE": "TypeScript",
+          "RUNTIME": "Electron",
+          "TEST_FRAMEWORK": "node:test"
+        },
+        "title": "Project"
+      },
+      {
+        "id": "goal",
+        "typeId": "goal",
+        "shape": "rectangle",
+        "position": {
+          "x": 360,
+          "y": 200
+        },
+        "size": {
+          "width": 320,
+          "height": 180
+        },
+        "properties": {
+          "text": "Build a cross-platform Electron app for visually authoring reusable human-agent agreements.\nEdit all Tale tags on a precise SVG board, save projects as JSON, and compile deployable .tale files."
+        },
+        "title": "Purpose"
+      },
+      {
+        "id": "product",
+        "typeId": "product",
+        "shape": "rectangle",
+        "position": {
+          "x": 720,
+          "y": 200
+        },
+        "size": {
+          "width": 320,
+          "height": 400
+        },
+        "properties": {
+          "platforms": [
+            "macOS",
+            "Windows",
+            "Linux"
+          ],
+          "editor": "miro_style",
+          "items": [
+            "rectangle",
+            "arrow"
+          ],
+          "connections": [
+            "branches",
+            "loops",
+            "multiple"
+          ],
+          "project_format": "JSON",
+          "tags": "diagram_items",
+          "rule_types": "user_defined",
+          "environments": "user_defined",
+          "output": ".tale/*.tale",
+          "agent_entrypoints": "official",
+          "tag_coverage": "all_defined"
+        },
+        "title": "Product"
+      },
+      {
+        "id": "architecture",
+        "typeId": "architecture",
+        "shape": "rectangle",
+        "position": {
+          "x": 1080,
+          "y": 200
+        },
+        "size": {
+          "width": 320,
+          "height": 220
+        },
+        "properties": {
+          "separate": [
+            "visual_editor",
+            "svg_library",
+            "electron_ui",
+            "application",
+            "preload"
+          ],
+          "svg_library": "first_party_reusable",
+          "editor_dependencies": [
+            "svg_library",
+            "project_model"
+          ],
+          "ui": "native_html_css_browser_apis",
+          "application_dependencies": "no_ui_or_svg",
+          "filesystem": "electron_main",
+          "ipc": "typed_allowlisted_preload_api",
+          "ipc_validation": "sender_payload_result",
+          "context_isolation": true,
+          "node_integration": false,
+          "renderer_sandbox": true,
+          "project_content": "inert_data"
+        },
+        "title": "Architecture"
+      },
+      {
+        "id": "dependencies",
+        "typeId": "dependencies",
+        "shape": "rectangle",
+        "position": {
+          "x": 0,
+          "y": 700
+        },
+        "size": {
+          "width": 320,
+          "height": 240
+        },
+        "properties": {
+          "default": "deny",
+          "allow": [
+            "electron"
+          ],
+          "development_allow": [
+            "typescript",
+            "@biomejs/biome"
+          ],
+          "changes": "require_approval"
+        },
+        "title": "Dependencies"
+      },
+      {
+        "id": "agreement",
+        "typeId": "agreement",
+        "shape": "rectangle",
+        "position": {
+          "x": 360,
+          "y": 700
+        },
+        "size": {
+          "width": 320,
+          "height": 260
+        },
+        "properties": {
+          "before_implementation": "agree_goal_scope_checks",
+          "unclear_requirements": "ask_user",
+          "scope_expansion": "require_approval",
+          "existing_approval": "reuse",
+          "contract_changes": "require_approval",
+          "structured_conflicts": "block",
+          "approval_baseline": "external"
+        },
+        "title": "Agreement"
+      },
+      {
+        "id": "changes",
+        "typeId": "changes",
+        "shape": "rectangle",
+        "position": {
+          "x": 720,
+          "y": 700
+        },
+        "size": {
+          "width": 320,
+          "height": 320
+        },
+        "properties": {
+          "default": "minimal",
+          "refactor": "require_approval",
+          "rename": "require_approval",
+          "delete": "require_approval",
+          "unrelated_changes": "deny",
+          "preserve_user_changes": true,
+          "restore_deleted_code": "require_approval"
+        },
+        "title": "Changes"
+      },
+      {
+        "id": "scope-allow",
+        "typeId": "scope",
+        "shape": "rectangle",
+        "position": {
+          "x": 1080,
+          "y": 700
+        },
+        "size": {
+          "width": 320,
+          "height": 180
+        },
+        "properties": {
+          "mode": "allow",
+          "paths": [
+            "approved_task_files"
+          ]
+        },
+        "title": "Allowed changes"
+      },
+      {
+        "id": "scope-deny",
+        "typeId": "scope",
+        "shape": "rectangle",
+        "position": {
+          "x": 0,
+          "y": 1100
+        },
+        "size": {
+          "width": 320,
+          "height": 180
+        },
+        "properties": {
+          "mode": "deny",
+          "paths": [
+            ".git/**"
+          ]
+        },
+        "title": "Forbidden changes"
+      },
+      {
+        "id": "scope-approval",
+        "typeId": "scope",
+        "shape": "rectangle",
+        "position": {
+          "x": 360,
+          "y": 1100
+        },
+        "size": {
+          "width": 320,
+          "height": 380
+        },
+        "properties": {
+          "mode": "require_approval",
+          "paths": [
+            ".tale/**",
+            "AGENTS.md",
+            "README.md",
+            "docs/project-policy.md",
+            "*.tale",
+            "package.json",
+            "*lock*",
+            "tsconfig*.json",
+            "biome.json*"
+          ]
+        },
+        "title": "Approval required"
+      },
+      {
+        "id": "quality",
+        "typeId": "quality",
+        "shape": "rectangle",
+        "position": {
+          "x": 720,
+          "y": 1100
+        },
+        "size": {
+          "width": 320,
+          "height": 220
+        },
+        "properties": {
+          "typescript_strict": true,
+          "lint": "biome",
+          "format": "biome",
+          "weaken_checks": "deny"
+        },
+        "title": "Quality"
+      },
+      {
+        "id": "testing",
+        "typeId": "testing",
+        "shape": "rectangle",
+        "position": {
+          "x": 1080,
+          "y": 1100
+        },
+        "size": {
+          "width": 320,
+          "height": 260
+        },
+        "properties": {
+          "assertions": "observable_behavior",
+          "bugfix": "regression_test",
+          "changed_behavior": "require_coverage",
+          "editor_changes": "interaction_check",
+          "weaken_expectations": "deny",
+          "editor_cases": [
+            "drag_zoom",
+            "connect_move_resize",
+            "edit_save_reopen",
+            "tag_coverage"
+          ],
+          "ipc_changes": "boundary_tests",
+          "editor_e2e": "json_to_tale_determinism",
+          "ui_cases": [
+            "all_objects_draggable",
+            "no_app_scroll",
+            "touchpad_mouse_zoom",
+            "toolbar_coverage",
+            "file_menu"
+          ],
+          "deploy_e2e": "compiled_tales_agent_entrypoint",
+          "test_files": "paired_sibling",
+          "test_pattern": "{name}.test.ts",
+          "test_scope": "application_typescript",
+          "test_pair_check": "npm_run_lint"
+        },
+        "title": "Testing"
+      },
+      {
+        "id": "agentic-tests",
+        "typeId": "agentic-tests",
+        "shape": "rectangle",
+        "position": {
+          "x": 0,
+          "y": 1600
+        },
+        "size": {
+          "width": 320,
+          "height": 260
+        },
+        "properties": {
+          "pattern": "**/*.ai.test.ts",
+          "allow_create": true,
+          "allow_modify": "within_task",
+          "freeze_after": "proof_pass"
+        },
+        "title": "Agentic tests"
+      },
+      {
+        "id": "proof",
+        "typeId": "proof",
+        "shape": "rectangle",
+        "position": {
+          "x": 360,
+          "y": 1600
+        },
+        "size": {
+          "width": 500,
+          "height": 380
+        },
+        "properties": {
+          "steps": [
+            {
+              "operation": "run",
+              "command": "npm run typecheck",
+              "expect": {
+                "exit": 0
+              },
+              "when": "code_changed"
+            },
+            {
+              "operation": "run",
+              "command": "npm run lint",
+              "expect": {
+                "exit": 0
+              },
+              "when": "code_changed"
+            },
+            {
+              "operation": "run",
+              "command": "npm run format:check",
+              "expect": {
+                "exit": 0
+              },
+              "when": "code_changed"
+            },
+            {
+              "operation": "run",
+              "command": "npm test",
+              "expect": {
+                "exit": 0
+              },
+              "when": "code_changed"
+            },
+            {
+              "operation": "run",
+              "command": "npm run test:e2e",
+              "expect": {
+                "exit": 0
+              },
+              "when": "code_changed"
+            },
+            {
+              "operation": "contract_verify",
+              "attributes": {
+                "baseline": "external",
+                "coverage": "mandatory"
+              }
+            },
+            {
+              "operation": "review",
+              "checks": [
+                "scope",
+                "unrelated_behavior",
+                "added_lines"
+              ]
+            },
+            {
+              "operation": "stop",
+              "when": "after_agreed_checks"
+            }
+          ]
+        },
+        "title": "Proof"
+      },
+      {
+        "id": "editor",
+        "typeId": "editor",
+        "title": "Editor",
+        "shape": "rectangle",
+        "position": {
+          "x": 900,
+          "y": 1600
+        },
+        "size": {
+          "width": 500,
+          "height": 380
+        },
+        "properties": {
+          "layout": "board_first",
+          "viewport": "fit_app_window",
+          "app_scroll": "deny",
+          "canvas_navigation": "pan_zoom",
+          "zoom_input": [
+            "touchpad",
+            "mouse"
+          ],
+          "zoom_anchor": "pointer",
+          "chrome": "compact",
+          "copy": "concise",
+          "oversized_headings": "deny",
+          "item_titles": "required_editable",
+          "item_text": "editable",
+          "dragging": "pointer_accurate",
+          "draggable": "all_diagram_objects",
+          "connections": "anchored_precise",
+          "tag_colors": "distinct_stable",
+          "tag_labels": "visible",
+          "toolbar": "all_diagram_items",
+          "toolbar_labels": "visible",
+          "menu": [
+            "open_json",
+            "save",
+            "save_as",
+            "deploy"
+          ],
+          "property_controls": "semantic_typed",
+          "raw_json_editing": "deny"
+        }
+      },
+      {
+        "id": "determinism",
+        "typeId": "determinism",
+        "title": "Deterministic output",
+        "shape": "rectangle",
+        "position": {
+          "x": 0,
+          "y": 2100
+        },
+        "size": {
+          "width": 320,
+          "height": 320
+        },
+        "properties": {
+          "mode": "strict",
+          "target": "compiled_tales",
+          "comparison": "byte_exact",
+          "encoding": "utf8",
+          "line_endings": "lf",
+          "final_newline": true,
+          "rerun_check": {
+            "runs": 2
+          },
+          "clean_build_check": {
+            "runs": 2
+          }
+        }
+      },
+      {
+        "id": "deployment",
+        "typeId": "deployment",
+        "title": "Deployment",
+        "shape": "rectangle",
+        "position": {
+          "x": 360,
+          "y": 2100
+        },
+        "size": {
+          "width": 500,
+          "height": 320
+        },
+        "properties": {
+          "mode": "compiled_tales",
+          "project_json": "save_save_as_only",
+          "target": "selected_project",
+          "output": ".tale/*.tale",
+          "agents": "user_selected",
+          "agent_file": "selected_official_entrypoint",
+          "agent_update": "preserve_content_upsert_reference",
+          "preview": "required",
+          "existing_tale": "confirm_overwrite",
+          "unrelated_files": "preserve",
+          "repeat": "idempotent"
+        }
+      },
+      {
+        "id": "deployment-bytes",
+        "typeId": "requirement",
+        "title": "Deploy exact Tale bytes",
+        "shape": "rectangle",
+        "position": {
+          "x": 0,
+          "y": 2540
+        },
+        "size": {
+          "width": 320,
+          "height": 320
+        },
+        "properties": {
+          "action": "deploy",
+          "subject": "artifacts/contract-deployment/.tale/project.tale",
+          "condition": "equals_file",
+          "expected": ".tale/project.tale",
+          "mandatory": true
+        }
+      },
+      {
+        "id": "no-project-json",
+        "typeId": "requirement",
+        "title": "Keep project JSON out of deployment",
+        "shape": "rectangle",
+        "position": {
+          "x": 360,
+          "y": 2540
+        },
+        "size": {
+          "width": 320,
+          "height": 320
+        },
+        "properties": {
+          "action": "deploy",
+          "subject": "artifacts/contract-deployment/.tale/tale.project.json",
+          "condition": "absent",
+          "expected": "",
+          "mandatory": true
+        }
+      },
+      {
+        "id": "preserve-project",
+        "typeId": "requirement",
+        "title": "Preserve the editor project",
+        "shape": "rectangle",
+        "position": {
+          "x": 720,
+          "y": 2540
+        },
+        "size": {
+          "width": 320,
+          "height": 320
+        },
+        "properties": {
+          "action": "deploy",
+          "subject": "tale.project.json",
+          "condition": "unchanged",
+          "expected": "",
+          "mandatory": true
+        }
+      },
+      {
+        "id": "deploy-check",
+        "typeId": "check",
+        "title": "Exercise actual deployment",
+        "shape": "rectangle",
+        "position": {
+          "x": 1080,
+          "y": 2540
+        },
+        "size": {
+          "width": 320,
+          "height": 320
+        },
+        "properties": {
+          "action": "deploy",
+          "executable": "node",
+          "arguments": [
+            "scripts/prove-deployment.mjs"
+          ],
+          "protected_files": [
+            "scripts/prove-deployment.mjs"
+          ],
+          "timeout_ms": 30000
+        }
+      }
+    ],
+    "connections": [
+      {
+        "id": "project-meta",
+        "from": "project",
+        "to": "meta",
+        "kind": "contains",
+        "order": 0
+      },
+      {
+        "id": "project-goal",
+        "from": "project",
+        "to": "goal",
+        "kind": "contains",
+        "order": 1
+      },
+      {
+        "id": "project-product",
+        "from": "project",
+        "to": "product",
+        "kind": "contains",
+        "order": 2
+      },
+      {
+        "id": "project-architecture",
+        "from": "project",
+        "to": "architecture",
+        "kind": "contains",
+        "order": 3
+      },
+      {
+        "id": "project-editor",
+        "from": "project",
+        "to": "editor",
+        "kind": "contains",
+        "order": 4
+      },
+      {
+        "id": "project-deployment",
+        "from": "project",
+        "to": "deployment",
+        "kind": "contains",
+        "order": 5
+      },
+      {
+        "id": "project-dependencies",
+        "from": "project",
+        "to": "dependencies",
+        "kind": "contains",
+        "order": 6
+      },
+      {
+        "id": "project-agreement",
+        "from": "project",
+        "to": "agreement",
+        "kind": "contains",
+        "order": 7
+      },
+      {
+        "id": "project-changes",
+        "from": "project",
+        "to": "changes",
+        "kind": "contains",
+        "order": 8
+      },
+      {
+        "id": "project-scope-allow",
+        "from": "project",
+        "to": "scope-allow",
+        "kind": "contains",
+        "order": 9
+      },
+      {
+        "id": "project-scope-deny",
+        "from": "project",
+        "to": "scope-deny",
+        "kind": "contains",
+        "order": 10
+      },
+      {
+        "id": "project-scope-approval",
+        "from": "project",
+        "to": "scope-approval",
+        "kind": "contains",
+        "order": 11
+      },
+      {
+        "id": "project-quality",
+        "from": "project",
+        "to": "quality",
+        "kind": "contains",
+        "order": 12
+      },
+      {
+        "id": "project-testing",
+        "from": "project",
+        "to": "testing",
+        "kind": "contains",
+        "order": 13
+      },
+      {
+        "id": "project-determinism",
+        "from": "project",
+        "to": "determinism",
+        "kind": "contains",
+        "order": 14
+      },
+      {
+        "id": "project-agentic-tests",
+        "from": "project",
+        "to": "agentic-tests",
+        "kind": "contains",
+        "order": 15
+      },
+      {
+        "id": "project-proof",
+        "from": "project",
+        "to": "proof",
+        "kind": "contains",
+        "order": 16
+      },
+      {
+        "id": "project-deployment-bytes",
+        "from": "project",
+        "to": "deployment-bytes",
+        "kind": "contains",
+        "order": 17
+      },
+      {
+        "id": "deployment-bytes-proof",
+        "from": "deployment-bytes",
+        "to": "deploy-check",
+        "kind": "verified_by",
+        "order": 0
+      },
+      {
+        "id": "project-no-project-json",
+        "from": "project",
+        "to": "no-project-json",
+        "kind": "contains",
+        "order": 18
+      },
+      {
+        "id": "no-project-json-proof",
+        "from": "no-project-json",
+        "to": "deploy-check",
+        "kind": "verified_by",
+        "order": 0
+      },
+      {
+        "id": "project-preserve-project",
+        "from": "project",
+        "to": "preserve-project",
+        "kind": "contains",
+        "order": 19
+      },
+      {
+        "id": "preserve-project-proof",
+        "from": "preserve-project",
+        "to": "deploy-check",
+        "kind": "verified_by",
+        "order": 0
+      },
+      {
+        "id": "project-deploy-check",
+        "from": "project",
+        "to": "deploy-check",
+        "kind": "contains",
+        "order": 20
+      }
+    ]
+  },
+  "exports": [
+    {
+      "id": "project-tale",
+      "rootItemId": "project",
+      "environmentId": null,
+      "path": ".tale/project.tale"
+    }
+  ]
+}

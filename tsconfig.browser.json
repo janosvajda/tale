@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "ES2022",
+    "moduleResolution": "Bundler",
+    "types": [],
+    "rootDir": "src",
+    "outDir": "dist/browser"
+  },
+  "include": [
+    "src/model/**/*.ts",
+    "src/application/**/*.ts",
+    "src/svg/**/*.ts",
+    "src/editor/**/*.ts",
+    "src/ui/**/*.ts"
+  ],
+  "exclude": [
+    "src/model/**/*.test.ts",
+    "src/application/**/*.test.ts",
+    "src/svg/geometry.test.ts"
+  ]
+}

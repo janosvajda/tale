@@ -1,0 +1,99 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.5.10/schema.json",
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": true
+	},
+	"files": {
+		"includes": [
+			"src/**",
+			"!tests/**",
+			"src/**/*.test.ts",
+			"src/**/*.spec.ts",
+			"tests/**",
+			"!!**/dist"
+		]
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab"
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"preset": "none",
+			"complexity": {
+				"noExtraBooleanCast": "error",
+				"noExcessiveCognitiveComplexity": "error",
+				"noUselessCatch": "error",
+				"noUselessConstructor": "error",
+				"noUselessContinue": "error",
+				"noUselessEmptyExport": "error",
+				"noUselessReturn": "error",
+				"noUselessStringConcat": "error",
+				"noUselessSwitchCase": "error",
+				"noUselessTernary": "error",
+				"noUselessUndefined": "error",
+				"useArrowFunction": "error",
+				"useFlatMap": "error",
+				"useOptionalChain": "error"
+			},
+			"correctness": {
+				"noConstAssign": "error",
+				"noConstructorReturn": "error",
+				"noUnreachableSuper": "error",
+				"noUnsafeFinally": "error",
+				"noUnusedPrivateClassMembers": "error",
+				"noUnusedFunctionParameters": "error",
+				"noUnusedImports": "error",
+				"noUnusedVariables": "error"
+			},
+			"performance": {
+				"noAccumulatingSpread": "error",
+				"noDelete": "error"
+			},
+			"security": {
+				"noBlankTarget": "error",
+				"noDangerouslySetInnerHtml": "error",
+				"noDangerouslySetInnerHtmlWithChildren": "error",
+				"noGlobalEval": "error",
+				"noScriptUrl": "error",
+				"noSecrets": {
+					"level": "error",
+					"options": {
+						"entropyThreshold": 80
+					}
+				}
+			},
+			"style": {
+				"noMagicNumbers": "error",
+				"useConst": "error",
+				"useImportType": "error"
+			},
+			"suspicious": {
+				"noDoubleEquals": "error",
+				"noDuplicateParameters": "error",
+				"noExplicitAny": "error",
+				"noImplicitAnyLet": "error",
+				"noImportCycles": "error",
+				"noMisleadingInstantiator": "error",
+				"noSkippedTests": "error",
+				"useAwait": "error"
+			}
+		}
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "single"
+		}
+	},
+	"assist": {
+		"enabled": true,
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
+	}
+}

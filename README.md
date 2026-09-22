@@ -1,6 +1,6 @@
 <h1 align="center">Tale — Tales for AI agents</h1>
 
-<p align="center"><img src="tale_logo.png" alt="Tale logo" width="200" height="200"></p>
+<p align="center"><img src="tale_logo.png" alt="Tale logo" width="250" height="250"></p>
 
 ## Purpose
 
@@ -85,13 +85,42 @@ Skills are task workflows written as plain-language notes in [skills.json](src/m
 3. Use **File → New project** for a blank or starter diagram, or **File → Open JSON** for a saved project. **Save** and **Save As** keep the editable JSON wherever you choose.
 4. **Preview Tale** shows the generated text. **Deploy Tale** asks for a target project and agent entry points, writes `.tale/project.tale`, and updates selected agent instructions. It does not deploy the editor JSON.
 
-The diagram can contain labelled arrows and environment-specific notes. Only placed notes and their meaningful relationships compile; positions, colours, zoom, and unused defaults do not. The same JSON always produces the same Tale bytes. See [project format](docs/project-format.md), [agent integration](docs/agent-integration.md), and [templates](templates/README.md).
+The diagram can contain labelled arrows and environment-specific notes. See [project format](docs/project-format.md) for the JSON structure.
+
+## Project templates
+
+**New project** starts with one of these editable Tale diagrams. They provide starting instructions for an AI agent; they do not create application code, install tools, or deploy anything. Review and adapt their notes before use.
+
+| Template | Starting instructions |
+| --- | --- |
+| [Blank project](templates/blank.json) | Empty board for writing an agreement from scratch. |
+| [Node/TypeScript with Biome and Webpack](templates/node-typescript-biome-webpack.json) | TypeScript boundaries, Biome quality checks, Webpack build, and tests. |
+| [Node/TypeScript with ESLint and Webpack](templates/node-typescript-eslint-webpack.json) | TypeScript boundaries, ESLint quality checks, Webpack build, and tests. |
+| [Rust with Clippy](templates/rust-clippy.json) | Cargo, Clippy, rustfmt, tests, and focused changes. |
+| [Python with Ruff, pytest, and mypy](templates/python-ruff-pytest-mypy.json) | Python scope, linting, type checking, and tests. |
+| [Go with golangci-lint](templates/go-golangci-lint.json) | Go scope, standard checks, linting, and tests. |
+| [AWS infrastructure with Terraform](templates/aws-terraform.json) | Account and state boundaries, plan review, and approval before apply. |
+| [AWS infrastructure with CloudFormation](templates/aws-cloudformation.json) | Stack protection, change-set review, and approval before execution; no Terraform. |
+| [Azure infrastructure with Bicep](templates/azure-bicep.json) | Deployment scope, Bicep checks, what-if review, and approval before deployment. |
+| [Google Cloud infrastructure with Terraform](templates/google-cloud-terraform.json) | Project and state boundaries, plan review, and approval before apply. |
+
+Templates are ordinary JSON projects in [`templates/`](templates/README.md); you can add another valid project JSON there without changing the app.
 
 ## Deploy to AI agents
 
 ![Tale deployment dialog with destination and agent choices](templates/tale-screenshot-deploy.png)
 
-Choose a destination project and one or more agents: **Codex, Claude Code, Gemini CLI, Cursor, GitHub Copilot, Windsurf / Cascade, or Cline**. For each agent, Tale can detect an existing supported instruction file or use a path you select. It previews which files will be created or updated before deploying the generated `.tale/project.tale`. Existing instructions outside Tale's managed block and unrelated files are preserved.
+Tale compiles the placed Tags, Skills, their text, and labelled arrows from the JSON diagram into one human-readable `.tale/project.tale`. Layout, colours, zoom, and unused library defaults are omitted, so the same JSON produces the same Tale bytes. **Save** keeps the editable JSON where you choose; **Deploy** writes only the compiled Tale to the target project's `.tale` directory.
+
+Choose a destination project and one or more agents: **Codex, Claude Code, Gemini CLI, Cursor, GitHub Copilot, Windsurf / Cascade, or Cline**. Tale previews which files will be created, updated, or left unchanged. It creates missing selected agent instruction files and updates existing ones. The dialog lets you place the Tale reference at the beginning or end of the selected files. For example, an `AGENTS.md` block for a project without environments looks like this:
+
+```text
+<!-- tale:project:start -->
+Before planning or changing code, read ".tale/project.tale" from the project root and follow their agreements. If a file cannot be read, report that before implementation. Do not load a duplicate copy if it is already in context.
+<!-- tale:project:end -->
+```
+
+These markers identify the text Tale owns. On a later deployment, Tale replaces that block in place instead of appending another reference; instructions outside it remain intact. If a file already tells the agent to read the Tale outside the markers, Tale keeps that instruction rather than adding a duplicate. Ambiguous or broken markers must be resolved before deployment. If everything already matches, the preview reports no changes.
 
 For example, Codex can use `AGENTS.md`, Claude Code can use `CLAUDE.md`, and GitHub Copilot can use `.github/copilot-instructions.md`. Other supported paths and activation details are in [agent integration](docs/agent-integration.md). After deployment, check that the chosen agent actually loaded the Tale; installing an instruction file alone does not establish that.
 

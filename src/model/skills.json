@@ -144,6 +144,70 @@
 			"tag": "SKILL",
 			"color": "#6D28D9",
 			"defaultText": "Review the final diff, remove accidental changes, run required checks, and write a precise commit message.\nProvide the reviewed diff scope and final check results.\nStop when the intended changes are clean, explained, and verified.\nDo not commit or push unless explicitly authorized."
+		},
+		{
+			"id": "skill-change-impact-assessment",
+			"kind": "skill",
+			"name": "Change impact assessment",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Trace the requested change through affected users, callers, data, integrations, and public contracts.\nList observable effects, compatibility risks, and focused checks.\nStop when the affected surfaces and acceptance checks are clear. Ask before expanding the requested scope."
+		},
+		{
+			"id": "skill-authorization-review",
+			"kind": "skill",
+			"name": "Authorization review",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Map who may perform each relevant action and which resources they may access. Check denied cases, including access across users, roles, or tenants where applicable.\nShow the authorization checks and any concrete gaps.\nStop when the agreed access paths have been verified. Do not inspect real user data without authorization."
+		},
+		{
+			"id": "skill-privacy-review",
+			"kind": "skill",
+			"name": "Privacy review",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Trace personal or sensitive data through collection, storage, logs, exports, and deletion. Check that each use is necessary and protected.\nReport concrete exposure, retention, or deletion gaps with their affected paths.\nStop when the agreed data flows have been reviewed. Ask before accessing real personal data."
+		},
+		{
+			"id": "skill-failure-mode-review",
+			"kind": "skill",
+			"name": "Failure-mode review",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Identify relevant timeouts, retries, duplicate requests, partial writes, and dependency failures. Check how the system detects and recovers from them.\nVerify the agreed failure cases and report any remaining gaps.\nStop when those cases have a clear expected outcome and evidence."
+		},
+		{
+			"id": "skill-observability",
+			"kind": "skill",
+			"name": "Observability",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Identify the signals needed to detect and diagnose the agreed failure. Check useful logs, metrics, or traces already available and avoid recording secrets or personal data.\nDemonstrate that the failure can be found and explained from those signals.\nStop when the agreed flow is diagnosable. Ask before adding new monitoring infrastructure."
+		},
+		{
+			"id": "skill-safe-rollout",
+			"kind": "skill",
+			"name": "Safe rollout",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Define how the change will be enabled, monitored, paused, and reversed. Name the signals that would trigger a rollback.\nCheck that the rollout and rollback steps fit the agreed environment.\nStop when the plan is reviewable. Do not publish or deploy without authorization."
+		},
+		{
+			"id": "skill-audit-evidence",
+			"kind": "skill",
+			"name": "Audit evidence",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Connect each agreed requirement to a specific check and its result. Record the source of evidence and any gaps.\nState what was verified without claiming untested behavior or certification.\nStop when the agreed requirements have traceable evidence or clearly identified gaps."
+		},
+		{
+			"id": "skill-backup-and-restore",
+			"kind": "skill",
+			"name": "Backup and restore",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Verify that the required backup exists and test restoration in an isolated environment. Compare restored data with the expected contents and record the result.\nStop when the agreed recovery check passes or the blocking gap is documented.\nAsk before touching production data, live backups, or destructive recovery steps."
 		}
 	]
 }

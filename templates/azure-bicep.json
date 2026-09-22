@@ -1,0 +1,318 @@
+{
+  "format": "tale-project",
+  "formatVersion": 2,
+  "id": "azure-bicep",
+  "name": "Azure infrastructure with Bicep",
+  "description": "Azure infrastructure managed by Bicep, with scoped validation and what-if review.",
+  "environments": [],
+  "definitions": [
+    {
+      "id": "goal",
+      "kind": "tag",
+      "name": "Purpose",
+      "tag": "GOAL",
+      "color": "#15803D",
+      "defaultText": "Make only the agreed Azure infrastructure change. Define the expected resource and operational outcome before editing."
+    },
+    {
+      "id": "environment",
+      "kind": "tag",
+      "name": "Target environment",
+      "tag": "ENVIRONMENT",
+      "color": "#0F766E",
+      "defaultText": "Identify tenant, subscription, deployment scope, resource group when relevant, and location. Confirm the active Azure context before cloud operations."
+    },
+    {
+      "id": "scope",
+      "kind": "tag",
+      "name": "Resource scope",
+      "tag": "SCOPE",
+      "color": "#B91C1C",
+      "defaultText": "Edit only the named Bicep files and modules. Trace dependencies and flag resource replacements, removals, or scope changes."
+    },
+    {
+      "id": "security",
+      "kind": "tag",
+      "name": "Identity and secrets",
+      "tag": "SECURITY",
+      "color": "#9F1239",
+      "defaultText": "Use existing RBAC and managed identity or approved secret sources. Do not print credentials or place secrets in source or deployment output."
+    },
+    {
+      "id": "state",
+      "kind": "tag",
+      "name": "Deployment context",
+      "tag": "STATE",
+      "color": "#92400E",
+      "defaultText": "Inspect existing deployment scope, parameter files, resource locks, and policy constraints. Do not remove locks or bypass policy without separate approval."
+    },
+    {
+      "id": "quality",
+      "kind": "tag",
+      "name": "Bicep checks",
+      "tag": "QUALITY",
+      "color": "#047857",
+      "defaultText": "Run az bicep lint and az bicep build on changed files. Report tool or permission gaps rather than claiming a check ran."
+    },
+    {
+      "id": "plan",
+      "kind": "tag",
+      "name": "What-if review",
+      "tag": "PLAN",
+      "color": "#6D28D9",
+      "defaultText": "With authorized Azure access, run the what-if command for the actual deployment scope and parameters. Review creates, changes, deletes, and any results the preview cannot fully resolve."
+    },
+    {
+      "id": "agreement",
+      "kind": "tag",
+      "name": "Deployment approval",
+      "tag": "AGREEMENT",
+      "color": "#BE185D",
+      "defaultText": "Show the tenant, subscription, scope, location, and what-if results. Wait for explicit approval before creating or changing Azure resources."
+    },
+    {
+      "id": "deployment",
+      "kind": "tag",
+      "name": "Deploy",
+      "tag": "DEPLOYMENT",
+      "color": "#A16207",
+      "defaultText": "After approval, use the existing deployment pipeline and reviewed parameters. Stop if the target or preview changed and request a new review."
+    },
+    {
+      "id": "proof",
+      "kind": "tag",
+      "name": "Proof",
+      "tag": "PROOF",
+      "color": "#0369A1",
+      "defaultText": "After authorized deployment, inspect deployment status and relevant resource health. Report actual changes, policy failures, and rollback limits."
+    }
+  ],
+  "diagram": {
+    "viewport": {
+      "x": 30,
+      "y": 50,
+      "zoom": 0.8
+    },
+    "items": [
+      {
+        "id": "goal-1",
+        "definitionId": "goal",
+        "title": "Purpose",
+        "text": "Make only the agreed Azure infrastructure change. Define the expected resource and operational outcome before editing.",
+        "position": {
+          "x": 410,
+          "y": 0
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "environment-1",
+        "definitionId": "environment",
+        "title": "Target environment",
+        "text": "Identify tenant, subscription, deployment scope, resource group when relevant, and location. Confirm the active Azure context before cloud operations.",
+        "position": {
+          "x": 0,
+          "y": 250
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "scope-1",
+        "definitionId": "scope",
+        "title": "Resource scope",
+        "text": "Edit only the named Bicep files and modules. Trace dependencies and flag resource replacements, removals, or scope changes.",
+        "position": {
+          "x": 410,
+          "y": 250
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "security-1",
+        "definitionId": "security",
+        "title": "Identity and secrets",
+        "text": "Use existing RBAC and managed identity or approved secret sources. Do not print credentials or place secrets in source or deployment output.",
+        "position": {
+          "x": 820,
+          "y": 250
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "state-1",
+        "definitionId": "state",
+        "title": "Deployment context",
+        "text": "Inspect existing deployment scope, parameter files, resource locks, and policy constraints. Do not remove locks or bypass policy without separate approval.",
+        "position": {
+          "x": 0,
+          "y": 500
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "quality-1",
+        "definitionId": "quality",
+        "title": "Bicep checks",
+        "text": "Run az bicep lint and az bicep build on changed files. Report tool or permission gaps rather than claiming a check ran.",
+        "position": {
+          "x": 410,
+          "y": 500
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "plan-1",
+        "definitionId": "plan",
+        "title": "What-if review",
+        "text": "With authorized Azure access, run the what-if command for the actual deployment scope and parameters. Review creates, changes, deletes, and any results the preview cannot fully resolve.",
+        "position": {
+          "x": 820,
+          "y": 500
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "agreement-1",
+        "definitionId": "agreement",
+        "title": "Deployment approval",
+        "text": "Show the tenant, subscription, scope, location, and what-if results. Wait for explicit approval before creating or changing Azure resources.",
+        "position": {
+          "x": 410,
+          "y": 750
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "deployment-1",
+        "definitionId": "deployment",
+        "title": "Deploy",
+        "text": "After approval, use the existing deployment pipeline and reviewed parameters. Stop if the target or preview changed and request a new review.",
+        "position": {
+          "x": 820,
+          "y": 750
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "proof-1",
+        "definitionId": "proof",
+        "title": "Proof",
+        "text": "After authorized deployment, inspect deployment status and relevant resource health. Report actual changes, policy failures, and rollback limits.",
+        "position": {
+          "x": 410,
+          "y": 1000
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      }
+    ],
+    "connections": [
+      {
+        "id": "goal-environment",
+        "from": "goal-1",
+        "to": "environment-1",
+        "label": "targets",
+        "order": 0
+      },
+      {
+        "id": "goal-scope",
+        "from": "goal-1",
+        "to": "scope-1",
+        "label": "defines",
+        "order": 1
+      },
+      {
+        "id": "environment-security",
+        "from": "environment-1",
+        "to": "security-1",
+        "label": "selects credentials for",
+        "order": 2
+      },
+      {
+        "id": "scope-state",
+        "from": "scope-1",
+        "to": "state-1",
+        "label": "protects",
+        "order": 3
+      },
+      {
+        "id": "scope-quality",
+        "from": "scope-1",
+        "to": "quality-1",
+        "label": "sets checks for",
+        "order": 4
+      },
+      {
+        "id": "quality-plan",
+        "from": "quality-1",
+        "to": "plan-1",
+        "label": "precedes",
+        "order": 5
+      },
+      {
+        "id": "state-plan",
+        "from": "state-1",
+        "to": "plan-1",
+        "label": "affects",
+        "order": 6
+      },
+      {
+        "id": "security-plan",
+        "from": "security-1",
+        "to": "plan-1",
+        "label": "constrains",
+        "order": 7
+      },
+      {
+        "id": "plan-agreement",
+        "from": "plan-1",
+        "to": "agreement-1",
+        "label": "requires review in",
+        "order": 8
+      },
+      {
+        "id": "agreement-deployment",
+        "from": "agreement-1",
+        "to": "deployment-1",
+        "label": "gates",
+        "order": 9
+      },
+      {
+        "id": "deployment-proof",
+        "from": "deployment-1",
+        "to": "proof-1",
+        "label": "requires",
+        "order": 10
+      }
+    ]
+  }
+}

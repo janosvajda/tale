@@ -1,0 +1,318 @@
+{
+  "format": "tale-project",
+  "formatVersion": 2,
+  "id": "aws-cloudformation",
+  "name": "AWS infrastructure with CloudFormation",
+  "description": "AWS infrastructure managed by CloudFormation without Terraform.",
+  "environments": [],
+  "definitions": [
+    {
+      "id": "goal",
+      "kind": "tag",
+      "name": "Purpose",
+      "tag": "GOAL",
+      "color": "#15803D",
+      "defaultText": "Make only the agreed CloudFormation change. Define the expected stack and resource outcome before editing."
+    },
+    {
+      "id": "environment",
+      "kind": "tag",
+      "name": "Target environment",
+      "tag": "ENVIRONMENT",
+      "color": "#0F766E",
+      "defaultText": "Identify the AWS account ID, region, stack name, parameter set, and deployment environment. Confirm the active identity before cloud operations."
+    },
+    {
+      "id": "scope",
+      "kind": "tag",
+      "name": "Resource scope",
+      "tag": "SCOPE",
+      "color": "#B91C1C",
+      "defaultText": "Edit only the named templates and stacks. Check nested stacks and identify resources that may be replaced or removed."
+    },
+    {
+      "id": "security",
+      "kind": "tag",
+      "name": "Credentials and secrets",
+      "tag": "SECURITY",
+      "color": "#9F1239",
+      "defaultText": "Use the existing IAM role and approved parameter or secret store. Do not print credentials or embed secrets in templates or change-set output."
+    },
+    {
+      "id": "state",
+      "kind": "tag",
+      "name": "Stack protection",
+      "tag": "STACK",
+      "color": "#92400E",
+      "defaultText": "Inspect stack status, termination protection, stack policy, parameters, and rollback settings before proposing an update. Do not bypass protections without separate approval."
+    },
+    {
+      "id": "quality",
+      "kind": "tag",
+      "name": "Template checks",
+      "tag": "QUALITY",
+      "color": "#047857",
+      "defaultText": "Run cfn-lint and CloudFormation template validation where configured and available. Report unavailable tools rather than claiming validation; do not silence findings without explanation."
+    },
+    {
+      "id": "plan",
+      "kind": "tag",
+      "name": "Change-set review",
+      "tag": "PLAN",
+      "color": "#6D28D9",
+      "defaultText": "When cloud access is authorized, create and inspect a CloudFormation change set. Review replacements, deletions, IAM capabilities, and parameter changes; a change set is a preview, not an executed deployment."
+    },
+    {
+      "id": "agreement",
+      "kind": "tag",
+      "name": "Execution approval",
+      "tag": "AGREEMENT",
+      "color": "#BE185D",
+      "defaultText": "Show the account, region, stack, and reviewed change-set effects. Wait for explicit approval before executing the change set or updating resources."
+    },
+    {
+      "id": "deployment",
+      "kind": "tag",
+      "name": "Execute",
+      "tag": "DEPLOYMENT",
+      "color": "#A16207",
+      "defaultText": "After approval, execute the reviewed change set through the existing workflow. Stop and re-review if the change set is no longer valid or its effects changed."
+    },
+    {
+      "id": "proof",
+      "kind": "tag",
+      "name": "Proof",
+      "tag": "PROOF",
+      "color": "#0369A1",
+      "defaultText": "After authorized execution, inspect stack status and events, confirm relevant resource health, and report rollback results or unresolved failures."
+    }
+  ],
+  "diagram": {
+    "viewport": {
+      "x": 30,
+      "y": 50,
+      "zoom": 0.8
+    },
+    "items": [
+      {
+        "id": "goal-1",
+        "definitionId": "goal",
+        "title": "Purpose",
+        "text": "Make only the agreed CloudFormation change. Define the expected stack and resource outcome before editing.",
+        "position": {
+          "x": 410,
+          "y": 0
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "environment-1",
+        "definitionId": "environment",
+        "title": "Target environment",
+        "text": "Identify the AWS account ID, region, stack name, parameter set, and deployment environment. Confirm the active identity before cloud operations.",
+        "position": {
+          "x": 0,
+          "y": 250
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "scope-1",
+        "definitionId": "scope",
+        "title": "Resource scope",
+        "text": "Edit only the named templates and stacks. Check nested stacks and identify resources that may be replaced or removed.",
+        "position": {
+          "x": 410,
+          "y": 250
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "security-1",
+        "definitionId": "security",
+        "title": "Credentials and secrets",
+        "text": "Use the existing IAM role and approved parameter or secret store. Do not print credentials or embed secrets in templates or change-set output.",
+        "position": {
+          "x": 820,
+          "y": 250
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "state-1",
+        "definitionId": "state",
+        "title": "Stack protection",
+        "text": "Inspect stack status, termination protection, stack policy, parameters, and rollback settings before proposing an update. Do not bypass protections without separate approval.",
+        "position": {
+          "x": 0,
+          "y": 500
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "quality-1",
+        "definitionId": "quality",
+        "title": "Template checks",
+        "text": "Run cfn-lint and CloudFormation template validation where configured and available. Report unavailable tools rather than claiming validation; do not silence findings without explanation.",
+        "position": {
+          "x": 410,
+          "y": 500
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "plan-1",
+        "definitionId": "plan",
+        "title": "Change-set review",
+        "text": "When cloud access is authorized, create and inspect a CloudFormation change set. Review replacements, deletions, IAM capabilities, and parameter changes; a change set is a preview, not an executed deployment.",
+        "position": {
+          "x": 820,
+          "y": 500
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "agreement-1",
+        "definitionId": "agreement",
+        "title": "Execution approval",
+        "text": "Show the account, region, stack, and reviewed change-set effects. Wait for explicit approval before executing the change set or updating resources.",
+        "position": {
+          "x": 410,
+          "y": 750
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "deployment-1",
+        "definitionId": "deployment",
+        "title": "Execute",
+        "text": "After approval, execute the reviewed change set through the existing workflow. Stop and re-review if the change set is no longer valid or its effects changed.",
+        "position": {
+          "x": 820,
+          "y": 750
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "proof-1",
+        "definitionId": "proof",
+        "title": "Proof",
+        "text": "After authorized execution, inspect stack status and events, confirm relevant resource health, and report rollback results or unresolved failures.",
+        "position": {
+          "x": 410,
+          "y": 1000
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      }
+    ],
+    "connections": [
+      {
+        "id": "goal-environment",
+        "from": "goal-1",
+        "to": "environment-1",
+        "label": "targets",
+        "order": 0
+      },
+      {
+        "id": "goal-scope",
+        "from": "goal-1",
+        "to": "scope-1",
+        "label": "defines",
+        "order": 1
+      },
+      {
+        "id": "environment-security",
+        "from": "environment-1",
+        "to": "security-1",
+        "label": "selects credentials for",
+        "order": 2
+      },
+      {
+        "id": "scope-state",
+        "from": "scope-1",
+        "to": "state-1",
+        "label": "protects",
+        "order": 3
+      },
+      {
+        "id": "scope-quality",
+        "from": "scope-1",
+        "to": "quality-1",
+        "label": "sets checks for",
+        "order": 4
+      },
+      {
+        "id": "quality-plan",
+        "from": "quality-1",
+        "to": "plan-1",
+        "label": "precedes",
+        "order": 5
+      },
+      {
+        "id": "state-plan",
+        "from": "state-1",
+        "to": "plan-1",
+        "label": "affects",
+        "order": 6
+      },
+      {
+        "id": "security-plan",
+        "from": "security-1",
+        "to": "plan-1",
+        "label": "constrains",
+        "order": 7
+      },
+      {
+        "id": "plan-agreement",
+        "from": "plan-1",
+        "to": "agreement-1",
+        "label": "requires review in",
+        "order": 8
+      },
+      {
+        "id": "agreement-deployment",
+        "from": "agreement-1",
+        "to": "deployment-1",
+        "label": "gates",
+        "order": 9
+      },
+      {
+        "id": "deployment-proof",
+        "from": "deployment-1",
+        "to": "proof-1",
+        "label": "requires",
+        "order": 10
+      }
+    ]
+  }
+}

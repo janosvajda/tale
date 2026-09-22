@@ -12,12 +12,54 @@ test('starter diagrams are portable, independent projects with deterministic Tal
 	assert.deepEqual(
 		templates.map((template) => template.id),
 		[
+			'aws-cloudformation.json',
+			'aws-terraform.json',
+			'azure-bicep.json',
 			'blank.json',
+			'go-golangci-lint.json',
+			'google-cloud-terraform.json',
 			'node-typescript-biome-webpack.json',
 			'node-typescript-eslint-webpack.json',
+			'python-ruff-pytest-mypy.json',
 			'rust-clippy.json',
 		],
 	);
+	const expected: Record<string, RegExp[]> = {
+		'aws-cloudformation.json': [
+			/AWS account ID/,
+			/cfn-lint/,
+			/change set/,
+			/explicit approval/,
+		],
+		'aws-terraform.json': [
+			/AWS account ID/,
+			/terraform fmt -check/,
+			/terraform plan/,
+			/explicit approval/,
+		],
+		'azure-bicep.json': [
+			/subscription/,
+			/az bicep lint/,
+			/what-if/,
+			/explicit approval/,
+		],
+		'go-golangci-lint.json': [/gofmt/, /golangci-lint run/, /go test/],
+		'google-cloud-terraform.json': [
+			/project ID/,
+			/terraform fmt -check/,
+			/terraform plan/,
+			/explicit approval/,
+		],
+		'node-typescript-biome-webpack.json': [/Webpack/, /Biome/],
+		'node-typescript-eslint-webpack.json': [/Webpack/, /ESLint/],
+		'python-ruff-pytest-mypy.json': [
+			/ruff check/,
+			/ruff format --check/,
+			/mypy/,
+			/pytest/,
+		],
+		'rust-clippy.json': [/Clippy/, /cargo test/],
+	};
 	for (const template of templates) {
 		const source = await readFile(join('templates', template.id), 'utf8');
 		const request = {
@@ -43,19 +85,11 @@ test('starter diagrams are portable, independent projects with deterministic Tal
 			assert.deepEqual(compile(reopened), output);
 			assert.deepEqual(compile(second), output);
 			const content = output[0]!.content;
-			assert.match(content, /CHANGES\n  /);
+			assert.match(content, /\n(?:CHANGES|SCOPE)(?: [^\n]+)?\n  /);
 			assert.ok(content.includes('agreed'));
 			assert.ok(!content.includes('unrelated_changes deny'));
-			if (template.id.startsWith('rust')) {
-				assert.match(content, /Clippy/);
-				assert.match(content, /cargo test/);
-			} else {
-				assert.match(content, /Webpack/);
-				assert.match(
-					content,
-					template.id.includes('eslint') ? /ESLint/ : /Biome/,
-				);
-			}
+			for (const pattern of expected[template.id] ?? [])
+				assert.match(content, pattern);
 		}
 		first.definitions.length = 0;
 		if (template.id !== 'blank.json') assert.ok(second.definitions.length);

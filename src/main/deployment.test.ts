@@ -33,9 +33,16 @@ test('preview writes nothing; deploy creates selected entry points and preserves
 		location: 'auto',
 	}));
 	const plan = await prepareDeployment(root, project, selection);
+	const progress: string[] = [];
 	assert.deepEqual(await readdir(root), []);
 	assert.equal(plan.preview.taleExists, false);
-	await commitDeployment(plan, false);
+	await commitDeployment(plan, false, undefined, (step) =>
+		progress.push(step.path),
+	);
+	assert.deepEqual(
+		progress,
+		plan.preview.files.map((file) => file.path),
+	);
 	assert.equal(
 		await readFile(join(root, '.tale/project.tale'), 'utf8'),
 		compile(project)[0]?.content,
@@ -61,12 +68,44 @@ test('preview writes nothing; deploy creates selected entry points and preserves
 	await writeFile(join(root, '.tale/keep.tale'), 'User rules');
 	const again = await prepareDeployment(root, project, selection);
 	assert.ok(again.preview.files.every((file) => file.action === 'unchanged'));
-	await assert.rejects(commitDeployment(again, false), /Confirm overwriting/);
-	await commitDeployment(again, true);
+	await commitDeployment(again, false, () =>
+		Promise.reject(new Error('Unchanged deployment must not write')),
+	);
+	project.name = `${project.name} updated`;
+	const changedTale = await prepareDeployment(root, project, selection);
+	assert.equal(
+		changedTale.preview.files.find((file) => file.path === '.tale/project.tale')
+			?.action,
+		'update',
+	);
+	await assert.rejects(
+		commitDeployment(changedTale, false),
+		/Confirm replacing/,
+	);
+	await commitDeployment(changedTale, true);
 	assert.equal(
 		await readFile(join(root, '.tale/keep.tale'), 'utf8'),
 		'User rules',
 	);
+});
+test('adding an agent does not require overwriting an unchanged Tale', async (t) => {
+	const { root, project } = await fixture(t);
+	await commitDeployment(await prepareDeployment(root, project, codex), false);
+	const plan = await prepareDeployment(root, project, [
+		...codex,
+		{ agent: 'claude', location: 'auto' },
+	]);
+	assert.equal(
+		plan.preview.files.find((file) => file.path === '.tale/project.tale')
+			?.action,
+		'unchanged',
+	);
+	assert.equal(
+		plan.preview.files.find((file) => file.path === 'CLAUDE.md')?.action,
+		'create',
+	);
+	await commitDeployment(plan, false);
+	assert.match(await readFile(join(root, 'CLAUDE.md'), 'utf8'), /project.tale/);
 });
 test('existing instructions retain content, case and Codex override precedence', async (t) => {
 	const { root, project } = await fixture(t);
@@ -208,7 +247,11 @@ test('one Tale serves every environment with deterministic, preserved agent inst
 	const again = await prepareDeployment(root, project, selection);
 	assert.deepEqual(
 		again.preview.files,
-		plan.preview.files.map((file) => ({ ...file, action: 'unchanged' })),
+		plan.preview.files.map((file) => ({
+			...file,
+			before: file.content,
+			action: 'unchanged',
+		})),
 	);
 	await commitDeployment(again, true);
 	project.environments = [{ id: 'stage', name: 'Staging' }];
@@ -246,4 +289,20 @@ test('redeployment replaces the old JSON loader while preserving user instructio
 	assert.ok(instructions.includes('.tale/project.tale'));
 	assert.ok(!instructions.includes('.json'));
 	assert.deepEqual(await readdir(join(root, '.tale')), ['project.tale']);
+});
+test('deployment removes a duplicate managed block when an unmarked Tale instruction already exists', async (t) => {
+	const { root, project } = await fixture(t);
+	const original =
+		'Before working, read .tale/project.tale in full. Preserve my other rules.\n';
+	await writeFile(
+		join(root, 'AGENTS.md'),
+		original +
+			'\n<!-- tale:project:start -->\nRead .tale/project.tale\n<!-- tale:project:end -->\n',
+	);
+	const plan = await prepareDeployment(root, project, codex);
+	assert.ok(
+		plan.preview.notes.some((note) => note.includes('outside managed markers')),
+	);
+	await commitDeployment(plan, false);
+	assert.equal(await readFile(join(root, 'AGENTS.md'), 'utf8'), original);
 });

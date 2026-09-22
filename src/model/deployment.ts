@@ -57,6 +57,21 @@ export interface AgentSelection {
 	agent: AgentId;
 	location: string;
 }
+export type ReferencePlacement = 'beginning' | 'end';
+export interface DeploymentProgress {
+	token: string;
+	completed: number;
+	total: number;
+	path: string;
+}
+export function validateReferencePlacement(
+	value: unknown,
+): asserts value is ReferencePlacement {
+	check(
+		value === 'beginning' || value === 'end',
+		'Invalid Tale reference placement',
+	);
+}
 export interface DeploymentPreview {
 	token: string;
 	target: string;
@@ -64,9 +79,18 @@ export interface DeploymentPreview {
 	files: {
 		path: string;
 		action: 'create' | 'update' | 'unchanged';
+		before: string | null;
 		content: string;
 	}[];
 	notes: string[];
+}
+export function requiresTaleOverwrite(preview: DeploymentPreview): boolean {
+	return preview.files.some(
+		(file) =>
+			file.path.startsWith('.tale/') &&
+			file.path.endsWith('.tale') &&
+			file.action === 'update',
+	);
 }
 export function validateAgentSelection(
 	value: unknown,
@@ -110,6 +134,7 @@ export function validateDeploymentPreview(
 					record(file) &&
 					typeof file.path === 'string' &&
 					['create', 'update', 'unchanged'].includes(String(file.action)) &&
+					(file.before === null || typeof file.before === 'string') &&
 					typeof file.content === 'string',
 			),
 		'Invalid deployment files',

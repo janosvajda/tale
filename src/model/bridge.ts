@@ -1,6 +1,8 @@
 import {
 	type AgentSelection,
+	type DeploymentProgress,
 	type DeploymentPreview,
+	type ReferencePlacement,
 	validateDeploymentPreview,
 } from './deployment.js';
 import type { NewProjectRequest, TemplateSummary } from './new-project.js';
@@ -39,6 +41,7 @@ export type Reply =
 			ok: true;
 			document?: Document;
 			templates?: TemplateSummary[];
+			recentProjects?: string[];
 			directory?: string;
 			message?: string;
 			cancelled?: boolean;
@@ -50,15 +53,20 @@ export interface Bridge {
 	newProject(request: NewProjectRequest): Promise<Reply>;
 	templates(): Promise<Reply>;
 	chooseDirectory(initialPath?: string): Promise<Reply>;
-	open(): Promise<Reply>;
+	open(path?: string): Promise<Reply>;
+	recentProjects(): Promise<Reply>;
 	exit(): Promise<Reply>;
 	save(project: Project, saveAs: boolean): Promise<Reply>;
 	prepareDeployment(
 		project: Project,
 		agents: AgentSelection[],
 		chooseTarget: boolean,
+		placement: ReferencePlacement,
 	): Promise<Reply>;
 	deploy(token: string, overwrite: boolean): Promise<Reply>;
+	onDeploymentProgress(
+		callback: (progress: DeploymentProgress) => void,
+	): () => void;
 	exportTales(project: Project): Promise<Reply>;
 	setDirty(dirty: boolean): Promise<Reply>;
 	onMenu(callback: (action: MenuAction) => void): () => void;
@@ -73,6 +81,17 @@ export function validateReply(value: unknown): asserts value is Reply {
 		return;
 	}
 	if (value.directory !== undefined) validateDirectory(value.directory);
+	if (value.recentProjects !== undefined) {
+		check(
+			Array.isArray(value.recentProjects) &&
+				value.recentProjects.length <= 10 &&
+				value.recentProjects.every(
+					(path) => typeof path === 'string' && path.length > 0,
+				) &&
+				new Set(value.recentProjects).size === value.recentProjects.length,
+			'Invalid recent projects response',
+		);
+	}
 	if (value.templates !== undefined) {
 		check(Array.isArray(value.templates), 'Invalid templates response');
 		for (const entry of value.templates) {

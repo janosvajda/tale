@@ -3,6 +3,8 @@ import {
 	type AgentSelection,
 	agents,
 	type DeploymentPreview,
+	type ReferencePlacement,
+	requiresTaleOverwrite,
 } from '../model/deployment.js';
 import type { Project } from '../model/project.js';
 import { icon, iconButton } from './icons.js';
@@ -10,9 +12,11 @@ import { icon, iconButton } from './icons.js';
 function el<K extends keyof HTMLElementTagNameMap>(
 	tag: K,
 	text?: string,
+	className?: string,
 ): HTMLElementTagNameMap[K] {
 	const node = document.createElement(tag);
 	if (text !== undefined) node.textContent = text;
+	if (className) node.className = className;
 	return node;
 }
 async function response(
@@ -23,10 +27,16 @@ async function response(
 	if (!result.ok) throw new Error(result.error);
 	return result;
 }
+function hasChanges(plan: DeploymentPreview | undefined): boolean {
+	return plan?.files.some((file) => file.action !== 'unchanged') ?? false;
+}
 export function openDeployment(
 	project: Project,
 	notify: (message: string) => void,
-	api: Pick<Bridge, 'prepareDeployment' | 'deploy'> = window.tale,
+	api: Pick<
+		Bridge,
+		'prepareDeployment' | 'deploy' | 'onDeploymentProgress'
+	> = window.tale,
 ): void {
 	if (document.querySelector('#deployment')) return;
 	const dialog = el('dialog');
@@ -58,8 +68,30 @@ export function openDeployment(
 	choices.setAttribute('aria-label', 'Agents to support');
 	const rows = agents.map((agent) => agentRow(agent));
 	for (const row of rows) choices.append(row.element);
+	const placementLabel = el('label');
+	placementLabel.className = 'deployment-placement';
+	placementLabel.append(el('span', 'New Tale reference position'));
+	const placement = el('select');
+	placement.setAttribute('aria-label', 'Tale reference position');
+	for (const [value, label] of [
+		['end', 'End'],
+		['beginning', 'Beginning'],
+	] as const) {
+		const option = el('option', label);
+		option.value = value;
+		placement.append(option);
+	}
+	placementLabel.append(placement);
 	const preview = el('div');
 	preview.className = 'deployment-preview';
+	const progressArea = el('div');
+	progressArea.className = 'deployment-progress';
+	progressArea.hidden = true;
+	progressArea.setAttribute('role', 'status');
+	progressArea.setAttribute('aria-live', 'polite');
+	const progressText = el('strong');
+	const progressBar = el('progress');
+	progressArea.append(progressText, progressBar);
 	const error = el('p');
 	error.className = 'danger deployment-error';
 	error.setAttribute('role', 'alert');
@@ -73,7 +105,7 @@ export function openDeployment(
 		overwrite,
 		el(
 			'span',
-			'Overwrite the generated .tale files shown above. Other files will be kept.',
+			'Replace the changed .tale file shown above. Other files will be kept.',
 		),
 	);
 	const footer = el('div');
@@ -84,25 +116,36 @@ export function openDeployment(
 		if (!busy) dialog.close();
 	});
 	const deploy = el('button');
-	deploy.append(icon('deploy'), el('span', 'Deploy Tale'));
+	const deployText = el('span', 'Deploy Tale');
+	deploy.append(icon('deploy'), deployText);
 	deploy.type = 'button';
 	deploy.id = 'confirm-deployment';
 	deploy.className = 'deploy-button';
 	deploy.disabled = true;
 	footer.append(cancel, deploy);
-	content.append(folder, el('h3', 'Agents'), choices, preview);
-	dialog.append(header, content, confirmation, error, footer);
+	content.append(folder, el('h3', 'Agents'), choices, placementLabel, preview);
+	dialog.append(header, content, confirmation, progressArea, error, footer);
 	let plan: DeploymentPreview | undefined;
 	let busy = false;
 	let hasTarget = false;
+	let deployed = false;
 	function update() {
-		deploy.disabled = busy || !plan || (plan.taleExists && !overwrite.checked);
-		choose.disabled = busy;
+		const changes = hasChanges(plan);
+		deploy.disabled =
+			busy ||
+			deployed ||
+			!changes ||
+			(!!plan && requiresTaleOverwrite(plan) && !overwrite.checked);
+		deployText.textContent =
+			plan && !changes ? 'Already up to date' : 'Deploy Tale';
+		choose.disabled = busy || deployed;
 		cancel.disabled = busy;
 		close.disabled = busy;
+		placement.disabled = busy || deployed;
+		overwrite.disabled = busy || deployed;
 		for (const row of rows) {
-			row.enabled.disabled = busy;
-			row.location.disabled = busy || !row.enabled.checked;
+			row.enabled.disabled = busy || deployed;
+			row.location.disabled = busy || deployed || !row.enabled.checked;
 		}
 	}
 	function selections(): AgentSelection[] {
@@ -116,6 +159,7 @@ export function openDeployment(
 		overwrite.checked = false;
 		confirmation.hidden = true;
 		preview.replaceChildren();
+		progressArea.hidden = true;
 		error.textContent = '';
 		if (!selections().length) {
 			error.textContent = 'Select at least one agent.';
@@ -126,14 +170,19 @@ export function openDeployment(
 		update();
 		try {
 			const result = await response(
-				api.prepareDeployment(project, selections(), chooseTarget),
+				api.prepareDeployment(
+					project,
+					selections(),
+					chooseTarget,
+					placement.value as ReferencePlacement,
+				),
 			);
 			if (result.cancelled) return;
 			if (!result.deployment) throw new Error('Missing deployment preview');
 			plan = result.deployment;
 			hasTarget = true;
 			target.textContent = plan.target;
-			confirmation.hidden = !plan.taleExists;
+			confirmation.hidden = !requiresTaleOverwrite(plan);
 			renderPreview(preview, plan);
 		} catch (cause) {
 			error.textContent =
@@ -143,24 +192,49 @@ export function openDeployment(
 			update();
 		}
 	}
-	choices.addEventListener('change', () => {
+	function changed() {
 		plan = undefined;
 		overwrite.checked = false;
 		update();
 		if (hasTarget) void prepare(false);
-	});
+	}
+	choices.addEventListener('change', changed);
+	placement.addEventListener('change', changed);
 	overwrite.addEventListener('change', update);
+	const stopProgress = api.onDeploymentProgress((event) => {
+		if (!busy || event.token !== plan?.token) return;
+		progressBar.value = event.completed;
+		progressText.textContent = `Processed ${event.completed} of ${event.total}: ${event.path}`;
+		for (const row of preview.querySelectorAll<HTMLElement>(
+			'[data-deployment-path]',
+		))
+			if (row.dataset.deploymentPath === event.path)
+				row.dataset.installed = 'true';
+	});
 	deploy.addEventListener('click', () => {
 		if (!plan || deploy.disabled) return;
 		busy = true;
+		progressArea.hidden = false;
+		progressBar.max = plan.files.length;
+		progressBar.value = 0;
+		progressText.textContent = `Processing 0 of ${plan.files.length} files…`;
 		update();
 		void response(api.deploy(plan.token, overwrite.checked))
 			.then((result) => {
 				notify(result.message ?? 'Deployed');
-				dialog.close();
+				deployed = true;
+				progressBar.value = plan?.files.length ?? 0;
+				const changed =
+					plan?.files.filter((file) => file.action !== 'unchanged') ?? [];
+				const heading = preview.querySelector('h3');
+				if (heading) heading.textContent = `Files · ${changed.length} changed`;
+				progressText.textContent = `Deployment complete · ${changed.length} file${changed.length === 1 ? '' : 's'} changed`;
+				cancel.textContent = 'Close';
+				deploy.hidden = true;
 			})
 			.catch((cause) => {
 				plan = undefined;
+				progressText.textContent = 'Deployment failed';
 				error.textContent = String(cause);
 			})
 			.finally(() => {
@@ -171,10 +245,14 @@ export function openDeployment(
 	dialog.addEventListener('cancel', (event) => {
 		if (busy) event.preventDefault();
 	});
-	dialog.addEventListener('close', () => dialog.remove());
+	dialog.addEventListener('close', () => {
+		stopProgress();
+		dialog.remove();
+	});
 	document.body.append(dialog);
 	update();
 	dialog.showModal();
+	void prepare(false);
 }
 function agentRow(agent: (typeof agents)[number]) {
 	const element = el('div');
@@ -199,15 +277,33 @@ function agentRow(agent: (typeof agents)[number]) {
 	return { element, enabled, location, agent: agent.id };
 }
 function renderPreview(target: HTMLElement, plan: DeploymentPreview) {
-	target.append(el('h3', 'Files'));
+	const changed = plan.files.filter(
+		(file) => file.action !== 'unchanged',
+	).length;
+	target.append(el('h3', `Files · ${changed} to change`));
+	if (changed === 0)
+		target.append(el('p', 'Already up to date. No files need to change.'));
 	for (const file of plan.files) {
 		const details = el('details');
+		details.dataset.deploymentPath = file.path;
 		const summary = el(
 			'summary',
 			`${file.action === 'create' ? 'Create' : file.action === 'update' ? 'Update' : 'Keep'} · ${file.path}`,
 		);
-		const content = el('pre', file.content);
-		details.append(summary, content);
+		details.append(summary);
+		if (file.action === 'update' && file.before !== null)
+			details.append(
+				el('span', 'Before', 'deployment-version'),
+				el('pre', file.before),
+			);
+		details.append(
+			el(
+				'span',
+				file.action === 'unchanged' ? 'Current content' : 'After',
+				'deployment-version',
+			),
+			el('pre', file.content),
+		);
 		target.append(details);
 	}
 	for (const note of plan.notes) target.append(el('p', note));

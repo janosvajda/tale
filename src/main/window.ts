@@ -1,3 +1,4 @@
+import { stat } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
@@ -8,7 +9,10 @@ import {
 	ipcMain,
 } from 'electron';
 import type { Reply } from '../model/bridge.js';
-import { validateAgentSelection } from '../model/deployment.js';
+import {
+	validateAgentSelection,
+	validateReferencePlacement,
+} from '../model/deployment.js';
 import { newProject, validateNewProject } from '../model/new-project.js';
 import {
 	check,
@@ -24,13 +28,27 @@ import {
 	prepareDeployment,
 } from './deployment.js';
 import { atomicWrite, exportTales, readProject } from './files.js';
-import { lastOpenDirectory, rememberOpenDirectory } from './preferences.js';
+import {
+	lastDeploymentDirectory,
+	lastOpenDirectory,
+	recentProjects,
+	rememberDeploymentDirectory,
+	rememberRecentProject,
+} from './preferences.js';
 import { createFromTemplate, listTemplates } from './templates.js';
 export interface FileDialogs {
 	open(defaultPath?: string): Promise<string | undefined>;
 	save(): Promise<string | undefined>;
 	target(defaultPath?: string): Promise<string | undefined>;
 	discard(): Promise<boolean>;
+}
+async function existingDirectory(path: string | undefined) {
+	if (!path) return;
+	try {
+		if ((await stat(path)).isDirectory()) return path;
+	} catch {
+		// A removed destination must be selected again.
+	}
 }
 export function trustedSender(
 	actual: { url: string; mainFrame: boolean; webContentsId: number },
@@ -108,6 +126,7 @@ export async function createWindow(
 		},
 	};
 	let deploymentTarget: string | undefined;
+	let lastDeployedTarget: string | undefined;
 	let deployment: DeploymentPlan | undefined;
 	let path: string | null = null;
 	let dirty = false;
@@ -179,6 +198,7 @@ export async function createWindow(
 		path = null;
 		dirty = true;
 		deploymentTarget = undefined;
+		lastDeployedTarget = undefined;
 		deployment = undefined;
 		return { ok: true, document: { project, path: null } };
 	});
@@ -204,22 +224,36 @@ export async function createWindow(
 			},
 		};
 	});
+	handler('tale:recent-projects', async (payload) => {
+		check(payload === undefined, 'Unexpected recent-project request');
+		return { ok: true, recentProjects: await recentProjects(preferences) };
+	});
 	handler('tale:open', async (payload) => {
-		check(payload === undefined, 'Unexpected open payload');
+		check(
+			payload === undefined || typeof payload === 'string',
+			'Invalid open request',
+		);
+		if (typeof payload === 'string')
+			check(
+				(await recentProjects(preferences)).includes(payload),
+				'Recent project is no longer available',
+			);
 		if (dirty && !(await dialogs.discard()))
 			return { ok: true, cancelled: true };
-		const selected = await dialogs.open(await lastOpenDirectory(preferences));
+		const selected =
+			payload ?? (await dialogs.open(await lastOpenDirectory(preferences)));
 		if (!selected) return { ok: true, cancelled: true };
 		const project = await readProject(selected);
 		path = resolve(selected);
 		dirty = false;
 		deploymentTarget = undefined;
+		lastDeployedTarget = undefined;
 		deployment = undefined;
 		let message: string | undefined;
 		try {
-			await rememberOpenDirectory(preferences, path);
+			await rememberRecentProject(preferences, path);
 		} catch {
-			message = 'Project opened, but its folder could not be remembered.';
+			message = 'Project opened, but it could not be added to recent projects.';
 		}
 		return { ok: true, document: { project, path }, message };
 	});
@@ -233,13 +267,25 @@ export async function createWindow(
 		validateProject(payload.project);
 		const selected = payload.saveAs || !path ? await dialogs.save() : path;
 		if (!selected) return { ok: true, cancelled: true };
+		const previousTarget =
+			lastDeployedTarget ??
+			(path ? await lastDeploymentDirectory(preferences, path) : undefined);
 		await atomicWrite(selected, serializeProject(payload.project));
 		path = resolve(selected);
 		dirty = false;
+		let message = 'Project saved';
+		try {
+			await rememberRecentProject(preferences, path);
+			if (previousTarget)
+				await rememberDeploymentDirectory(preferences, path, previousTarget);
+		} catch {
+			message =
+				'Project saved, but some local preferences could not be updated.';
+		}
 		return {
 			ok: true,
 			document: { project: payload.project, path },
-			message: 'Project saved',
+			message,
 		};
 	});
 	handler('tale:prepare-deployment', async (payload) => {
@@ -250,18 +296,29 @@ export async function createWindow(
 		);
 		validateProject(payload.project);
 		validateAgentSelection(payload.agents);
-		if (payload.chooseTarget || !deploymentTarget) {
+		validateReferencePlacement(payload.placement);
+		const remembered = path
+			? await lastDeploymentDirectory(preferences, path)
+			: undefined;
+		deploymentTarget = await existingDirectory(deploymentTarget);
+		if (!payload.chooseTarget && !deploymentTarget && !remembered)
+			return { ok: true, cancelled: true };
+		let target = deploymentTarget ?? remembered;
+		if (payload.chooseTarget) {
 			const selected = await dialogs.target(
-				payload.project.deploymentDirectory,
+				target ?? payload.project.deploymentDirectory,
 			);
 			if (!selected) return { ok: true, cancelled: true };
-			deploymentTarget = selected;
+			target = selected;
 		}
+		check(target, 'Choose the destination project');
 		deployment = await prepareDeployment(
-			deploymentTarget,
+			target,
 			payload.project,
 			payload.agents,
+			payload.placement,
 		);
+		deploymentTarget = deployment.preview.target;
 		return { ok: true, deployment: deployment.preview };
 	});
 	handler('tale:deploy', async (payload) => {
@@ -277,11 +334,35 @@ export async function createWindow(
 		);
 		const plan = deployment;
 		deployment = undefined;
-		deploymentTarget = undefined;
-		await commitDeployment(plan, payload.overwrite);
+		const noChanges = plan.preview.files.every(
+			(file) => file.action === 'unchanged',
+		);
+		await commitDeployment(plan, payload.overwrite, undefined, (progress) => {
+			win.webContents.send('tale:deployment-progress', {
+				...progress,
+				token: plan.preview.token,
+			});
+		});
+		deploymentTarget = plan.preview.target;
+		lastDeployedTarget = plan.preview.target;
+		let preferenceWarning = '';
+		if (path)
+			try {
+				await rememberDeploymentDirectory(
+					preferences,
+					path,
+					plan.preview.target,
+				);
+			} catch {
+				preferenceWarning = ' The destination could not be remembered.';
+			}
 		return {
 			ok: true,
-			message: `Deployed Tale files and agent instructions to ${plan.preview.target}`,
+			message: `${
+				noChanges
+					? 'Already up to date. No files changed.'
+					: `Deployed Tale files and agent instructions to ${plan.preview.target}`
+			}${preferenceWarning}`,
 		};
 	});
 	handler('tale:dirty', (payload) => {

@@ -1,6 +1,6 @@
 <h1 align="center">Tale — Tales for AI agents</h1>
 
-<p align="center"><img src="tale_logo.png" alt="Tale logo" width="96" height="96"></p>
+<p align="center"><img src="tale_logo.png" alt="Tale logo" width="200" height="200"></p>
 
 ## Purpose
 

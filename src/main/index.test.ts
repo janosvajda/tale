@@ -53,6 +53,7 @@ test('startup wires native file actions to the correct named renderer commands',
 	assert.equal(dockIcon, '/app/icon.png');
 	const file = menu.find((item) => item.label === 'File');
 	assert.ok(file);
+	assert.ok(file.submenu.some((item) => item.label === 'Open project…'));
 	for (const item of file.submenu) item.click?.();
 	assert.deepEqual(
 		sent.map((args) => args[1]),

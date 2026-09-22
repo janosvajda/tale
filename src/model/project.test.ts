@@ -3,94 +3,34 @@ import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { parseProject, serializeProject, validateProject } from './project.js';
 
-test('project roundtrip preserves typed values and rejects unsafe nested property keys', async () => {
-	const p = parseProject(await readFile('project/tale.project.json', 'utf8'));
-	assert.deepEqual(parseProject(serializeProject(p)), p);
-	const item = p.diagram.items[0];
-	assert.ok(item);
-	item.properties.extra = JSON.parse('{"constructor":"unsafe"}');
-	assert.throws(() => validateProject(p), /Reserved/);
-});
-
-test('custom tags survive project roundtrip and cannot inject Tale headers', async () => {
+test('format two saves one text value per note and rejects the retired format', async () => {
 	const project = parseProject(
 		await readFile('project/tale.project.json', 'utf8'),
 	);
-	const type = {
-		id: 'team',
-		label: 'Team rules',
-		tag: 'TEAM_RULES',
-		definition: {},
-		color: '#123456',
-	};
-	project.itemTypes.push(type);
-	assert.deepEqual(
-		parseProject(serializeProject(project)).itemTypes.at(-1),
-		type,
+	assert.deepEqual(parseProject(serializeProject(project)), project);
+	assert.ok(
+		project.diagram.items.every(
+			(item) =>
+				typeof item.text === 'string' &&
+				!('sections' in item) &&
+				!('properties' in item),
+		),
 	);
-	type.tag = 'TEAM\nPROOF';
-	assert.throws(() => validateProject(project), /Tags must start/);
+	const old = { ...project, formatVersion: 1 };
+	assert.throws(() => validateProject(old), /Unsupported project format/);
 });
 
-test('custom section types and selections survive JSON and invalid radio selections fail validation', async () => {
+test('duplicate names, missing definitions and unsafe geometry are rejected', async () => {
 	const project = parseProject(
 		await readFile('project/tale.project.json', 'utf8'),
 	);
-	const item = project.diagram.items[0];
-	assert.ok(item);
-	item.sections = [
-		{
-			id: 'text',
-			title: 'Writing',
-			type: 'text',
-			text: 'Be concise.\nAsk first.',
-		},
-		{
-			id: 'checks',
-			title: 'Tools',
-			type: 'checkboxes',
-			options: [
-				{ id: 'a', label: 'TypeScript', selected: true },
-				{ id: 'b', label: 'Biome', selected: true },
-			],
-		},
-		{
-			id: 'radio',
-			title: 'Approvals',
-			type: 'radio',
-			options: [
-				{ id: 'a', label: 'Always', selected: true },
-				{ id: 'b', label: 'Never', selected: false },
-			],
-		},
-	];
-	assert.deepEqual(
-		parseProject(serializeProject(project)).diagram.items[0]?.sections,
-		item.sections,
-	);
-	const radio = item.sections[2];
-	assert.ok(radio && radio.type === 'radio');
-	const option = radio.options[1];
-	assert.ok(option);
-	option.selected = true;
-	assert.throws(() => validateProject(project), /only one selected/);
-	option.selected = false;
-	radio.options.push({ ...option });
-	assert.throws(() => validateProject(project), /Duplicate section options ID/);
-	radio.options.pop();
-	item.sections.push({ ...radio });
-	assert.throws(() => validateProject(project), /Duplicate sections ID/);
-});
-
-test('deployment directory is optional persisted metadata and rejects malformed paths', async () => {
-	const project = parseProject(
-		await readFile('project/tale.project.json', 'utf8'),
-	);
-	project.deploymentDirectory = '/future/project';
-	assert.equal(
-		parseProject(serializeProject(project)).deploymentDirectory,
-		'/future/project',
-	);
-	for (const deploymentDirectory of ['', 1, 'bad\0path'])
-		assert.throws(() => validateProject({ ...project, deploymentDirectory }));
+	project.definitions.push({
+		...project.definitions[0]!,
+		id: 'duplicate',
+		name: ` ${project.definitions[0]!.name.toUpperCase()} `,
+	});
+	assert.throws(() => validateProject(project), /names must be unique/);
+	project.definitions.pop();
+	project.diagram.items[0]!.definitionId = 'missing';
+	assert.throws(() => validateProject(project), /Unknown Tag or Skill/);
 });

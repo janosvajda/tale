@@ -4,120 +4,97 @@ import { test } from 'node:test';
 import { parseProject } from '../model/project.js';
 import { compile } from './compiler.js';
 
-test('a diagram with one Tale compiles without manually configuring a file', async () => {
+test('human-language notes compile as written and remain byte-for-byte deterministic', async () => {
+	const movedZoom = 1.25;
+	const movedX = 100;
 	const project = parseProject(
 		await readFile('project/tale.project.json', 'utf8'),
 	);
-	const expected = compile(project);
-	project.exports = [];
-	project.environments = [
-		{ id: 'test', name: 'Test' },
-		{ id: 'production', name: 'Production' },
-	];
-	assert.deepEqual(compile(project), expected);
-	assert.deepEqual(compile(parseProject(JSON.stringify(project))), expected);
-	const root = project.diagram.items.find((item) => item.id === 'project')!;
-	project.diagram.items.push({ ...structuredClone(root), id: 'second-tale' });
-	assert.throws(() => compile(project), /Choose one Tale/);
-});
-
-test('paired-test and semantic-control policy compiles exactly from the authoring JSON', async () => {
-	const project = parseProject(
-		await readFile('project/tale.project.json', 'utf8'),
+	const item = project.diagram.items.find(
+		(entry) => entry.definitionId === 'changes',
 	);
-	const output = compile(project)[0];
-	assert.ok(output);
-	assert.deepEqual(
-		Buffer.from(output.content),
-		await readFile('.tale/project.tale'),
-	);
-	assert.ok(output.content.includes('test_pattern {name}.test.ts'));
-	assert.ok(output.content.includes('raw_json_editing deny'));
-});
-
-test('user-defined tags compile deterministically with custom sections and sorted properties', async () => {
-	const project = parseProject(
-		await readFile('project/tale.project.json', 'utf8'),
-	);
-	const item = project.diagram.items.find((item) => item.id === 'product');
 	assert.ok(item);
-	project.itemTypes.push({
-		id: 'team',
-		label: 'Team rules',
-		tag: 'TEAM_RULES',
-		color: '#123456',
-	});
-	item.typeId = 'team';
-	item.properties = { tone: 'Concise', audience: 'Everyone' };
-	item.sections = [
-		{
-			id: 'notes',
-			title: 'Discuss changes',
-			type: 'text',
-			text: 'Agree before editing.',
-		},
-	];
-	const output = compile(project);
+	item.text = 'Deny unrelated changes.\nAsk before expanding scope.';
+	const first = compile(project)[0];
+	assert.ok(first);
+	assert.equal(first.path, '.tale/project.tale');
+	assert.match(
+		first.content,
+		/CHANGES\n  Deny unrelated changes\.\n  Ask before expanding scope\./,
+	);
+	assert.ok(!first.content.includes('unrelated_changes deny'));
+	project.diagram.viewport.zoom = movedZoom;
+	item.position.x += movedX;
+	assert.deepEqual(compile(project)[0], first);
+	assert.deepEqual(compile(project)[0], compile(project)[0]);
+});
+
+test('the checked-in project Tale matches its JSON source byte for byte', async () => {
+	const project = parseProject(
+		await readFile('project/tale.project.json', 'utf8'),
+	);
+	const installed = await readFile('.tale/project.tale', 'utf8');
+	assert.equal(compile(project)[0]?.content, installed);
+});
+
+test('the diagram records meaningful relationships without a visible root', async () => {
+	const project = parseProject(
+		await readFile('project/tale.project.json', 'utf8'),
+	);
+	assert.ok(!project.diagram.items.some((item) => item.id === 'project'));
 	assert.ok(
-		output[0]?.content.includes(
-			'TEAM_RULES\n  audience Everyone\n  tone Concise\n  section "Discuss changes" type=text\n    text "Agree before editing."',
+		project.diagram.connections.every(
+			(edge) => edge.label && edge.from !== 'project' && edge.to !== 'project',
 		),
 	);
-	item.properties = { audience: 'Everyone', tone: 'Concise' };
-	assert.deepEqual(compile(parseProject(JSON.stringify(project))), output);
-	item.properties = { 'bad\nGOAL': 'injection' };
-	assert.throws(() => compile(project), /Invalid directive/);
+	assert.ok(
+		project.diagram.connections.some(
+			(edge) =>
+				edge.from === 'product' &&
+				edge.to === 'architecture' &&
+				edge.label === 'guides',
+		),
+	);
+	for (const requirement of [
+		'deployment-bytes',
+		'no-project-json',
+		'preserve-project',
+	])
+		assert.ok(
+			project.diagram.connections.some(
+				(edge) =>
+					edge.from === requirement &&
+					edge.to === 'deploy-check' &&
+					edge.label === 'is verified by',
+			),
+		);
+	assert.ok(
+		compile(project)[0]?.content.includes('  Purpose defines Product.'),
+	);
+	assert.ok(!compile(project)[0]?.content.includes('RELATIONSHIPS'));
+	project.diagram.connections[0]!.label = '';
+	assert.throws(
+		() => compile(project),
+		/Give every arrow a one-line relationship/,
+	);
 });
 
-test('custom sections compile deterministically with literal titles, text and selected choices', async () => {
-	const project = parseProject(
-		await readFile('project/tale.project.json', 'utf8'),
+test('Skills use the same single text value as Tags', async () => {
+	const project = parseProject(await readFile('templates/blank.json', 'utf8'));
+	const skill = project.definitions.find(
+		(entry) => entry.name === 'Minimal change',
 	);
-	const item = project.diagram.items.find((item) => item.id === 'goal');
-	assert.ok(item);
-	item.sections = [
-		{
-			id: 'notes',
-			title: 'Team "notes"',
-			type: 'text',
-			text: 'Ask first.\nThen implement.',
-		},
-		{
-			id: 'tools',
-			title: 'Tools',
-			type: 'checkboxes',
-			options: [
-				{ id: 'a', label: 'TypeScript', selected: true },
-				{ id: 'b', label: 'Unused', selected: false },
-				{ id: 'c', label: 'Biome', selected: true },
-			],
-		},
-		{
-			id: 'approval',
-			title: 'Approval',
-			type: 'radio',
-			options: [
-				{ id: 'a', label: 'Required', selected: true },
-				{ id: 'b', label: 'Optional', selected: false },
-			],
-		},
-	];
-	const expected = [
-		'  section "Team \\"notes\\"" type=text',
-		'    text "Ask first.\\nThen implement."',
-		'  section "Tools" type=checkboxes',
-		'    selected "TypeScript" "Biome"',
-		'  section "Approval" type=radio',
-		'    selected "Required"',
-	].join('\n');
-	const output = compile(project);
-	assert.ok(output[0]?.content.includes(expected));
-	assert.ok(!output[0]?.content.includes('Unused'));
-	assert.deepEqual(compile(parseProject(JSON.stringify(project))), output);
-	for (const section of item.sections) section.id += '-changed';
-	assert.deepEqual(
-		compile(project),
-		output,
-		'Editor IDs do not affect compiled bytes',
+	assert.ok(skill);
+	project.diagram.items.push({
+		id: 'small-change',
+		definitionId: skill.id,
+		title: skill.name,
+		text: 'Make the smallest change needed. Stop when the agreed check passes.',
+		position: { x: 0, y: 0 },
+		size: { width: 280, height: 180 },
+	});
+	assert.match(
+		compile(project)[0]!.content,
+		/SKILL Minimal change\n  Make the smallest change needed\. Stop when the agreed check passes\./,
 	);
 });

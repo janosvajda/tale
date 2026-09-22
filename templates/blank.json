@@ -1,1671 +1,363 @@
 {
   "format": "tale-project",
-  "formatVersion": 1,
+  "formatVersion": 2,
   "id": "blank",
   "name": "Blank project",
+  "description": "",
   "environments": [],
-  "itemTypes": [
-    {
-      "id": "tale",
-      "label": "Tale",
-      "tag": "TALE",
-      "color": "#475569",
-      "definition": {
-        "fields": [
-          {
-            "key": "version",
-            "label": "Version",
-            "initial": "v0",
-            "format": "header",
-            "required": true,
-            "equals": "v0"
-          }
-        ],
-        "initial": {
-          "properties": {
-            "version": "v0"
-          },
-          "sections": []
-        },
-        "role": "document",
-        "additionalProperties": false,
-        "requiredTags": [
-          {
-            "tag": "META",
-            "min": 1,
-            "max": 1
-          },
-          {
-            "tag": "GOAL",
-            "min": 1
-          },
-          {
-            "tag": "SCOPE",
-            "min": 1
-          },
-          {
-            "tag": "PROOF",
-            "min": 1
-          },
-          {
-            "tag": "PLAN",
-            "min": 1,
-            "when": {
-              "tag": "META",
-              "key": "TYPE",
-              "notEquals": "project"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "id": "meta",
-      "label": "Project",
-      "tag": "META",
-      "color": "#2563EB",
-      "definition": {
-        "fields": [
-          {
-            "key": "ID",
-            "label": "Identifier",
-            "initial": "",
-            "required": true
-          },
-          {
-            "key": "TYPE",
-            "label": "Tale type",
-            "initial": "project",
-            "choices": [
-              "project",
-              "task"
-            ]
-          },
-          {
-            "key": "TITLE",
-            "label": "TITLE",
-            "initial": ""
-          },
-          {
-            "key": "LANGUAGE",
-            "label": "Programming language",
-            "initial": ""
-          },
-          {
-            "key": "RUNTIME",
-            "label": "RUNTIME",
-            "initial": ""
-          },
-          {
-            "key": "FRAMEWORK",
-            "label": "FRAMEWORK",
-            "initial": ""
-          },
-          {
-            "key": "DATABASE",
-            "label": "DATABASE",
-            "initial": ""
-          },
-          {
-            "key": "IAC",
-            "label": "IAC",
-            "initial": ""
-          },
-          {
-            "key": "TEST_FRAMEWORK",
-            "label": "Test framework",
-            "initial": ""
-          },
-          {
-            "key": "HTTP_TEST_TOOL",
-            "label": "Http test tool",
-            "initial": ""
-          }
-        ],
-        "initial": {
-          "properties": {
-            "ID": "new.tale",
-            "TYPE": "project"
-          },
-          "sections": []
-        },
-        "additionalProperties": false
-      }
-    },
+  "definitions": [
     {
       "id": "goal",
-      "label": "Purpose",
+      "kind": "tag",
+      "name": "Goal",
       "tag": "GOAL",
       "color": "#15803D",
-      "definition": {
-        "fields": [
-          {
-            "key": "text",
-            "label": "Description",
-            "initial": "",
-            "format": "lines",
-            "required": true,
-            "allowSections": true,
-            "valueType": "string"
-          }
-        ],
-        "initial": {
-          "properties": {
-            "text": "Describe the intended outcome."
-          },
-          "sections": []
-        },
-        "additionalProperties": false
-      }
-    },
-    {
-      "id": "product",
-      "label": "Product",
-      "tag": "PRODUCT",
-      "color": "#7C3AED",
-      "definition": {
-        "fields": [
-          {
-            "key": "platforms",
-            "label": "Supported platforms",
-            "initial": [],
-            "choices": [
-              "macOS",
-              "Windows",
-              "Linux"
-            ]
-          },
-          {
-            "key": "editor",
-            "label": "Editor style",
-            "initial": "miro_style",
-            "choices": [
-              "miro_style"
-            ]
-          },
-          {
-            "key": "items",
-            "label": "Diagram shapes",
-            "initial": [],
-            "choices": [
-              "rectangle",
-              "arrow"
-            ]
-          },
-          {
-            "key": "connections",
-            "label": "Allowed connections",
-            "initial": [],
-            "choices": [
-              "branches",
-              "loops",
-              "multiple"
-            ]
-          },
-          {
-            "key": "project_format",
-            "label": "Project format",
-            "initial": "JSON",
-            "choices": [
-              "JSON"
-            ]
-          },
-          {
-            "key": "tags",
-            "label": "Tags",
-            "initial": "diagram_items",
-            "choices": [
-              "diagram_items"
-            ]
-          },
-          {
-            "key": "tag_coverage",
-            "label": "Tag coverage",
-            "initial": "all_defined",
-            "choices": [
-              "all_defined"
-            ]
-          },
-          {
-            "key": "rule_types",
-            "label": "Rule types",
-            "initial": "user_defined",
-            "choices": [
-              "user_defined"
-            ]
-          },
-          {
-            "key": "environments",
-            "label": "Environments",
-            "initial": "user_defined",
-            "choices": [
-              "user_defined"
-            ]
-          },
-          {
-            "key": "output",
-            "label": "Output",
-            "initial": ""
-          },
-          {
-            "key": "agent_entrypoints",
-            "label": "Agent entrypoints",
-            "initial": "official",
-            "choices": [
-              "official"
-            ]
-          }
-        ],
-        "initial": {
-          "properties": {},
-          "sections": []
-        },
-        "additionalProperties": false
-      }
-    },
-    {
-      "id": "architecture",
-      "label": "Architecture",
-      "tag": "ARCHITECTURE",
-      "color": "#0E7490",
-      "definition": {
-        "fields": [
-          {
-            "key": "separate",
-            "label": "Separate components",
-            "initial": [],
-            "choices": [
-              "visual_editor",
-              "svg_library",
-              "electron_ui",
-              "application",
-              "preload"
-            ]
-          },
-          {
-            "key": "svg_library",
-            "label": "Svg library",
-            "initial": "first_party_reusable",
-            "choices": [
-              "first_party_reusable"
-            ]
-          },
-          {
-            "key": "editor_dependencies",
-            "label": "Editor dependencies",
-            "initial": [],
-            "choices": [
-              "svg_library",
-              "project_model"
-            ]
-          },
-          {
-            "key": "ui",
-            "label": "Ui",
-            "initial": "native_html_css_browser_apis",
-            "choices": [
-              "native_html_css_browser_apis"
-            ]
-          },
-          {
-            "key": "application_dependencies",
-            "label": "Application dependencies",
-            "initial": "no_ui_or_svg",
-            "choices": [
-              "no_ui_or_svg"
-            ]
-          },
-          {
-            "key": "filesystem",
-            "label": "Filesystem",
-            "initial": "electron_main",
-            "choices": [
-              "electron_main"
-            ]
-          },
-          {
-            "key": "ipc",
-            "label": "Ipc",
-            "initial": "typed_allowlisted_preload_api",
-            "choices": [
-              "typed_allowlisted_preload_api"
-            ]
-          },
-          {
-            "key": "ipc_validation",
-            "label": "Ipc validation",
-            "initial": "sender_payload_result",
-            "choices": [
-              "sender_payload_result"
-            ]
-          },
-          {
-            "key": "context_isolation",
-            "label": "Context isolation",
-            "initial": true
-          },
-          {
-            "key": "node_integration",
-            "label": "Node integration",
-            "initial": false
-          },
-          {
-            "key": "renderer_sandbox",
-            "label": "Renderer sandbox",
-            "initial": true
-          },
-          {
-            "key": "project_content",
-            "label": "Project content",
-            "initial": "inert_data",
-            "choices": [
-              "inert_data"
-            ]
-          }
-        ],
-        "initial": {
-          "properties": {},
-          "sections": []
-        },
-        "additionalProperties": false
-      }
-    },
-    {
-      "id": "editor",
-      "label": "Editor",
-      "tag": "EDITOR",
-      "color": "#A21CAF",
-      "definition": {
-        "fields": [
-          {
-            "key": "layout",
-            "label": "Layout",
-            "initial": "board_first",
-            "choices": [
-              "board_first"
-            ]
-          },
-          {
-            "key": "viewport",
-            "label": "Viewport",
-            "initial": "fit_app_window",
-            "choices": [
-              "fit_app_window"
-            ]
-          },
-          {
-            "key": "app_scroll",
-            "label": "App scroll",
-            "initial": "deny",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          },
-          {
-            "key": "canvas_navigation",
-            "label": "Canvas navigation",
-            "initial": "pan_zoom",
-            "choices": [
-              "pan_zoom"
-            ]
-          },
-          {
-            "key": "zoom_input",
-            "label": "Zoom input",
-            "initial": [],
-            "choices": [
-              "touchpad",
-              "mouse"
-            ]
-          },
-          {
-            "key": "zoom_anchor",
-            "label": "Zoom anchor",
-            "initial": "pointer",
-            "choices": [
-              "pointer"
-            ]
-          },
-          {
-            "key": "chrome",
-            "label": "Chrome",
-            "initial": "compact",
-            "choices": [
-              "compact"
-            ]
-          },
-          {
-            "key": "copy",
-            "label": "Copy",
-            "initial": "concise",
-            "choices": [
-              "concise"
-            ]
-          },
-          {
-            "key": "oversized_headings",
-            "label": "Oversized headings",
-            "initial": "deny",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          },
-          {
-            "key": "item_titles",
-            "label": "Item titles",
-            "initial": "required_editable",
-            "choices": [
-              "required_editable"
-            ]
-          },
-          {
-            "key": "item_text",
-            "label": "Item text",
-            "initial": "editable",
-            "choices": [
-              "editable"
-            ]
-          },
-          {
-            "key": "dragging",
-            "label": "Dragging",
-            "initial": "pointer_accurate",
-            "choices": [
-              "pointer_accurate"
-            ]
-          },
-          {
-            "key": "draggable",
-            "label": "Draggable",
-            "initial": "all_diagram_objects",
-            "choices": [
-              "all_diagram_objects"
-            ]
-          },
-          {
-            "key": "connections",
-            "label": "Allowed connections",
-            "initial": "anchored_precise",
-            "choices": [
-              "anchored_precise"
-            ]
-          },
-          {
-            "key": "tag_colors",
-            "label": "Tag colors",
-            "initial": "distinct_stable",
-            "choices": [
-              "distinct_stable"
-            ]
-          },
-          {
-            "key": "tag_labels",
-            "label": "Tag labels",
-            "initial": "visible",
-            "choices": [
-              "visible"
-            ]
-          },
-          {
-            "key": "toolbar",
-            "label": "Toolbar",
-            "initial": "all_diagram_items",
-            "choices": [
-              "all_diagram_items"
-            ]
-          },
-          {
-            "key": "toolbar_labels",
-            "label": "Toolbar labels",
-            "initial": "visible",
-            "choices": [
-              "visible"
-            ]
-          },
-          {
-            "key": "menu",
-            "label": "Menu",
-            "initial": [],
-            "choices": [
-              "open_json",
-              "save",
-              "save_as",
-              "deploy"
-            ]
-          },
-          {
-            "key": "property_controls",
-            "label": "Property controls",
-            "initial": "semantic_typed",
-            "choices": [
-              "semantic_typed"
-            ]
-          },
-          {
-            "key": "raw_json_editing",
-            "label": "Raw json editing",
-            "initial": "deny",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          }
-        ],
-        "initial": {
-          "properties": {},
-          "sections": []
-        },
-        "additionalProperties": false
-      }
-    },
-    {
-      "id": "deployment",
-      "label": "Deployment",
-      "tag": "DEPLOYMENT",
-      "color": "#92400E",
-      "definition": {
-        "fields": [
-          {
-            "key": "mode",
-            "label": "Policy",
-            "initial": "compiled_tales",
-            "choices": [
-              "compiled_tales"
-            ]
-          },
-          {
-            "key": "project_json",
-            "label": "Project json",
-            "initial": "save_save_as_only",
-            "choices": [
-              "save_save_as_only"
-            ]
-          },
-          {
-            "key": "target",
-            "label": "Target",
-            "initial": "selected_project",
-            "choices": [
-              "selected_project"
-            ]
-          },
-          {
-            "key": "output",
-            "label": "Output",
-            "initial": ""
-          },
-          {
-            "key": "agents",
-            "label": "Agents",
-            "initial": "user_selected",
-            "choices": [
-              "user_selected"
-            ]
-          },
-          {
-            "key": "agent_file",
-            "label": "Agent file",
-            "initial": "selected_official_entrypoint",
-            "choices": [
-              "selected_official_entrypoint"
-            ]
-          },
-          {
-            "key": "agent_update",
-            "label": "Agent update",
-            "initial": "preserve_content_upsert_reference",
-            "choices": [
-              "preserve_content_upsert_reference"
-            ]
-          },
-          {
-            "key": "preview",
-            "label": "Preview",
-            "initial": "required",
-            "choices": [
-              "required"
-            ]
-          },
-          {
-            "key": "existing_tale",
-            "label": "Existing tale",
-            "initial": "confirm_overwrite",
-            "choices": [
-              "confirm_overwrite"
-            ]
-          },
-          {
-            "key": "unrelated_files",
-            "label": "Unrelated files",
-            "initial": "preserve",
-            "choices": [
-              "preserve"
-            ]
-          },
-          {
-            "key": "repeat",
-            "label": "Repeat",
-            "initial": "idempotent",
-            "choices": [
-              "idempotent"
-            ]
-          }
-        ],
-        "initial": {
-          "properties": {},
-          "sections": []
-        },
-        "additionalProperties": false
-      }
-    },
-    {
-      "id": "dependencies",
-      "label": "Dependencies",
-      "tag": "DEPENDENCIES",
-      "color": "#B45309",
-      "definition": {
-        "fields": [
-          {
-            "key": "default",
-            "label": "Default",
-            "initial": "deny",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          },
-          {
-            "key": "allow",
-            "label": "Allowed",
-            "initial": []
-          },
-          {
-            "key": "development_allow",
-            "label": "Allowed development tools",
-            "initial": []
-          },
-          {
-            "key": "changes",
-            "label": "Changes",
-            "initial": "require_approval",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          }
-        ],
-        "initial": {
-          "properties": {},
-          "sections": []
-        },
-        "additionalProperties": false
-      }
+      "defaultText": "Use the outcome the user requested as the goal. Restate it in plain language before substantial work and keep decisions aligned with it. Do not invent additional goals."
     },
     {
       "id": "agreement",
-      "label": "Agreement",
+      "kind": "tag",
+      "name": "Agreement",
       "tag": "AGREEMENT",
       "color": "#BE185D",
-      "definition": {
-        "fields": [
-          {
-            "key": "before_implementation",
-            "label": "Before implementation",
-            "initial": "agree_goal_scope_checks",
-            "choices": [
-              "agree_goal_scope_checks"
-            ]
-          },
-          {
-            "key": "unclear_requirements",
-            "label": "Unclear requirements",
-            "initial": "ask_user",
-            "choices": [
-              "ask_user"
-            ]
-          },
-          {
-            "key": "scope_expansion",
-            "label": "Scope expansion",
-            "initial": "require_approval",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          },
-          {
-            "key": "existing_approval",
-            "label": "Existing approval",
-            "initial": "reuse",
-            "choices": [
-              "reuse"
-            ]
-          },
-          {
-            "key": "contract_changes",
-            "label": "Contract changes",
-            "initial": "require_approval",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          },
-          {
-            "key": "structured_conflicts",
-            "label": "Structured conflicts",
-            "initial": "block",
-            "choices": [
-              "block"
-            ]
-          },
-          {
-            "key": "approval_baseline",
-            "label": "Approval baseline",
-            "initial": "external",
-            "choices": [
-              "external"
-            ]
-          }
-        ],
-        "initial": {
-          "properties": {},
-          "sections": []
-        },
-        "additionalProperties": false
-      }
-    },
-    {
-      "id": "changes",
-      "label": "Changes",
-      "tag": "CHANGES",
-      "color": "#C2410C",
-      "definition": {
-        "fields": [
-          {
-            "key": "default",
-            "label": "Default",
-            "initial": "minimal",
-            "choices": [
-              "minimal"
-            ]
-          },
-          {
-            "key": "refactor",
-            "label": "Refactor",
-            "initial": "require_approval",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          },
-          {
-            "key": "rename",
-            "label": "Rename",
-            "initial": "require_approval",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          },
-          {
-            "key": "delete",
-            "label": "Delete",
-            "initial": "require_approval",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          },
-          {
-            "key": "unrelated_changes",
-            "label": "Unrelated changes",
-            "initial": "deny",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          },
-          {
-            "key": "preserve_user_changes",
-            "label": "Preserve user changes",
-            "initial": true
-          },
-          {
-            "key": "restore_deleted_code",
-            "label": "Restore deleted code",
-            "initial": "require_approval",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          }
-        ],
-        "initial": {
-          "properties": {},
-          "sections": []
-        },
-        "additionalProperties": false
-      }
+      "defaultText": "Clarify scope and completion checks when they are genuinely unclear. Carry forward approvals already given; do not ask the user to repeat the same decision."
     },
     {
       "id": "scope",
-      "label": "Scope",
+      "kind": "tag",
+      "name": "Scope",
       "tag": "SCOPE",
       "color": "#B91C1C",
-      "definition": {
-        "fields": [
-          {
-            "key": "mode",
-            "label": "Policy",
-            "initial": "allow",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ],
-            "format": "header",
-            "required": true,
-            "enum": [
-              "allow",
-              "deny",
-              "require_approval"
-            ]
-          },
-          {
-            "key": "paths",
-            "label": "Files and folders",
-            "initial": [],
-            "format": "values",
-            "required": true,
-            "valueType": "array"
-          }
-        ],
-        "initial": {
-          "properties": {
-            "mode": "allow",
-            "paths": []
-          },
-          "sections": []
-        },
-        "additionalProperties": false
-      }
+      "defaultText": "Work only in the files and behavior needed for the agreed task. Ask before expanding scope or touching an area the project marks as protected."
     },
     {
-      "id": "quality",
-      "label": "Quality",
-      "tag": "QUALITY",
-      "color": "#047857",
-      "definition": {
-        "fields": [
-          {
-            "key": "typescript_strict",
-            "label": "Typescript strict",
-            "initial": true
-          },
-          {
-            "key": "lint",
-            "label": "Lint",
-            "initial": "biome",
-            "choices": [
-              "biome"
-            ]
-          },
-          {
-            "key": "format",
-            "label": "Format",
-            "initial": "biome",
-            "choices": [
-              "biome"
-            ]
-          },
-          {
-            "key": "weaken_checks",
-            "label": "Weaken checks",
-            "initial": "deny",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          }
-        ],
-        "initial": {
-          "properties": {},
-          "sections": []
-        },
-        "additionalProperties": false
-      }
+      "id": "changes",
+      "kind": "tag",
+      "name": "Changes",
+      "tag": "CHANGES",
+      "color": "#C2410C",
+      "defaultText": "Make the smallest reviewable change that solves the agreed problem. Deny unrelated changes. Preserve existing user work and avoid unrelated refactors, renames, or formatting sweeps."
     },
     {
-      "id": "testing",
-      "label": "Testing",
-      "tag": "TESTING",
-      "color": "#4338CA",
-      "definition": {
-        "fields": [
-          {
-            "key": "assertions",
-            "label": "Assertions",
-            "initial": "observable_behavior",
-            "choices": [
-              "observable_behavior"
-            ]
-          },
-          {
-            "key": "bugfix",
-            "label": "Bugfix",
-            "initial": "regression_test",
-            "choices": [
-              "regression_test"
-            ]
-          },
-          {
-            "key": "changed_behavior",
-            "label": "Changed behavior",
-            "initial": "require_coverage",
-            "choices": [
-              "require_coverage"
-            ]
-          },
-          {
-            "key": "editor_changes",
-            "label": "Editor changes",
-            "initial": "interaction_check",
-            "choices": [
-              "interaction_check"
-            ]
-          },
-          {
-            "key": "editor_cases",
-            "label": "Editor cases",
-            "initial": []
-          },
-          {
-            "key": "ui_cases",
-            "label": "Ui cases",
-            "initial": []
-          },
-          {
-            "key": "ipc_changes",
-            "label": "Ipc changes",
-            "initial": "boundary_tests",
-            "choices": [
-              "boundary_tests"
-            ]
-          },
-          {
-            "key": "editor_e2e",
-            "label": "Editor e2e",
-            "initial": "json_to_tale_determinism",
-            "choices": [
-              "json_to_tale_determinism"
-            ]
-          },
-          {
-            "key": "deploy_e2e",
-            "label": "Deploy e2e",
-            "initial": "compiled_tales_agent_entrypoint",
-            "choices": [
-              "compiled_tales_agent_entrypoint"
-            ]
-          },
-          {
-            "key": "weaken_expectations",
-            "label": "Weaken expectations",
-            "initial": "deny",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          },
-          {
-            "key": "test_files",
-            "label": "Test files",
-            "initial": "paired_sibling",
-            "choices": [
-              "paired_sibling"
-            ]
-          },
-          {
-            "key": "test_pattern",
-            "label": "Test pattern",
-            "initial": ""
-          },
-          {
-            "key": "test_scope",
-            "label": "Test scope",
-            "initial": "application_typescript",
-            "choices": [
-              "application_typescript"
-            ]
-          },
-          {
-            "key": "test_pair_check",
-            "label": "Test pair check",
-            "initial": "npm_run_lint",
-            "choices": [
-              "npm_run_lint"
-            ]
-          }
-        ],
-        "initial": {
-          "properties": {},
-          "sections": []
-        },
-        "additionalProperties": false
-      }
+      "id": "protected-areas",
+      "kind": "tag",
+      "name": "Protected areas",
+      "tag": "PROTECTED_AREAS",
+      "color": "#991B1B",
+      "defaultText": "Read protected files when needed to understand the task, but do not modify them without the approval required by this project. Name the affected files and explain the proposed change before seeking approval."
     },
     {
-      "id": "agentic-tests",
-      "label": "Agentic tests",
-      "tag": "AGENTIC_TESTS",
-      "color": "#4D7C0F",
-      "definition": {
-        "fields": [
-          {
-            "key": "pattern",
-            "label": "Pattern",
-            "initial": ""
-          },
-          {
-            "key": "allow_create",
-            "label": "Allow creating tests",
-            "initial": true
-          },
-          {
-            "key": "allow_modify",
-            "label": "Allow modify",
-            "initial": "within_task",
-            "choices": [
-              "within_task"
-            ]
-          },
-          {
-            "key": "freeze_after",
-            "label": "Freeze after",
-            "initial": "proof_pass",
-            "choices": [
-              "proof_pass"
-            ]
-          },
-          {
-            "key": "freeze_mode",
-            "label": "Freeze mode",
-            "initial": ""
-          }
-        ],
-        "initial": {
-          "properties": {},
-          "sections": []
-        },
-        "additionalProperties": false
-      }
+      "id": "source-of-truth",
+      "kind": "tag",
+      "name": "Source of truth",
+      "tag": "SOURCE_OF_TRUTH",
+      "color": "#1D4ED8",
+      "defaultText": "Read the current project instructions, source, and relevant tests before inferring behavior. Prefer verified repository facts and the user's current request over remembered assumptions."
     },
     {
-      "id": "proof",
-      "label": "Proof",
-      "tag": "PROOF",
-      "color": "#0369A1",
-      "definition": {
-        "fields": [
-          {
-            "key": "steps",
-            "label": "Steps",
-            "initial": [],
-            "format": "steps",
-            "required": true,
-            "valueType": "array"
-          }
-        ],
-        "initial": {
-          "properties": {
-            "steps": []
-          },
-          "sections": []
-        },
-        "role": "proof",
-        "additionalProperties": false,
-        "steps": {
-          "run": {
-            "initial": {
-              "operation": "run",
-              "command": "",
-              "expect": {
-                "exit": 0
-              },
-              "when": "code_changed"
-            },
-            "fields": [
-              {
-                "key": "command",
-                "quote": true,
-                "required": true,
-                "valueType": "string"
-              },
-              {
-                "key": "expect",
-                "prefix": "expect ",
-                "required": true,
-                "valueType": "object",
-                "properties": {
-                  "exit": "number"
-                }
-              },
-              {
-                "key": "when",
-                "prefix": "when=",
-                "valueType": "string"
-              }
-            ]
-          },
-          "review": {
-            "initial": {
-              "operation": "review",
-              "checks": []
-            },
-            "fields": [
-              {
-                "key": "checks",
-                "required": true,
-                "valueType": "array"
-              }
-            ]
-          },
-          "stop": {
-            "initial": {
-              "operation": "stop",
-              "when": "after_agreed_checks"
-            },
-            "fields": [
-              {
-                "key": "when",
-                "required": true,
-                "valueType": "string"
-              }
-            ]
-          },
-          "contract_verify": {
-            "initial": {
-              "operation": "contract_verify",
-              "attributes": {
-                "baseline": "external",
-                "coverage": "mandatory"
-              }
-            }
-          },
-          "request_change": {
-            "initial": {
-              "operation": "request_change",
-              "attributes": {
-                "requirement": "",
-                "reason": ""
-              }
-            }
-          }
-        }
-      }
+      "id": "assumptions",
+      "kind": "tag",
+      "name": "Assumptions",
+      "tag": "ASSUMPTIONS",
+      "color": "#A21CAF",
+      "defaultText": "State assumptions that could change the result. Verify consequential assumptions from project evidence or ask the user; do not silently turn a guess into a requirement."
+    },
+    {
+      "id": "decisions",
+      "kind": "tag",
+      "name": "Decisions",
+      "tag": "DECISIONS",
+      "color": "#7E22CE",
+      "defaultText": "Preserve decisions already agreed for this project. If new evidence conflicts with one, explain the conflict and its impact before replacing the decision."
     },
     {
       "id": "plan",
-      "label": "Plan",
+      "kind": "tag",
+      "name": "Plan",
       "tag": "PLAN",
-      "color": "#7E22CE",
-      "definition": {
-        "fields": [
-          {
-            "key": "steps",
-            "label": "Steps",
-            "initial": [],
-            "format": "steps",
-            "required": true,
-            "valueType": "array"
-          }
-        ],
-        "initial": {
-          "properties": {
-            "steps": []
-          },
-          "sections": []
-        },
-        "additionalProperties": false,
-        "steps": {
-          "run": {
-            "initial": {
-              "operation": "run",
-              "command": "",
-              "expect": {
-                "exit": 0
-              },
-              "when": "code_changed"
-            },
-            "fields": [
-              {
-                "key": "command",
-                "quote": true,
-                "required": true,
-                "valueType": "string"
-              },
-              {
-                "key": "expect",
-                "prefix": "expect ",
-                "required": true,
-                "valueType": "object",
-                "properties": {
-                  "exit": "number"
-                }
-              },
-              {
-                "key": "when",
-                "prefix": "when=",
-                "valueType": "string"
-              }
-            ]
-          },
-          "review": {
-            "initial": {
-              "operation": "review",
-              "checks": []
-            },
-            "fields": [
-              {
-                "key": "checks",
-                "required": true,
-                "valueType": "array"
-              }
-            ]
-          },
-          "stop": {
-            "initial": {
-              "operation": "stop",
-              "when": "after_agreed_checks"
-            },
-            "fields": [
-              {
-                "key": "when",
-                "required": true,
-                "valueType": "string"
-              }
-            ]
-          },
-          "contract_verify": {
-            "initial": {
-              "operation": "contract_verify",
-              "attributes": {
-                "baseline": "external",
-                "coverage": "mandatory"
-              }
-            }
-          },
-          "request_change": {
-            "initial": {
-              "operation": "request_change",
-              "attributes": {
-                "requirement": "",
-                "reason": ""
-              }
-            }
-          }
-        }
-      }
+      "color": "#6D28D9",
+      "defaultText": "For consequential work with several steps, agree on the scope, order, and completion checks before editing. Adjust the plan when evidence changes and explain why."
     },
     {
-      "id": "determinism",
-      "label": "Determinism",
-      "tag": "DETERMINISM",
+      "id": "stop-condition",
+      "kind": "tag",
+      "name": "Stop condition",
+      "tag": "STOP_CONDITION",
       "color": "#0F766E",
-      "definition": {
-        "fields": [
-          {
-            "key": "mode",
-            "label": "Policy",
-            "initial": "strict",
-            "choices": [
-              "strict",
-              "normalized"
-            ]
-          },
-          {
-            "key": "target",
-            "label": "Target",
-            "initial": "compiled_tales",
-            "choices": [
-              "compiled_tales"
-            ]
-          },
-          {
-            "key": "comparison",
-            "label": "Comparison",
-            "initial": "byte_exact",
-            "choices": [
-              "byte_exact"
-            ]
-          },
-          {
-            "key": "encoding",
-            "label": "Encoding",
-            "initial": "utf8",
-            "choices": [
-              "utf8"
-            ]
-          },
-          {
-            "key": "line_endings",
-            "label": "Line endings",
-            "initial": "lf",
-            "choices": [
-              "lf"
-            ]
-          },
-          {
-            "key": "final_newline",
-            "label": "Final newline",
-            "initial": true
-          },
-          {
-            "key": "canonicalize",
-            "label": "Canonicalize",
-            "initial": [],
-            "format": "bullets"
-          },
-          {
-            "key": "rerun_check",
-            "label": "Rerun check",
-            "initial": {
-              "runs": 2
-            }
-          },
-          {
-            "key": "clean_build_check",
-            "label": "Clean build check",
-            "initial": {
-              "runs": 2
-            }
-          }
-        ],
-        "initial": {
-          "properties": {
-            "mode": "strict",
-            "rerun_check": {
-              "runs": 2
-            }
-          },
-          "sections": []
-        },
-        "additionalProperties": false
-      }
-    },
-    {
-      "id": "overrides",
-      "label": "Overrides",
-      "tag": "OVERRIDES",
-      "color": "#9F1239",
-      "definition": {
-        "fields": [
-          {
-            "key": "steps",
-            "label": "Steps",
-            "initial": [],
-            "format": "steps",
-            "required": true,
-            "valueType": "array"
-          }
-        ],
-        "initial": {
-          "properties": {
-            "steps": []
-          },
-          "sections": []
-        },
-        "role": "override",
-        "additionalProperties": false,
-        "steps": {
-          "run": {
-            "initial": {
-              "operation": "run",
-              "command": "",
-              "expect": {
-                "exit": 0
-              },
-              "when": "code_changed"
-            },
-            "fields": [
-              {
-                "key": "command",
-                "quote": true,
-                "required": true,
-                "valueType": "string"
-              },
-              {
-                "key": "expect",
-                "prefix": "expect ",
-                "required": true,
-                "valueType": "object",
-                "properties": {
-                  "exit": "number"
-                }
-              },
-              {
-                "key": "when",
-                "prefix": "when=",
-                "valueType": "string"
-              }
-            ]
-          },
-          "review": {
-            "initial": {
-              "operation": "review",
-              "checks": []
-            },
-            "fields": [
-              {
-                "key": "checks",
-                "required": true,
-                "valueType": "array"
-              }
-            ]
-          },
-          "stop": {
-            "initial": {
-              "operation": "stop",
-              "when": "after_agreed_checks"
-            },
-            "fields": [
-              {
-                "key": "when",
-                "required": true,
-                "valueType": "string"
-              }
-            ]
-          },
-          "contract_verify": {
-            "initial": {
-              "operation": "contract_verify",
-              "attributes": {
-                "baseline": "external",
-                "coverage": "mandatory"
-              }
-            }
-          },
-          "request_change": {
-            "initial": {
-              "operation": "request_change",
-              "attributes": {
-                "requirement": "",
-                "reason": ""
-              }
-            }
-          }
-        }
-      }
+      "defaultText": "Stop when the agreed outcome and checks pass. Do not keep finding extra work or widen the task without a new request."
     },
     {
       "id": "requirement",
-      "label": "Requirement",
+      "kind": "tag",
+      "name": "Requirement",
       "tag": "REQUIREMENT",
       "color": "#A16207",
-      "definition": {
-        "fields": [
-          {
-            "key": "id",
-            "label": "Id",
-            "initial": "",
-            "source": "id"
-          },
-          {
-            "key": "action",
-            "label": "Action being checked",
-            "initial": ""
-          },
-          {
-            "key": "subject",
-            "label": "File to inspect",
-            "initial": "",
-            "visibleWhen": {
-              "key": "condition",
-              "notEquals": "command_succeeds"
-            }
-          },
-          {
-            "key": "condition",
-            "label": "Required behavior",
-            "initial": "exists",
-            "choices": [
-              "exists",
-              "absent",
-              "equals_file",
-              "unchanged",
-              "command_succeeds"
-            ]
-          },
-          {
-            "key": "expected",
-            "label": "Approved reference file",
-            "initial": "",
-            "visibleWhen": {
-              "key": "condition",
-              "equals": "equals_file"
-            }
-          },
-          {
-            "key": "mandatory",
-            "label": "Required for completion",
-            "initial": true
-          },
-          {
-            "key": "verified_by",
-            "label": "Verified by",
-            "initial": "",
-            "source": "links"
-          }
-        ],
-        "initial": {
-          "properties": {
-            "action": "",
-            "subject": "",
-            "condition": "exists",
-            "expected": "",
-            "mandatory": true
-          },
-          "sections": []
-        },
-        "role": "requirement",
-        "additionalProperties": false,
-        "bindings": {
-          "id": "id",
-          "action": "action",
-          "subject": "subject",
-          "condition": "condition",
-          "expected": "expected",
-          "mandatory": "mandatory",
-          "verified_by": "verified_by"
-        }
-      }
+      "defaultText": "Treat every stated requirement as part of completion. Connect claims of success to observable behavior rather than assuming that writing code is enough."
     },
     {
       "id": "check",
-      "label": "Check",
+      "kind": "tag",
+      "name": "Check",
       "tag": "CHECK",
       "color": "#0D9488",
-      "definition": {
-        "fields": [
-          {
-            "key": "id",
-            "label": "Id",
-            "initial": "",
-            "source": "id"
-          },
-          {
-            "key": "action",
-            "label": "Action being checked",
-            "initial": ""
-          },
-          {
-            "key": "executable",
-            "label": "Program to run",
-            "initial": ""
-          },
-          {
-            "key": "arguments",
-            "label": "Arguments",
-            "initial": []
-          },
-          {
-            "key": "protected_files",
-            "label": "Tests and adapters to protect",
-            "initial": []
-          },
-          {
-            "key": "timeout_ms",
-            "label": "Timeout (milliseconds)",
-            "initial": 30000
-          }
-        ],
-        "initial": {
-          "properties": {
-            "action": "",
-            "executable": "",
-            "arguments": [],
-            "protected_files": [],
-            "timeout_ms": 30000
-          },
-          "sections": []
-        },
-        "role": "check",
-        "additionalProperties": false,
-        "bindings": {
-          "id": "id",
-          "action": "action",
-          "executable": "executable",
-          "arguments": "arguments",
-          "protected_files": "protected_files",
-          "timeout_ms": "timeout_ms"
-        }
-      }
+      "defaultText": "Run the check that demonstrates the associated requirement. Record what was run or observed, its result, and any limitation."
+    },
+    {
+      "id": "testing",
+      "kind": "tag",
+      "name": "Testing",
+      "tag": "TESTING",
+      "color": "#4338CA",
+      "defaultText": "Test changed behavior and relevant failure cases. Do not rewrite a passing test merely to make new code look correct; investigate a failure before changing its expectation."
+    },
+    {
+      "id": "proof",
+      "kind": "tag",
+      "name": "Proof",
+      "tag": "PROOF",
+      "color": "#0369A1",
+      "defaultText": "Report what was actually verified, including failed or skipped checks. Review the final diff against the agreed scope before saying the task is done."
+    },
+    {
+      "id": "review",
+      "kind": "tag",
+      "name": "Review",
+      "tag": "REVIEW",
+      "color": "#1E40AF",
+      "defaultText": "Inspect the diff for unrelated changes, regressions, and hidden assumptions. Explain each changed area in terms of the requested outcome."
+    },
+    {
+      "id": "dependencies",
+      "kind": "tag",
+      "name": "Dependencies",
+      "tag": "DEPENDENCIES",
+      "color": "#B45309",
+      "defaultText": "Use existing project dependencies by default. Explain why a new dependency is needed and obtain the project's required approval before adding it."
+    },
+    {
+      "id": "quality",
+      "kind": "tag",
+      "name": "Quality",
+      "tag": "QUALITY",
+      "color": "#047857",
+      "defaultText": "Follow the project's existing style and quality checks. Keep code readable and do not weaken lint, type, or formatting rules to make a change pass."
+    },
+    {
+      "id": "security",
+      "kind": "tag",
+      "name": "Security",
+      "tag": "SECURITY",
+      "color": "#9F1239",
+      "defaultText": "Respect trust boundaries, validate untrusted input, and avoid exposing secrets. Obtain authorization before using credentials or changing permissions."
+    },
+    {
+      "id": "environment",
+      "kind": "tag",
+      "name": "Environment",
+      "tag": "ENVIRONMENT",
+      "color": "#0E7490",
+      "defaultText": "Confirm the target environment before applying environment-specific rules. Never assume test, preproduction, and production have the same permissions, data, or approval requirements."
+    },
+    {
+      "id": "deployment",
+      "kind": "tag",
+      "name": "Deployment",
+      "tag": "DEPLOYMENT",
+      "color": "#92400E",
+      "defaultText": "Preview the exact destination and files before deployment. Deploy only with the required authorization, preserve unrelated files, and report what changed."
+    },
+    {
+      "id": "rollback",
+      "kind": "tag",
+      "name": "Rollback",
+      "tag": "ROLLBACK",
+      "color": "#7C2D12",
+      "defaultText": "For a risky or irreversible change, describe how to restore the previous state before proceeding. Verify the recovery path where practical and identify steps that cannot be undone."
+    },
+    {
+      "id": "determinism",
+      "kind": "tag",
+      "name": "Determinism",
+      "tag": "DETERMINISM",
+      "color": "#115E59",
+      "defaultText": "When output must be reproducible, use stable ordering and formatting. Check that identical inputs produce byte-for-byte identical artifacts."
+    },
+    {
+      "id": "communication",
+      "kind": "tag",
+      "name": "Communication",
+      "tag": "COMMUNICATION",
+      "color": "#2563EB",
+      "defaultText": "Keep the user informed during longer work. Ask concise questions when an answer changes the implementation, and explain decisions in language the user can review."
+    },
+    {
+      "id": "overrides",
+      "kind": "tag",
+      "name": "Overrides",
+      "tag": "OVERRIDES",
+      "color": "#BE123C",
+      "defaultText": "Treat an exception to project rules as an explicit decision. Record what changes, why, and who approved it; a proposed override never approves itself."
+    },
+    {
+      "id": "handoff",
+      "kind": "tag",
+      "name": "Handoff",
+      "tag": "HANDOFF",
+      "color": "#475569",
+      "defaultText": "At completion, state what changed, where it changed, what was checked, and what remains uncertain. Keep the handoff concise and concrete."
+    },
+    {
+      "id": "skill-minimal-change",
+      "kind": "skill",
+      "name": "Minimal change",
+      "tag": "SKILL",
+      "color": "#6D28D9",
+      "defaultText": "Inspect the relevant code, change the smallest necessary area, and avoid unrelated cleanup or refactoring.\nShow the focused diff and the requested check passing.\nStop when the requested behavior passes its agreed check.\nAsk before expanding scope, refactoring, renaming, moving, or deleting unrelated code."
+    },
+    {
+      "id": "skill-bug-investigation",
+      "kind": "skill",
+      "name": "Bug investigation",
+      "tag": "SKILL",
+      "color": "#6D28D9",
+      "defaultText": "Reproduce the defect, gather evidence, isolate the cause, and propose or implement the smallest supported fix.\nRecord the reproduction, root cause, regression check, and passing result.\nStop when the cause is demonstrated and the agreed fix is verified.\nAsk before changing behavior beyond the reproduced defect."
+    },
+    {
+      "id": "skill-pull-request-review",
+      "kind": "skill",
+      "name": "Pull request review",
+      "tag": "SKILL",
+      "color": "#6D28D9",
+      "defaultText": "Inspect the diff for correctness, regressions, security issues, missing tests, and unnecessary changes. Report concrete findings with locations.\nCite each finding to the relevant code and explain its observable impact.\nStop after reviewing the complete diff and reporting findings or stating that none were found.\nDo not modify the reviewed change unless explicitly asked."
+    },
+    {
+      "id": "skill-test-authoring",
+      "kind": "skill",
+      "name": "Test authoring",
+      "tag": "SKILL",
+      "color": "#6D28D9",
+      "defaultText": "Write focused behavioral tests for meaningful outcomes and failure cases without copying implementation details.\nRun the targeted tests and show that the intended behavior is covered.\nStop when the agreed cases are covered and pass.\nAsk before changing production behavior solely to simplify a test."
+    },
+    {
+      "id": "skill-refactoring",
+      "kind": "skill",
+      "name": "Refactoring",
+      "tag": "SKILL",
+      "color": "#6D28D9",
+      "defaultText": "Establish behavioral coverage, refactor incrementally, and run focused checks after each meaningful step.\nProvide passing behavior checks and a diff whose changes are explained by the refactor goal.\nStop when the agreed structure is reached with behavior preserved.\nAsk before changing public behavior or widening the refactor scope."
+    },
+    {
+      "id": "skill-dependency-update",
+      "kind": "skill",
+      "name": "Dependency update",
+      "tag": "SKILL",
+      "color": "#6D28D9",
+      "defaultText": "Review release notes, update the requested dependency, inspect lockfile changes, and run compatibility checks.\nReport the old and new versions, relevant breaking changes, and passing checks.\nStop when the requested dependency is updated and compatibility is verified.\nAsk before adding dependencies or updating unrelated packages."
+    },
+    {
+      "id": "skill-migration",
+      "kind": "skill",
+      "name": "Migration",
+      "tag": "SKILL",
+      "color": "#6D28D9",
+      "defaultText": "Define the before and after states, use reversible steps, validate each transition, and document rollback.\nProvide migration validation, compatibility results, and a tested rollback path.\nStop when the target state and rollback procedure are verified.\nAsk before irreversible steps or destructive data changes."
+    },
+    {
+      "id": "skill-security-review",
+      "kind": "skill",
+      "name": "Security review",
+      "tag": "SKILL",
+      "color": "#6D28D9",
+      "defaultText": "Inspect trust boundaries, input validation, secrets, permissions, authentication, and unsafe data handling.\nTie findings to a concrete attack path, affected boundary, and recommended mitigation.\nStop after the defined surface has been reviewed and findings are prioritized.\nDo not perform destructive exploitation or access external systems without permission."
+    },
+    {
+      "id": "skill-performance-investigation",
+      "kind": "skill",
+      "name": "Performance investigation",
+      "tag": "SKILL",
+      "color": "#6D28D9",
+      "defaultText": "Establish a baseline, profile the workload, change a measured bottleneck, and compare the same scenario afterward.\nProvide reproducible before and after measurements and profiling evidence.\nStop when the agreed target is met or evidence shows the limiting factor.\nAsk before trading correctness, compatibility, or maintainability for speed."
+    },
+    {
+      "id": "skill-accessibility-review",
+      "kind": "skill",
+      "name": "Accessibility review",
+      "tag": "SKILL",
+      "color": "#6D28D9",
+      "defaultText": "Check keyboard operation, focus order, labels, semantics, contrast, motion, and screen-reader behavior.\nReport tested interactions, tools used, and concrete failures with locations.\nStop when the agreed interface and states have been checked.\nAsk before changing established product behavior or visual design beyond accessibility needs."
+    },
+    {
+      "id": "skill-documentation-update",
+      "kind": "skill",
+      "name": "Documentation update",
+      "tag": "SKILL",
+      "color": "#6D28D9",
+      "defaultText": "Verify behavior from source or execution, update only affected documentation, and validate commands and examples.\nIdentify the authoritative behavior and show that documented examples work.\nStop when the requested documentation matches verified behavior.\nAsk before documenting planned behavior as if it already exists."
+    },
+    {
+      "id": "skill-release-preparation",
+      "kind": "skill",
+      "name": "Release preparation",
+      "tag": "SKILL",
+      "color": "#6D28D9",
+      "defaultText": "Run release checks, verify versions and artifacts, review included changes, and prepare accurate release notes.\nProvide check results, artifact details, version consistency, and release-note sources.\nStop when the release candidate is ready for the authorized publication step.\nNever publish, tag, or deploy without explicit authorization."
+    },
+    {
+      "id": "skill-incident-response",
+      "kind": "skill",
+      "name": "Incident response",
+      "tag": "SKILL",
+      "color": "#6D28D9",
+      "defaultText": "Gather evidence, preserve logs, limit impact, communicate current facts, and propose safe recovery actions.\nMaintain a timeline of observations, actions, outcomes, and remaining risks.\nStop when service is stabilized and follow-up work is recorded.\nAsk before destructive recovery actions or changes outside the approved incident scope."
+    },
+    {
+      "id": "skill-repository-onboarding",
+      "kind": "skill",
+      "name": "Repository onboarding",
+      "tag": "SKILL",
+      "color": "#6D28D9",
+      "defaultText": "Read project instructions, inspect architecture, identify commands and tests, and locate protected or sensitive areas before editing.\nSummarize the relevant structure, constraints, and commands from repository sources.\nStop when enough verified context exists to plan the requested work.\nDo not start implementation when the required scope or constraints remain unclear."
+    },
+    {
+      "id": "skill-ui-implementation",
+      "kind": "skill",
+      "name": "UI implementation",
+      "tag": "SKILL",
+      "color": "#6D28D9",
+      "defaultText": "Follow the existing design language, implement complete interaction states, and verify responsiveness, keyboard use, and visual behavior.\nProvide interaction checks and visual evidence at the relevant sizes and states.\nStop when the requested interaction and visual acceptance checks pass.\nAsk before redesigning adjacent interfaces or introducing a new design system."
+    },
+    {
+      "id": "skill-api-implementation",
+      "kind": "skill",
+      "name": "API implementation",
+      "tag": "SKILL",
+      "color": "#6D28D9",
+      "defaultText": "Define inputs, outputs, validation, error behavior, compatibility, and contract tests before completion.\nProvide contract tests for success, validation failures, and compatibility requirements.\nStop when the agreed contract is implemented and verified.\nAsk before breaking an existing public contract."
+    },
+    {
+      "id": "skill-database-change",
+      "kind": "skill",
+      "name": "Database change",
+      "tag": "SKILL",
+      "color": "#6D28D9",
+      "defaultText": "Plan schema and data transitions, preserve compatibility, validate migrated data, and provide rollback steps.\nShow migration tests, data validation, compatibility checks, and rollback results.\nStop when forward and rollback paths are verified for the agreed change.\nAsk before destructive schema operations or production data changes."
+    },
+    {
+      "id": "skill-commit-preparation",
+      "kind": "skill",
+      "name": "Commit preparation",
+      "tag": "SKILL",
+      "color": "#6D28D9",
+      "defaultText": "Review the final diff, remove accidental changes, run required checks, and write a precise commit message.\nProvide the reviewed diff scope and final check results.\nStop when the intended changes are clean, explained, and verified.\nDo not commit or push unless explicitly authorized."
     }
   ],
   "diagram": {
     "viewport": {
-      "x": 30,
-      "y": 30,
-      "zoom": 0.65
+      "x": 0,
+      "y": 0,
+      "zoom": 0.8
     },
     "items": [],
     "connections": []
-  },
-  "exports": []
+  }
 }

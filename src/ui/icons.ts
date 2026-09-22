@@ -3,15 +3,12 @@ import { svg } from '../svg/scene.js';
 const paths = {
 	folder: 'M3 6h6l2 2h10v12H3zM3 6V4h6l2 2h10v2',
 	plus: 'M12 5v14M5 12h14',
+	info: 'M12 17v-5M12 8h.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
 	trash: 'M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7',
 	copy: 'M8 8h12v12H8zM16 8V4H4v12h4',
+	edit: 'M4 20h4L20 8l-4-4L4 16v4M13 7l4 4',
 	close: 'M6 6l12 12M18 6L6 18',
 	up: 'M5 12l7-7 7 7M12 5v15',
-	text: 'M4 5h16M12 5v15M8 20h8',
-	checkboxes:
-		'M3 4h7v7H3zM4 7l2 2 3-4M14 6h7M14 10h5M3 15h7v7H3zM14 17h7M14 21h5',
-	radio:
-		'M10 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0M6 7h.01M14 7h7M10 18a4 4 0 1 1-8 0 4 4 0 0 1 8 0M14 18h7',
 	undo: 'M8 4L3 9l5 5M3 9h10a7 7 0 0 1 0 14',
 	redo: 'M16 4l5 5-5 5M21 9H11a7 7 0 0 0 0 14',
 	minus: 'M5 12h14',

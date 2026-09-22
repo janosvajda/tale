@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
     <title>Tale</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="../../resources/tale_electron_icons/tale-32.png">
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <header class="appbar">
-      <span class="brand"><span class="brand-mark">t</span>Tale</span>
+      <span class="brand"><img class="brand-mark" src="../../resources/tale_electron_icons/tale-48.png" alt="">Tale</span>
       <span class="separator"></span>
       <details id="file-menu" class="dropdown">
         <summary>File <span class="chevron">⌄</span></summary>
@@ -25,8 +26,8 @@
         </div>
       </details>
       <button type="button" id="project-settings" class="project-name" title="Project settings"><span id="project-name">Opening project…</span><span id="dirty" role="img" aria-label="Unsaved changes"></span></button>
+      <button type="button" id="library-settings" class="quiet">Tags &amp; skills</button>
       <span class="appbar-space"></span>
-      <button type="button" data-action="verify" class="quiet" id="contract-status" title="Review and run automated agreement checks">Check agreement</button>
       <button type="button" data-action="compile" class="quiet">Preview Tale</button>
       <button type="button" data-action="save" class="quiet">Save</button>
       <button type="button" data-action="deploy" class="deploy-button">Deploy Tale</button>
@@ -40,11 +41,15 @@
           <button type="button" id="arrow-tool" class="tool" title="Drag from one tag to another" aria-label="Draw arrow">↗ <span>Arrow</span></button>
           <span class="separator"></span>
           <details id="palette" class="dropdown">
-            <summary class="add-summary">＋ Add tag</summary>
+            <summary class="add-summary">Add to board</summary>
             <div class="palette-panel">
+              <div class="palette-tabs" role="tablist" aria-label="Diagram item category">
+                <button type="button" id="tag-tab" role="tab" aria-selected="true">Tags</button>
+                <button type="button" id="skill-tab" role="tab" aria-selected="false">Skills</button>
+              </div>
+              <p class="palette-hint">Drag onto the board or use + to add at the centre</p>
               <input id="type-search" type="search" placeholder="Find a tag…" aria-label="Find a tag">
               <div id="type-list" class="type-list"></div>
-              <button type="button" id="manage-types" class="wide quiet">Manage tags & environments</button>
             </div>
           </details>
         </nav>

@@ -1,52 +1,99 @@
 <h1 align="center">Tale — Tales for AI agents</h1>
 
-<p align="center">
+<p align="center"><img src="tale_logo.png" alt="Tale logo" width="96" height="96"></p>
 
-  <img src="tale_logo.png" alt="Tale logo" width="250" height="250" />
+## Purpose
 
-</p>
+Tale helps people explain goals, boundaries, decisions, and completion checks to AI coding agents. The desktop editor lets you arrange and connect these instructions visually. You save the editable diagram as a JSON project; Tale compiles its notes and relationships into one deterministic `.tale/project.tale` that agents can read through their project instruction files.
 
+![An opened Tale project with connected notes and the Tag palette](templates/tale-screenshot-1.png)
 
-## About Me and what is Tale
+*An opened project: notes on the board express project instructions, and labelled arrows express relationships between them.*
 
-Hey, I’m Janos, an experienced software engineer with more than 20 years of experience in software industry. I’m also a psychology student with a deep interest in human psychology, consciousness, thinking, AI, and the communication between humans and AI.
+## Tags and Skills
 
-The reason I created Tale is that I felt we are still trying to communicate with AI using old tools, existing methodologies, and principles that may no longer be valid.
+A **Tag** is a reusable instruction about what an agent should know or respect, such as Scope, Testing, or Do not be silly. A **Skill** is a reusable way to perform a kind of work, such as Bug investigation or Minimal change. Both have a name, a colour, and one plain-language text value. You can edit the supplied defaults or create your own.
 
-I believe we need to change the way we communicate if we want to work successfully with AI in the future. **Communication is the key.**
+The library holds defaults for future notes. Placing a Tag or Skill on the board makes an independent copy that you can rewrite for this project. Only placed notes are compiled into the `.tale` file; the saved JSON keeps the whole editable diagram and library.
 
-We also need to change our mindset. We do not necessarily need rigid, predefined languages like HTML, traditional configuration formats, interfaces, or pseudo-languages for every kind of interaction. AI can understand many different kinds of structures, concepts, relationships, and logic — much like we humans do.
+## Built-in Tags
 
-Because of that, I believe the whole concept of **how humans communicate with AI needs to evolve**.
+These are instructions **to the agent**, not technical settings. Use only the ones relevant to a project; rewrite their text to make the boundary or desired behaviour precise. The built-in defaults live in [catalogue.json](src/model/catalogue.json).
 
-This is what I am trying to explore and implement with Tale.
+| Tag | Tell the agent to… |
+| --- | --- |
+| Goal | Keep work aligned with the requested outcome. |
+| Agreement | Clarify real ambiguity and retain approvals already given. |
+| Scope | Stay within the agreed files and behaviour. |
+| Changes | Make the smallest reviewable change. |
+| Protected areas | Seek the project's required approval before editing protected files. |
+| Source of truth | Check current instructions, code, and tests before assuming. |
+| Assumptions | Expose consequential guesses and verify them. |
+| Decisions | Preserve agreed decisions or explain conflicting evidence. |
+| Plan | Agree on steps and checks for consequential work. |
+| Stop condition | Stop when the agreed outcome passes its checks. |
+| Requirement | Treat each stated requirement as part of completion. |
+| Check | Run an observable check for a requirement. |
+| Testing | Test changed behaviour without rewriting tests to hide a defect. |
+| Proof | Report actual results and limitations. |
+| Review | Inspect the diff for regressions and unrelated changes. |
+| Dependencies | Explain and seek required approval for additions. |
+| Quality | Follow existing style and checks without weakening them. |
+| Security | Respect trust boundaries and protect secrets. |
+| Environment | Confirm which environment's rules apply. |
+| Deployment | Preview destinations and obtain required authorization. |
+| Rollback | Plan recovery before risky or irreversible changes. |
+| Determinism | Verify identical inputs produce identical output. |
+| Communication | Keep the user informed and ask concise questions. |
+| Overrides | Record explicit, approved exceptions to project rules. |
+| Handoff | State changes, checks, and remaining uncertainty. |
+| Approval gate | Stop at an approval boundary and wait for an explicit yes. |
+| No bypasses | Fix failing checks rather than disabling or weakening them. |
+| Do not be silly | Compare the result with the request; correct unjustified refactors, hidden failures, and extra work. |
 
-Tale allows people and teams to create their **own project-specific communication language** instead of forcing every project into the same predefined structure. It also provides communication TAGs that can help humans and AI share goals, rules, expectations, decisions, warnings, acceptance criteria, and other important information more clearly.
+Approval gate, No bypasses, and Do not be silly give the agent concrete reasons to stop or correct its work. Clear wording helps communication; tests and human review still matter.
 
-My goal with Tale is to help make **human–AI collaboration more natural, understandable, flexible, and effective**.
+## Built-in Skills
 
+Skills are task workflows written as plain-language notes in [skills.json](src/model/skills.json). They appear in a separate editor tab and compile under a `SKILL` heading. They are not executable plugins or installed agent skills.
 
-## Core Philosophy of Tale 
+| Skill | Starting workflow |
+| --- | --- |
+| Minimal change | Inspect the relevant code, make a focused edit, verify, and stop. |
+| Bug investigation | Reproduce, isolate the cause, fix, and check the regression. |
+| Pull request review | Inspect a diff and report concrete findings. |
+| Test authoring | Add behavioural coverage for meaningful outcomes. |
+| Refactoring | Preserve behaviour while changing agreed structure. |
+| Dependency update | Review release notes, update one dependency, and check compatibility. |
+| Migration | Validate each transition and its rollback path. |
+| Security review | Inspect trust boundaries and report concrete risks. |
+| Performance investigation | Measure before and after a targeted change. |
+| Accessibility review | Check keyboard, focus, semantics, and visual accessibility. |
+| Documentation update | Verify behaviour and update only affected docs. |
+| Release preparation | Check versions and artifacts before authorized publication. |
+| Incident response | Gather evidence, limit impact, and record recovery. |
+| Repository onboarding | Learn instructions and architecture before editing. |
+| UI implementation | Follow the existing design and verify interactions. |
+| API implementation | Define and check the public contract. |
+| Database change | Plan data and schema transitions with validation. |
+| Commit preparation | Review scope, checks, and the proposed commit message. |
 
-Tale starts from a simple idea: **AI coding agents should not be treated only as software tools**. They are like tiny mirrors of our thinking: super enthusiastic, keen to communicate, and yes — they make mistakes.
+## Use the editor
 
-Traditional development tools are designed to behave predictably based on configuration. This approach has worked very well for a long time, but I believe this era is gradually coming to an end, because AI agents are different. They interpret context, make decisions, infer missing details, and can approach the same task in different ways. As agents become more capable, trying to control all of their behaviour through larger prompts, configuration files, or tool integrations alone becomes increasingly fragile.
+1. Run `npm start` from a checkout with Node.js 22.12+ and npm. The app opens an empty, unsaved project.
+2. Open **Tags & skills** to read or edit reusable defaults. Drag a Tag or Skill onto the board, or use its add button. Select a placed note to edit the text for this project. Default edits affect future placements; existing notes keep their own text.
+3. Use **File → New project** for a blank or starter diagram, or **File → Open JSON** for a saved project. **Save** and **Save As** keep the editable JSON wherever you choose.
+4. **Preview Tale** shows the generated text. **Deploy Tale** asks for a target project and agent entry points, writes `.tale/project.tale`, and updates selected agent instructions. It does not deploy the editor JSON.
 
-Tale therefore treats human-agent collaboration primarily as a **communication problem**. Its goal is to make important expectations explicit, persistent, structured, and easy for both humans and agents to understand.
+The diagram can contain labelled arrows and environment-specific notes. Only placed notes and their meaningful relationships compile; positions, colours, zoom, and unused defaults do not. The same JSON always produces the same Tale bytes. See [project format](docs/project-format.md), [agent integration](docs/agent-integration.md), and [templates](templates/README.md).
 
-A useful analogy is an enthusiastic junior developer working on an unfamiliar codebase. They may be technically capable and highly motivated, but they do not yet know which parts of the system are fragile, which decisions have already been made, what must not change, or how large a change is appropriate. If the task is too broad, too vague, or missing important context, they may solve the immediate problem while unintentionally creating another one.
+## Deploy to AI agents
 
-AI coding agents often behave in a similar way. They can produce substantial amounts of working code very quickly, but without clear boundaries they may refactor unrelated code, modify behaviour that was already correct, or rewrite a test simply because it blocks the current implementation.
+![Tale deployment dialog with destination and agent choices](templates/tale-screenshot-deploy.png)
 
-In both cases, the solution is not simply to provide more information. What matters is giving clear goals, small enough tasks, explicit boundaries, relevant context, and a way to preserve decisions and behaviours that have already been proven correct.
+Choose a destination project and one or more agents: **Codex, Claude Code, Gemini CLI, Cursor, GitHub Copilot, Windsurf / Cascade, or Cline**. For each agent, Tale can detect an existing supported instruction file or use a path you select. It previews which files will be created or updated before deploying the generated `.tale/project.tale`. Existing instructions outside Tale's managed block and unrelated files are preserved.
 
-Tale is a concept and a tool for reducing communication barriers between humans and AI. Its goal is to make expectations, rules, responsibilities, decisions, repetitive tasks, acceptance criteria, and feedback easier to express, understand, and preserve over time.
-
-Tale is not limited to software development. The same communication problems appear in any project where humans and AI work together: instructions may be ambiguous, important context may be lost, rules may be repeated inconsistently, acceptance criteria may be unclear, and different kinds of information may need different levels of importance or enforcement.
-
-Tags provide a simple way to structure this communication. Built-in tags cover common needs such as goals, scope, requirements, checks, change limits, tests, and proof, but the vocabulary is intentionally open. Individuals and teams can create their own tags to represent the concepts, rules, decisions, workflows, and communication patterns that matter in their own projects.
-
-The aim is not to force every interaction into a fixed schema. It is to provide a simple shared structure that helps humans and AI communicate more clearly, repeatedly, and consistently, while allowing different layers of communication—from general guidance and context to explicit rules, acceptance criteria, and verifiable constraints.
+For example, Codex can use `AGENTS.md`, Claude Code can use `CLAUDE.md`, and GitHub Copilot can use `.github/copilot-instructions.md`. Other supported paths and activation details are in [agent integration](docs/agent-integration.md). After deployment, check that the chosen agent actually loaded the Tale; installing an instruction file alone does not establish that.
 
 ## Tale diagrams are made for humans
 
@@ -100,519 +147,30 @@ They can separate ideas, connect related concepts, identify priorities, describe
 
 ## TAGs are shared human words
 
-Tale TAGs follow the same philosophy.
+A Tag is a name for something important to tell an agent, not a fixed form to fill in. **Do not be silly** is a real built-in Tag: its text tells an agent to compare its result with the request and correct unwarranted changes. You can rewrite it or create another Tag with any unique, meaningful name. The app handles technical identifiers internally.
 
-A Tale **TAG is not a tag in the HTML or XML sense**. It is not primarily a syntax element that exists because a parser requires a predefined keyword.
+A Tale makes intentions, boundaries, decisions, and checks visible. It does not itself force an agent to obey a note or run a check.
 
-A TAG is much closer to **a handwritten note placed on a refrigerator with a magnet so that somebody does not forget something important**.
+## Development
 
-`GOAL`, `DO_NOT_CHANGE`, `CUSTOMER_EXPECTATION`, `USE_THIS_LINTER`, `ASK_BEFORE_DEPLOYING`, or `THINGS_WE_LEARNED` can all be meaningful TAGs if they help the humans and AI working on the project understand each other.
+The app keeps the model and compiler (`src/model`, `src/application`), SVG board (`src/svg`, `src/editor`), UI (`src/ui`), and Electron main/preload code (`src/main`, `src/preload`) separate. It uses no UI or diagram library.
 
-**TAGs are simply shared words attached to pieces of information.**
+Run `npm run verify` for type checking, Biome, unit tests, and Electron end-to-end tests. Every TypeScript source file has a sibling `.test.ts`. This project's own instructions are in [.tale/project.tale](.tale/project.tale).
 
-Their usefulness comes from **human meaning**, not from belonging to a fixed vocabulary.
+## About Me and what is Tale
 
-If those TAGs are **clear, well organized, relevant, and non-contradictory**, they give the AI a much better picture of what the humans actually want.
+Hey, I’m Janos, an experienced software engineer with more than 20 years of experience in software industry. I’m also a psychology student with a deep interest in human psychology, consciousness, thinking, AI, and the communication between humans and AI.
 
-If they are vague, duplicated, conflicting, or overloaded with unnecessary information, communication becomes harder — **just as it does between people**.
+The reason I created Tale is that I felt we are still trying to communicate with AI using old tools, existing methodologies, and principles that may no longer be valid.
 
-The purpose of Tale is therefore **not to invent another configuration format for AI**.
+I believe we need to change the way we communicate if we want to work successfully with AI in the future. **Communication is the key.**
 
-It is to give humans a simple way to **organize and communicate their thoughts to AI agents in a form that remains understandable to both sides**.
+We also need to change our mindset. We do not necessarily need rigid, predefined languages like HTML, traditional configuration formats, interfaces, or pseudo-languages for every kind of interaction. AI can understand many different kinds of structures, concepts, relationships, and logic — much like we humans do.
 
+Because of that, I believe the whole concept of **how humans communicate with AI needs to evolve**.
 
-Some Tale information is **advisory**: it communicates context, expectations, conventions, warnings, or lessons learned to the agent. Other information can be **mechanically verified or enforced**, such as explicit requirements, checks, protected files, or acceptance criteria.
+This is what I am trying to explore and implement with Tale.
 
-**Tale keeps that boundary visible instead of pretending that every human expectation can automatically be enforced by software.**
+Tale allows people and teams to create their **own project-specific communication language** instead of forcing every project into the same predefined structure. It also provides communication TAGs that can help humans and AI share goals, rules, expectations, decisions, warnings, acceptance criteria, and other important information more clearly.
 
-TAGs should be thought of as **notes used during an ongoing communication**.
-
-Imagine that an AI agent keeps making the same kind of mistake. Instead of repeating the same warning in every prompt, you can create a new TAG such as:
-
-`DO_NOT_BE_SILLY`
-
-and write inside it exactly what should not happen again.
-
-For example:
-
-- do not rewrite a passing test only to make a new implementation pass;
-- do not refactor unrelated files while fixing a small bug;
-- do not replace an existing pattern unless there is a clear reason;
-- do not expand the scope of the task without asking first.
-
-The name of the TAG does not need to belong to a predefined language. It only needs to be **clear and meaningful to the humans and AI agents working on the project**.
-
-In this sense, a TAG is similar to a note you would leave for another person so that an important point is not forgotten.
-
-Some notes may be technical.  
-Some may describe behaviour.  
-Some may contain project history.  
-Some may record a decision.  
-Some may warn about a repeated mistake.  
-Some may define what “done” means.  
-Some may simply explain how the team wants to work.
-
-**The purpose of TAGs is not to classify everything perfectly. Their purpose is to make important communication visible, reusable, and harder to forget.**
-
-Over time, a Tale can therefore become more than a list of rules. It can become a **shared memory between humans and AI agents**: a place where recurring problems, successful patterns, decisions, expectations, and project-specific knowledge can accumulate instead of being rediscovered in every conversation.
-
-Some of those notes can later become formal requirements or checks if the team decides they should be mechanically verified. Others may remain advisory because their value comes from context and judgement rather than strict enforcement.
-
-**Not every useful instruction needs to become a rule, and not every rule needs to become executable.**
-
-
-### Small iterations over uncontrolled change
-
-Agents should be given work in understandable, reviewable steps. Where appropriate, Tale can communicate that the agent should change the minimum necessary code, avoid unrelated refactors, and preserve behaviour that has already been proven.
-
-A passing end-to-end test, an accepted interface, or another verified result can represent accumulated knowledge: **this part works; do not casually break it while solving the next problem**. Tale's requirements, checks, change boundaries, and Agentic Test lifecycle are intended to make this kind of knowledge explicit.
-
-### Intent over narration
-
-Tale separates **intent** (goals, constraints, agreements, and expected outcomes) from **implementation** (the edits performed by an agent). It does not attempt to prescribe how an agent must reason internally.
-
-### Proof over trust
-
-For mechanically verifiable requirements, completion should be demonstrated rather than assumed. A task is complete when its declared proof passes; “looks correct” is not a verification result.
-
-### Constraints should be explicit
-
-Scope, protected files, determinism requirements, accepted behaviour, and approval boundaries should not be hidden in conversational history. Tale makes them visible and persistent. Where the current verifier supports enforcement, violations can become execution errors; other rules remain explicit instructions to the agent.
-
-### Communication should be extensible
-
-No fixed vocabulary can anticipate every team, project, agent, or future workflow. Tale provides built-in tags for common patterns, but users can extend the language with project-specific tags and sections without changing Tale itself.
-
----
-
-## Run the desktop editor
-
-From a checkout, with Node.js 22.12 or newer and npm installed, run:
-
-```sh
-npm start
-```
-
-The first run installs the pinned dependencies, builds the TypeScript, and opens
-
-Electron. Later runs rebuild and launch. Closing the last window exits the app
-
-and its launcher; there is no background development watcher.
-
-The editor starts with an empty, unsaved project. Use **Open JSON** to load a project;
-
-the optional example is `project/tale.project.json`. Drag rectangles to
-
-move them, drag a corner to resize, and use Arrow or a node's connection port
-
-to connect items. Select an arrow to adjust its curve or reconnect its endpoints.
-
-Use the mouse wheel or pinch to zoom, hold Space and drag to pan, and use Fit to see the board.
-
-Select an item to edit its title and typed properties. The project name opens
-
-settings for tags, colours, and environments.
-
-**New project** opens a dialog for the project title, an optional deployment directory,
-and a Tale template: Blank, Node/TypeScript with ESLint + Webpack, Node/TypeScript
-with Biome + Webpack, or Rust with Clippy. These editable diagram JSONs live in
-[`templates/`](templates/README.md). The destination is requested again before deployment.
-
-The File menu provides New, Open JSON, Save, Save As, and Deploy. Save and Save As write the
-
-editor's JSON project to your chosen file. Deploy compiles the current diagram
-
-and writes one deterministic `.tale` file into the destination project's
-
-`.tale/` directory. Its dialog lets
-
-you choose agents and instruction files, preview changes, and confirm overwriting
-
-an existing Tale deployment. Existing instructions and unrelated files are preserved;
-
-missing instruction files are created. Every defined environment is listed in the
-
-agent instructions and refers to the same Tale file. See [agent integration](docs/agent-integration.md).
-
-Preview Tale and Deploy use the same compiler and produce identical `.tale` bytes. Neither operation executes commands written in rules.
-
-The board saves branches, shared references, and cycles. Compilation currently
-
-supports the documented Tale root/section containment mapping. Undefined flow
-
-semantics, invalid built-in properties, and cyclic containment produce explicit
-
-errors rather than invented output. Add sections to any item using Free text,
-
-Checkboxes (multiple choices), or Radio buttons (one choice). Edit section titles
-
-and options directly; no JSON syntax is needed. Each section has its own duplicate
-
-and delete icons.
-
-### Board navigation
-
-| Input | Behavior |
-| --- | --- |
-| Mouse wheel in **Mouse** mode | Zoom around the pointer. |
-| Two-finger scrolling in **Trackpad** mode | Pan horizontally and vertically. |
-| Pinch, or Ctrl / Cmd + wheel | Zoom around the pointer. |
-| Wheel in **Trackpad** mode | Pan vertically; Shift + wheel pans horizontally. |
-| Right-button drag, middle-button drag, or Space + left drag | Pan, including when the pointer starts over an item. |
-| Hand tool + drag | Pan. |
-| Zoom buttons / Fit | Change zoom / fit the diagram in view. |
-
-Nothing needs to be selected to navigate. Selection does not change wheel behaviour
-
-and navigation never moves the selected items. Clicking the board dismisses open
-
-File and Add tag menus; Escape dismisses them too. Scrolling a menu or inspector
-
-stays within that control instead of navigating the board.
-
-The selector beside the zoom controls offers **Mouse** (the default) and
-
-**Trackpad**, remembered on this device independently of the project JSON.
-
-Mouse mode always zooms with wheel scrolling, including smooth-scrolling and
-
-Magic Mouse input. Trackpad mode pans with two-finger scrolling. Pinch zoom works
-
-in both modes. Automatic device detection is intentionally not used because smooth-scrolling mice
-
-and trackpads can send indistinguishable events; old Auto preferences are treated as
-
-Mouse. In Mouse mode a two-finger scroll also zooms. These are Miro's explicit
-
-navigation modes; Tale does not claim automatic hardware detection.
-
-### Tags: built-in and fully customizable
-
-Tags are fully customizable building blocks: users can define **new tags**, choose
-
-their labels and colours, and author their content with free text, checkboxes,
-
-and radio-button sections. The catalogue belongs to each project; it is not
-
-a closed list, and projects do not need to use every built-in tag. No code or external
-
-library is needed to author a new tag.
-
-Open **Manage tags & environments** from Add tag (or click the project name),
-
-enter a tag name and identifier such as `TEAM_RULES`, and choose **＋ Add tag**.
-
-The tag field also suggests built-in tags. Tags use uppercase letters, numbers, and
-
-underscores, starting with a letter. Add an instance from the palette, edit its
-
-sections, and connect it to a Tale root with a **Contains** arrow. Save retains
-
-the definition and content in JSON; Preview and Deploy compile it into `.tale`.
-
-Colours and display labels can be changed in project settings.
-
-The predefined Tags, their properties, choices, colours, and initial content live in
-
-[`src/model/catalogue.json`](src/model/catalogue.json), not TypeScript Tag switches.
-
-A predefined Tag is one card with content already inside it. Edit a card and use
-
-**Save as predefined tag** to put that populated Tag into the project's palette.
-
-Each addition makes an independent copy. Save embeds the definitions in project JSON.
-
-Serialization and optional verification roles are definition data; a Tag's name
-
-does not select compiler behavior. See [Tag catalogue](docs/tag-catalogue.md).
-
-New tags compile as declarative sections; assigning a tag name does not automatically
-
-add runtime enforcement. Use linked `REQUIREMENT` / `CHECK` items for executable
-
-acceptance criteria.
-
-All built-in tags are listed below. A tag is a diagram item; `TALE v0` is the
-
-output root. Examples show individual directives, not complete files.
-
-| Tag | Purpose and representation |
-| --- | --- |
-| `TALE` | Export root; `version: v0` produces the `TALE v0` header. Its Contains arrows determine section order. |
-| `META` | Identity and implementation context: `ID`, `TYPE`, `TITLE`, `LANGUAGE`, `RUNTIME`, `FRAMEWORK`, `DATABASE`, `IAC`, `TEST_FRAMEWORK`, `HTTP_TEST_TOOL`. |
-| `GOAL` | Concise intended outcome. Each line of its text is indented below `GOAL`. |
-| `REQUIREMENT` | Observable acceptance criterion: `id`, `action`, `subject`, `condition`, `expected`, `mandatory`, `verified_by`. Conditions: `exists`, `absent`, `equals_file`, `unchanged`, `command_succeeds`. IDs and check links come from the diagram. |
-| `CHECK` | Verification command: `id`, `action`, `executable`, `arguments`, `protected_files`, `timeout_ms`. Execution requires an approved baseline. |
-| `PRODUCT` | Product capabilities and outputs, such as `platforms`, `items`, `connections`, `project_format`, `output`, `rule_types`, and `environments`. |
-| `ARCHITECTURE` | Component and process boundaries, dependency direction, filesystem ownership, and IPC/security constraints; for example `separate visual_editor application`. |
-| `EDITOR` | Interaction and UI requirements: layout, pan/zoom, precise dragging/connections, tag colours, toolbar coverage, and typed controls. |
-| `DEPLOYMENT` | Required output, destination, agent entry points, preview/overwrite policy, preservation, and repeatability; for example `project_json save_save_as_only`. |
-| `DEPENDENCIES` | Package policy: `default`, `allow`, `development_allow`, `changes`. |
-| `AGREEMENT` | Scope and approval policy: `before_implementation`, `unclear_requirements`, `scope_expansion`, `existing_approval`, `contract_changes`, `structured_conflicts`, `approval_baseline`. |
-| `CHANGES` | Change limits: `default`, `refactor`, `rename`, `delete`, `unrelated_changes`, `preserve_user_changes`, `restore_deleted_code`. |
-| `SCOPE` | File boundaries. `mode` is `allow`, `deny`, or `require_approval`; paths are separate indented lines below, e.g. `SCOPE deny` with `.git/**`. |
-| `QUALITY` | Static quality policy: `typescript_strict`, `lint`, `format`, `weaken_checks`. |
-| `TESTING` | Required test behaviour and coverage: assertions, regressions, UI/IPC cases, determinism checks, and sibling test-file policy. |
-| `DETERMINISM` | Reproducibility: `mode`, `target`, `comparison`, `encoding`, `line_endings`, `final_newline`, `canonicalize`, `rerun_check`, `clean_build_check`. Run counts compile as `runs=2`. |
-| `AGENTIC_TESTS` | Agent-authored test lifecycle: `pattern`, `allow_create`, `allow_modify`, `freeze_after`, `freeze_mode`. Automatic file freezing remains a future capability. |
-| `PLAN` | Ordered proposed work, stored as steps. Operations can have arguments, attributes, and child steps. The compiler preserves these instructions; it does not execute the plan. |
-| `PROOF` | Ordered completion checks: `run`, `review`, `stop`, and `contract_verify baseline=external coverage=mandatory`. Legacy commands run through normal project tooling unless authored as Checks. |
-| `OVERRIDES` | Explicit change proposals, e.g. `request_change reason="Agreed format change" requirement=publish-report`. A proposal cannot grant its own approval or waive a failed requirement. |
-
-A project Tale needs `META`, `GOAL`, `SCOPE`, and `PROOF`; a task Tale also needs
-
-`PLAN`. `META` occurs exactly once. Other tags are included when relevant.
-
-Every item may carry additional authored sections. For example, a custom tag
-
-with a free-text section compiles as:
-
-```tale
-TEAM_RULES
-  section "Communication" type=text
-    text "Discuss the intended outcome before editing."
-```
-
-Custom-tag properties supplied in JSON compile in sorted key order; custom
-
-sections preserve their explicit order. Changing layout, labels, or colours does
-
-not change the generated bytes. See [project format](docs/project-format.md) for
-
-the data mapping, [project policy](docs/project-policy.md) for the example's
-
-rules, and [executable contracts](docs/contracts.md) for enforcement boundaries.
-
-### Requirements and verification
-
-Add **Requirement** and **Check** items and connect them with **Verified by**
-
-arrows. Incomplete contracts can be saved as drafts; missing proof links and
-
-structured conflicts block compilation and deployment. **Verify** lets you review
-
-commands, approve an external baseline, and run checks against frozen acceptance
-
-criteria. A passing command alone cannot satisfy an output-file requirement.
-
-The verifier also provides a CLI gate with a pinned approval digest. The baseline,
-
-digest, and verifier executable must be protected from agent writes; the verifier is not an OS sandbox.
-
-See [executable contracts](docs/contracts.md) for the generic tags, approval flow,
-
-CLI usage, supported assertions, and exact enforcement boundary.
-
-### Code boundaries
-
-| Directory | Responsibility |
-| --- | --- |
-| `src/model` | Project types, validation, tag definitions, and bridge contracts |
-| `src/application` | Deterministic Tale compiler, independent of UI and Electron |
-| `src/svg` | First-party SVG drawing and geometry; no Tale or Electron imports |
-| `src/editor` | Board interactions, selection, graph edits, and undo/redo |
-| `src/ui` | App controls, palette, inspector, and native HTML/CSS |
-| `src/preload` | Named IPC operations exposed through an isolated bridge |
-| `src/runner` | Approved contract execution, independent file evidence, and CLI gate |
-| `src/main` | Electron lifecycle, request validation, native dialogs, and file operations |
-
-Only Electron, TypeScript, and Biome are direct dependencies. No UI, diagram,
-
-bundler, or test framework packages are used.
-
-### Verify
-
-```sh
-npm run verify
-```
-
-This runs strict type checks, the repository's Biome lint/format rules, Node tests,
-
-and Electron end-to-end tests. Every TypeScript source has a sibling `name.test.ts`.
-
-`npm run lint` runs Biome plus the dependency-free file-pair check (Biome has no
-
-native sibling-test rule). Node pairs run with `npm test`; browser pairs run in
-
-the built Electron renderer with `npm run test:e2e`. Test files do not require
-
-recursive test pairs; dependencies and generated output are excluded.
-
-The Electron tests open real windows, automate board interactions, and exercise real IPC/file operations with deterministic
-
-dialog selections. They compare generated file bytes to `.tale/project.tale`
-
-through two clean builds and two editor sessions per build, including save/reopen.
-
-The expected fixture is never regenerated by the tests. A screenshot is written
-
-to `artifacts/editor.png`.
-
-The first implementation is verified on macOS. Windows and Linux still need independent execution of these checks; distributable installers are not included yet.
-
-The executable contract subset now has a verifier. Full PLAN execution and an OS
-
-sandbox remain separate from this implementation.
-
-## TALE — Task Agreement & Logic Engine
-
-**Tale** is a contract language for autonomous software work.
-
-It is designed for communication between **AI coding agents and the humans who work with them**, rather than as another prompt format.
-
-A Tale file does not describe **how to think** — it defines:
-
-- **what must become true**
-
-- **where change is allowed**
-
-- **how success is proven**
-
-- **when results must be deterministic**
-
-- **what must be protected from accidental change**
-
----
-
-## What Tale Is
-
-Tale is a **task contract**, not:
-
-- a prompt format
-
-- a patch format
-
-- a workflow config
-
-- a description of an agent's internal reasoning
-
-A Tale task is:
-
-- **executable**
-
-- **verifiable**
-
-- **scope-enforced**
-
-- **deterministic (when declared)**
-
-- **replayable and auditable**
-
-Executable Tale requirements must define how they are mechanically verified. Advisory or descriptive tags may communicate information that is not mechanically enforceable.
-
----
-
-## The Three Laws of Tale
-
-### Law 1 — Proof or it didn’t happen
-
-Every executable Tale task **must** define how success is mechanically verified.
-
-### Law 2 — Scope is enforced
-
-An executable Tale task **must** define where work may and may not occur. Enforced scope violations are execution errors.
-
-### Law 3 — Intent ≠ Implementation
-
-Tale specifies **what must become true**, not how an agent reasons.
-
----
-
-## File Format
-
-- Extension: `.tale`
-
-- Line-oriented
-
-- Human-readable
-
-- Deterministic to parse
-
----
-
-## Minimal Structure (v0)
-
-```
-TALE
-META
-GOAL
-SCOPE
-PLAN
-PROOF
-```
-
-Optional sections supported in v0:
-
-```
-DETERMINISM
-AGENTIC_TESTS
-OVERRIDES
-```
-
-The project's own compact rules are stored in [.tale/project.tale](.tale/project.tale).
-
-They exercise a proposed `TYPE project` extension that includes standing coding
-
-rules and approval requirements. Its syntax and semantics are documented in
-
-[Project policy tags](docs/project-policy.md). The executable Requirement/Check
-
-subset is enforced by the [contract verifier](docs/contracts.md); the remaining
-
-standing rules are instructions unless represented by explicit checks. The task format and examples below use the same contract model.
-
----
-
-## Determinism & Reliability
-
-Tale supports **explicit determinism contracts**.
-
-### DETERMINISM
-
-```
-DETERMINISM
-  mode strict | bounded | none
-  canonicalize
-    - prettier
-    - sort_imports
-  rerun_check runs=2
-```
-
-### Determinism Modes
-
-- **strict**  
-
-  Repeated executions must produce identical outputs (after canonicalization).
-
-- **bounded**  
-
-  Only declared artifacts must be identical.
-
-- **none**  
-
-  No determinism guarantees.
-
-### Deterministic rerun (strong guarantee)
-
-```
-PROOF
-  deterministic_rerun runs=2
-```
-
-The runner executes the same Tale multiple times and compares **normalized receipts**.
-
-Any difference results in failure.
-
----
-
-## Locks (No Accidental Changes)
-
-Locked files or regions **must not change**.
-
-```
-PROOF
-  hash_lock file="src/core/blah.ts"
-  hash_lock region="src/core/blah.ts#function:blah"
-```
-
-Any modification causes failure unless explicitly unlocked via `OVERRIDES`.
+My goal with Tale is to help make **human–AI collaboration more natural, understandable, flexible, and effective**.

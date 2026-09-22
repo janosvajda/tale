@@ -32,33 +32,33 @@ test('starter diagrams are portable, independent projects with deterministic Tal
 		assert.equal(first.deploymentDirectory, request.deploymentDirectory);
 		const reopened = parseProject(serializeProject(first));
 		assert.deepEqual(reopened, first);
-		if (template.id === 'blank.json')
+		if (template.id === 'blank.json') {
 			assert.equal(first.diagram.items.length, 0);
-		else {
+		} else {
+			assert.ok(first.diagram.connections.length > 0);
+			assert.ok(first.diagram.connections.every((edge) => edge.label));
 			const output = compile(first);
 			assert.equal(output.length, 1);
 			assert.equal(output[0]?.path, '.tale/project.tale');
 			assert.deepEqual(compile(reopened), output);
 			assert.deepEqual(compile(second), output);
 			const content = output[0]!.content;
-			assert.match(content, /SCOPE require_approval/);
-			assert.match(content, /stop after_agreed_checks/);
+			assert.match(content, /CHANGES\n  /);
+			assert.ok(content.includes('agreed'));
+			assert.ok(!content.includes('unrelated_changes deny'));
 			if (template.id.startsWith('rust')) {
-				assert.match(content, /cargo clippy --all-targets -- -D warnings/);
+				assert.match(content, /Clippy/);
 				assert.match(content, /cargo test/);
 			} else {
 				assert.match(content, /Webpack/);
-				assert.match(content, /typescript_strict true/);
 				assert.match(
 					content,
-					template.id.includes('eslint')
-						? /eslint \. --max-warnings 0/
-						: /biome check \./,
+					template.id.includes('eslint') ? /ESLint/ : /Biome/,
 				);
 			}
 		}
-		first.itemTypes.length = 0;
-		assert.ok(second.itemTypes.length);
+		first.definitions.length = 0;
+		if (template.id !== 'blank.json') assert.ok(second.definitions.length);
 		assert.equal(
 			await readFile(join('templates', template.id), 'utf8'),
 			source,

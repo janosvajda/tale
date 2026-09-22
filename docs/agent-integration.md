@@ -3,7 +3,7 @@
 The deployment dialog installs project-local references for the agents below.
 The documented entry points were checked against official documentation on
 2026-09-20. Installing a file does not prove an agent has loaded its contents;
-agent-session verification remains separate from deployment.
+checking an agent session remains separate from deployment.
 
 ## This repository's exercise
 

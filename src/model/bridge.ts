@@ -12,12 +12,6 @@ import {
 	validateDirectory,
 	validateProject,
 } from './project.js';
-import {
-	type VerificationPreview,
-	type VerificationResult,
-	validateVerificationPreview,
-	validateVerificationResult,
-} from './verification.js';
 
 export type MenuAction =
 	| 'new'
@@ -26,7 +20,6 @@ export type MenuAction =
 	| 'saveAs'
 	| 'deploy'
 	| 'compile'
-	| 'verify'
 	| 'exit';
 export const menuActions: MenuAction[] = [
 	'new',
@@ -35,7 +28,6 @@ export const menuActions: MenuAction[] = [
 	'saveAs',
 	'deploy',
 	'compile',
-	'verify',
 	'exit',
 ];
 export interface Document {
@@ -51,14 +43,9 @@ export type Reply =
 			message?: string;
 			cancelled?: boolean;
 			deployment?: DeploymentPreview;
-			verification?: VerificationPreview;
-			evidence?: VerificationResult;
 	  }
 	| { ok: false; error: string };
 export interface Bridge {
-	prepareVerification(project: Project): Promise<Reply>;
-	approveVerification(token: string, reason: string): Promise<Reply>;
-	runVerification(token: string): Promise<Reply>;
 	load(): Promise<Reply>;
 	newProject(request: NewProjectRequest): Promise<Reply>;
 	templates(): Promise<Reply>;
@@ -94,9 +81,6 @@ export function validateReply(value: unknown): asserts value is Reply {
 			text(entry.name, 'template name');
 		}
 	}
-	if (value.verification !== undefined)
-		validateVerificationPreview(value.verification);
-	if (value.evidence !== undefined) validateVerificationResult(value.evidence);
 	if (value.deployment !== undefined)
 		validateDeploymentPreview(value.deployment);
 	if (value.message !== undefined)

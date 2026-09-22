@@ -11,6 +11,7 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { type TestContext, test } from 'node:test';
+import { compile } from '../application/compiler.js';
 import { type AgentSelection, agents } from '../model/deployment.js';
 import { parseProject } from '../model/project.js';
 import { commitDeployment, prepareDeployment } from './deployment.js';
@@ -37,7 +38,7 @@ test('preview writes nothing; deploy creates selected entry points and preserves
 	await commitDeployment(plan, false);
 	assert.equal(
 		await readFile(join(root, '.tale/project.tale'), 'utf8'),
-		await readFile('.tale/project.tale', 'utf8'),
+		compile(project)[0]?.content,
 	);
 	assert.deepEqual(await readdir(join(root, '.tale')), ['project.tale']);
 	assert.ok(plan.preview.files.every((file) => !file.path.endsWith('.json')));
@@ -190,7 +191,7 @@ test('one Tale serves every environment with deterministic, preserved agent inst
 	];
 	const plan = await prepareDeployment(root, project, selection);
 	await commitDeployment(plan, false);
-	const expected = await readFile('.tale/project.tale');
+	const expected = Buffer.from(compile(project)[0]!.content);
 	assert.deepEqual(await readFile(join(root, '.tale/project.tale')), expected);
 	assert.deepEqual(await readdir(join(root, '.tale')), ['project.tale']);
 	const instructions = await readFile(join(root, 'AGENTS.md'), 'utf8');
@@ -221,38 +222,14 @@ test('one Tale serves every environment with deterministic, preserved agent inst
 	assert.ok(changed.startsWith('Keep my project notes.\n'));
 	assert.deepEqual(await readFile(join(root, '.tale/project.tale')), expected);
 });
-test('legacy multiple-file projects require an explicit choice without writing or discarding data', async (t) => {
-	const { root, project } = await fixture(t);
-	project.exports.push({
-		id: 'additional',
-		rootItemId: 'project',
-		environmentId: null,
-		path: '.tale/other.tale',
-	});
-	const before = JSON.stringify(project);
-	await assert.rejects(
-		prepareDeployment(root, project, codex),
-		/Choose one Tale/,
-	);
-	assert.equal(JSON.stringify(project), before);
-	assert.deepEqual(await readdir(root), []);
-});
 test('invalid compilation or missing outputs cannot write deployment files', async (t) => {
 	const { root, project } = await fixture(t);
-	const goal = project.diagram.items.find((item) => item.id === 'goal');
+	const goal = project.diagram.items[0];
 	assert.ok(goal);
-	goal.properties.unsupported = true;
+	goal.definitionId = 'unknown';
 	await assert.rejects(
 		prepareDeployment(root, project, codex),
-		/Unsupported property in GOAL/,
-	);
-	assert.deepEqual(await readdir(root), []);
-	project.exports = [];
-	project.diagram.items = [];
-	project.diagram.connections = [];
-	await assert.rejects(
-		prepareDeployment(root, project, codex),
-		/Add a document tag/,
+		/Unknown Tag or Skill/,
 	);
 	assert.deepEqual(await readdir(root), []);
 });

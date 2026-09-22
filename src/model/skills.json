@@ -1,0 +1,149 @@
+{
+	"version": 2,
+	"skills": [
+		{
+			"id": "skill-minimal-change",
+			"kind": "skill",
+			"name": "Minimal change",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Inspect the relevant code, change the smallest necessary area, and avoid unrelated cleanup or refactoring.\nShow the focused diff and the requested check passing.\nStop when the requested behavior passes its agreed check.\nAsk before expanding scope, refactoring, renaming, moving, or deleting unrelated code."
+		},
+		{
+			"id": "skill-bug-investigation",
+			"kind": "skill",
+			"name": "Bug investigation",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Reproduce the defect, gather evidence, isolate the cause, and propose or implement the smallest supported fix.\nRecord the reproduction, root cause, regression check, and passing result.\nStop when the cause is demonstrated and the agreed fix is verified.\nAsk before changing behavior beyond the reproduced defect."
+		},
+		{
+			"id": "skill-pull-request-review",
+			"kind": "skill",
+			"name": "Pull request review",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Inspect the diff for correctness, regressions, security issues, missing tests, and unnecessary changes. Report concrete findings with locations.\nCite each finding to the relevant code and explain its observable impact.\nStop after reviewing the complete diff and reporting findings or stating that none were found.\nDo not modify the reviewed change unless explicitly asked."
+		},
+		{
+			"id": "skill-test-authoring",
+			"kind": "skill",
+			"name": "Test authoring",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Write focused behavioral tests for meaningful outcomes and failure cases without copying implementation details.\nRun the targeted tests and show that the intended behavior is covered.\nStop when the agreed cases are covered and pass.\nAsk before changing production behavior solely to simplify a test."
+		},
+		{
+			"id": "skill-refactoring",
+			"kind": "skill",
+			"name": "Refactoring",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Establish behavioral coverage, refactor incrementally, and run focused checks after each meaningful step.\nProvide passing behavior checks and a diff whose changes are explained by the refactor goal.\nStop when the agreed structure is reached with behavior preserved.\nAsk before changing public behavior or widening the refactor scope."
+		},
+		{
+			"id": "skill-dependency-update",
+			"kind": "skill",
+			"name": "Dependency update",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Review release notes, update the requested dependency, inspect lockfile changes, and run compatibility checks.\nReport the old and new versions, relevant breaking changes, and passing checks.\nStop when the requested dependency is updated and compatibility is verified.\nAsk before adding dependencies or updating unrelated packages."
+		},
+		{
+			"id": "skill-migration",
+			"kind": "skill",
+			"name": "Migration",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Define the before and after states, use reversible steps, validate each transition, and document rollback.\nProvide migration validation, compatibility results, and a tested rollback path.\nStop when the target state and rollback procedure are verified.\nAsk before irreversible steps or destructive data changes."
+		},
+		{
+			"id": "skill-security-review",
+			"kind": "skill",
+			"name": "Security review",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Inspect trust boundaries, input validation, secrets, permissions, authentication, and unsafe data handling.\nTie findings to a concrete attack path, affected boundary, and recommended mitigation.\nStop after the defined surface has been reviewed and findings are prioritized.\nDo not perform destructive exploitation or access external systems without permission."
+		},
+		{
+			"id": "skill-performance-investigation",
+			"kind": "skill",
+			"name": "Performance investigation",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Establish a baseline, profile the workload, change a measured bottleneck, and compare the same scenario afterward.\nProvide reproducible before and after measurements and profiling evidence.\nStop when the agreed target is met or evidence shows the limiting factor.\nAsk before trading correctness, compatibility, or maintainability for speed."
+		},
+		{
+			"id": "skill-accessibility-review",
+			"kind": "skill",
+			"name": "Accessibility review",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Check keyboard operation, focus order, labels, semantics, contrast, motion, and screen-reader behavior.\nReport tested interactions, tools used, and concrete failures with locations.\nStop when the agreed interface and states have been checked.\nAsk before changing established product behavior or visual design beyond accessibility needs."
+		},
+		{
+			"id": "skill-documentation-update",
+			"kind": "skill",
+			"name": "Documentation update",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Verify behavior from source or execution, update only affected documentation, and validate commands and examples.\nIdentify the authoritative behavior and show that documented examples work.\nStop when the requested documentation matches verified behavior.\nAsk before documenting planned behavior as if it already exists."
+		},
+		{
+			"id": "skill-release-preparation",
+			"kind": "skill",
+			"name": "Release preparation",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Run release checks, verify versions and artifacts, review included changes, and prepare accurate release notes.\nProvide check results, artifact details, version consistency, and release-note sources.\nStop when the release candidate is ready for the authorized publication step.\nNever publish, tag, or deploy without explicit authorization."
+		},
+		{
+			"id": "skill-incident-response",
+			"kind": "skill",
+			"name": "Incident response",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Gather evidence, preserve logs, limit impact, communicate current facts, and propose safe recovery actions.\nMaintain a timeline of observations, actions, outcomes, and remaining risks.\nStop when service is stabilized and follow-up work is recorded.\nAsk before destructive recovery actions or changes outside the approved incident scope."
+		},
+		{
+			"id": "skill-repository-onboarding",
+			"kind": "skill",
+			"name": "Repository onboarding",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Read project instructions, inspect architecture, identify commands and tests, and locate protected or sensitive areas before editing.\nSummarize the relevant structure, constraints, and commands from repository sources.\nStop when enough verified context exists to plan the requested work.\nDo not start implementation when the required scope or constraints remain unclear."
+		},
+		{
+			"id": "skill-ui-implementation",
+			"kind": "skill",
+			"name": "UI implementation",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Follow the existing design language, implement complete interaction states, and verify responsiveness, keyboard use, and visual behavior.\nProvide interaction checks and visual evidence at the relevant sizes and states.\nStop when the requested interaction and visual acceptance checks pass.\nAsk before redesigning adjacent interfaces or introducing a new design system."
+		},
+		{
+			"id": "skill-api-implementation",
+			"kind": "skill",
+			"name": "API implementation",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Define inputs, outputs, validation, error behavior, compatibility, and contract tests before completion.\nProvide contract tests for success, validation failures, and compatibility requirements.\nStop when the agreed contract is implemented and verified.\nAsk before breaking an existing public contract."
+		},
+		{
+			"id": "skill-database-change",
+			"kind": "skill",
+			"name": "Database change",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Plan schema and data transitions, preserve compatibility, validate migrated data, and provide rollback steps.\nShow migration tests, data validation, compatibility checks, and rollback results.\nStop when forward and rollback paths are verified for the agreed change.\nAsk before destructive schema operations or production data changes."
+		},
+		{
+			"id": "skill-commit-preparation",
+			"kind": "skill",
+			"name": "Commit preparation",
+			"tag": "SKILL",
+			"color": "#6D28D9",
+			"defaultText": "Review the final diff, remove accidental changes, run required checks, and write a precise commit message.\nProvide the reviewed diff scope and final check results.\nStop when the intended changes are clean, explained, and verified.\nDo not commit or push unless explicitly authorized."
+		}
+	]
+}

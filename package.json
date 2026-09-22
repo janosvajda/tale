@@ -1,5 +1,6 @@
 {
-  "name": "tale",
+	"name": "tale",
+	"productName": "Tale",
   "version": "0.1.0",
   "private": true,
   "description": "A visual editor for human-agent agreements",

@@ -1,5 +1,6 @@
 import { app, Menu, type MenuItemConstructorOptions } from 'electron';
 import type { MenuAction } from '../model/bridge.js';
+import { dockIcon } from './app-icons.js';
 import { quitWhenWindowsClose } from './lifecycle.js';
 import { createWindow } from './window.js';
 
@@ -8,7 +9,9 @@ quitWhenWindowsClose();
 void app
 	.whenReady()
 	.then(async () => {
-		const win = await createWindow(app.getAppPath());
+		const root = app.getAppPath();
+		app.dock?.setIcon(dockIcon(root));
+		const win = await createWindow(root);
 		const action = (
 			label: string,
 			command: MenuAction,
@@ -29,7 +32,6 @@ void app
 					{ type: 'separator' },
 					action('Deploy…', 'deploy'),
 					action('Preview compiled Tales', 'compile'),
-					action('Check agreement…', 'verify'),
 					{ type: 'separator' },
 					action('Exit', 'exit', 'CmdOrCtrl+Q'),
 				],

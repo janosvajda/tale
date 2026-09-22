@@ -1,24 +1,27 @@
-import { catalogue, itemRole } from './catalogue.js';
+import { catalogue } from './catalogue.js';
 import {
 	check,
-	type ItemType,
+	type Definition,
 	id,
 	type Project,
 	record,
 	text,
 	validateDirectory,
 } from './project.js';
+import { skillCatalogue } from './skills.js';
 
-export function newProject(itemTypes: ItemType[] = catalogue.tags): Project {
+export function newProject(
+	definitions: Definition[] = [...catalogue.tags, ...skillCatalogue],
+): Project {
 	return {
 		format: 'tale-project',
-		formatVersion: 1,
+		formatVersion: 2,
 		id: id(),
 		name: 'Untitled',
+		description: '',
 		environments: [],
-		itemTypes: structuredClone(itemTypes),
+		definitions: structuredClone(definitions),
 		diagram: { items: [], connections: [], viewport: { x: 0, y: 0, zoom: 1 } },
-		exports: [],
 	};
 }
 
@@ -57,7 +60,5 @@ export function fromTemplate(
 	if (request.deploymentDirectory)
 		project.deploymentDirectory = request.deploymentDirectory.trim();
 	else Reflect.deleteProperty(project, 'deploymentDirectory');
-	for (const item of project.diagram.items)
-		if (itemRole(project, item) === 'document') item.title = project.name;
 	return project;
 }

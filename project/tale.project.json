@@ -1,2463 +1,533 @@
 {
   "format": "tale-project",
-  "formatVersion": 1,
+  "formatVersion": 2,
   "id": "tale-project",
   "name": "Tale",
+  "description": "Tale helps people and AI agents communicate project goals, expectations, boundaries, and evidence in a clear, reusable way.",
   "environments": [],
-  "itemTypes": [
-    {
-      "id": "tale",
-      "label": "Tale",
-      "tag": "TALE",
-      "color": "#475569",
-      "definition": {
-        "fields": [
-          {
-            "key": "version",
-            "label": "Version",
-            "initial": "v0",
-            "format": "header",
-            "required": true,
-            "equals": "v0"
-          }
-        ],
-        "initial": {
-          "properties": {
-            "version": "v0"
-          },
-          "sections": []
-        },
-        "role": "document",
-        "additionalProperties": false,
-        "requiredTags": [
-          {
-            "tag": "META",
-            "min": 1,
-            "max": 1
-          },
-          {
-            "tag": "GOAL",
-            "min": 1
-          },
-          {
-            "tag": "SCOPE",
-            "min": 1
-          },
-          {
-            "tag": "PROOF",
-            "min": 1
-          },
-          {
-            "tag": "PLAN",
-            "min": 1,
-            "when": {
-              "tag": "META",
-              "key": "TYPE",
-              "notEquals": "project"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "id": "meta",
-      "label": "Project",
-      "tag": "META",
-      "color": "#2563EB",
-      "definition": {
-        "fields": [
-          {
-            "key": "ID",
-            "label": "Identifier",
-            "initial": "",
-            "required": true
-          },
-          {
-            "key": "TYPE",
-            "label": "Tale type",
-            "initial": "project",
-            "choices": [
-              "project",
-              "task"
-            ]
-          },
-          {
-            "key": "TITLE",
-            "label": "TITLE",
-            "initial": ""
-          },
-          {
-            "key": "LANGUAGE",
-            "label": "Programming language",
-            "initial": ""
-          },
-          {
-            "key": "RUNTIME",
-            "label": "RUNTIME",
-            "initial": ""
-          },
-          {
-            "key": "FRAMEWORK",
-            "label": "FRAMEWORK",
-            "initial": ""
-          },
-          {
-            "key": "DATABASE",
-            "label": "DATABASE",
-            "initial": ""
-          },
-          {
-            "key": "IAC",
-            "label": "IAC",
-            "initial": ""
-          },
-          {
-            "key": "TEST_FRAMEWORK",
-            "label": "Test framework",
-            "initial": ""
-          },
-          {
-            "key": "HTTP_TEST_TOOL",
-            "label": "Http test tool",
-            "initial": ""
-          }
-        ],
-        "initial": {
-          "properties": {
-            "ID": "new.tale",
-            "TYPE": "project"
-          },
-          "sections": []
-        },
-        "additionalProperties": false
-      }
-    },
+  "definitions": [
     {
       "id": "goal",
-      "label": "Purpose",
+      "kind": "tag",
+      "name": "Purpose",
       "tag": "GOAL",
       "color": "#15803D",
-      "definition": {
-        "fields": [
-          {
-            "key": "text",
-            "label": "Description",
-            "initial": "",
-            "format": "lines",
-            "required": true,
-            "allowSections": true,
-            "valueType": "string"
-          }
-        ],
-        "initial": {
-          "properties": {
-            "text": "Describe the intended outcome."
-          },
-          "sections": []
-        },
-        "additionalProperties": false
-      }
+      "defaultText": "Use the outcome the user requested as the goal. Restate it in plain language before substantial work and keep decisions aligned with it. Do not invent additional goals."
     },
     {
       "id": "product",
-      "label": "Product",
+      "kind": "tag",
+      "name": "Product",
       "tag": "PRODUCT",
       "color": "#7C3AED",
-      "definition": {
-        "fields": [
-          {
-            "key": "platforms",
-            "label": "Supported platforms",
-            "initial": [],
-            "choices": [
-              "macOS",
-              "Windows",
-              "Linux"
-            ]
-          },
-          {
-            "key": "editor",
-            "label": "Editor style",
-            "initial": "miro_style",
-            "choices": [
-              "miro_style"
-            ]
-          },
-          {
-            "key": "items",
-            "label": "Diagram shapes",
-            "initial": [],
-            "choices": [
-              "rectangle",
-              "arrow"
-            ]
-          },
-          {
-            "key": "connections",
-            "label": "Allowed connections",
-            "initial": [],
-            "choices": [
-              "branches",
-              "loops",
-              "multiple"
-            ]
-          },
-          {
-            "key": "project_format",
-            "label": "Project format",
-            "initial": "JSON",
-            "choices": [
-              "JSON"
-            ]
-          },
-          {
-            "key": "tags",
-            "label": "Tags",
-            "initial": "diagram_items",
-            "choices": [
-              "diagram_items"
-            ]
-          },
-          {
-            "key": "tag_coverage",
-            "label": "Tag coverage",
-            "initial": "all_defined",
-            "choices": [
-              "all_defined"
-            ]
-          },
-          {
-            "key": "rule_types",
-            "label": "Rule types",
-            "initial": "user_defined",
-            "choices": [
-              "user_defined"
-            ]
-          },
-          {
-            "key": "environments",
-            "label": "Environments",
-            "initial": "user_defined",
-            "choices": [
-              "user_defined"
-            ]
-          },
-          {
-            "key": "output",
-            "label": "Output",
-            "initial": ""
-          },
-          {
-            "key": "agent_entrypoints",
-            "label": "Agent entrypoints",
-            "initial": "official",
-            "choices": [
-              "official"
-            ]
-          }
-        ],
-        "initial": {
-          "properties": {},
-          "sections": []
-        },
-        "additionalProperties": false
-      }
+      "defaultText": "People can save a diagram as a JSON project, reopen it, and deploy one deterministic .tale file to a chosen project. Tags and Skills are reusable notes with one editable text value each.\nKeep the diagram easy to navigate with precise dragging, arrows, mouse and touchpad zoom, and clear icons. Selecting a note should show its title and one human-language text box."
     },
     {
       "id": "architecture",
-      "label": "Architecture",
+      "kind": "tag",
+      "name": "Architecture",
       "tag": "ARCHITECTURE",
       "color": "#0E7490",
-      "definition": {
-        "fields": [
-          {
-            "key": "separate",
-            "label": "Separate components",
-            "initial": [],
-            "choices": [
-              "visual_editor",
-              "svg_library",
-              "electron_ui",
-              "application",
-              "preload"
-            ]
-          },
-          {
-            "key": "svg_library",
-            "label": "Svg library",
-            "initial": "first_party_reusable",
-            "choices": [
-              "first_party_reusable"
-            ]
-          },
-          {
-            "key": "editor_dependencies",
-            "label": "Editor dependencies",
-            "initial": [],
-            "choices": [
-              "svg_library",
-              "project_model"
-            ]
-          },
-          {
-            "key": "ui",
-            "label": "Ui",
-            "initial": "native_html_css_browser_apis",
-            "choices": [
-              "native_html_css_browser_apis"
-            ]
-          },
-          {
-            "key": "application_dependencies",
-            "label": "Application dependencies",
-            "initial": "no_ui_or_svg",
-            "choices": [
-              "no_ui_or_svg"
-            ]
-          },
-          {
-            "key": "filesystem",
-            "label": "Filesystem",
-            "initial": "electron_main",
-            "choices": [
-              "electron_main"
-            ]
-          },
-          {
-            "key": "ipc",
-            "label": "Ipc",
-            "initial": "typed_allowlisted_preload_api",
-            "choices": [
-              "typed_allowlisted_preload_api"
-            ]
-          },
-          {
-            "key": "ipc_validation",
-            "label": "Ipc validation",
-            "initial": "sender_payload_result",
-            "choices": [
-              "sender_payload_result"
-            ]
-          },
-          {
-            "key": "context_isolation",
-            "label": "Context isolation",
-            "initial": true
-          },
-          {
-            "key": "node_integration",
-            "label": "Node integration",
-            "initial": false
-          },
-          {
-            "key": "renderer_sandbox",
-            "label": "Renderer sandbox",
-            "initial": true
-          },
-          {
-            "key": "project_content",
-            "label": "Project content",
-            "initial": "inert_data",
-            "choices": [
-              "inert_data"
-            ]
-          }
-        ],
-        "initial": {
-          "properties": {},
-          "sections": []
-        },
-        "additionalProperties": false
-      }
-    },
-    {
-      "id": "editor",
-      "label": "Editor",
-      "tag": "EDITOR",
-      "color": "#A21CAF",
-      "definition": {
-        "fields": [
-          {
-            "key": "layout",
-            "label": "Layout",
-            "initial": "board_first",
-            "choices": [
-              "board_first"
-            ]
-          },
-          {
-            "key": "viewport",
-            "label": "Viewport",
-            "initial": "fit_app_window",
-            "choices": [
-              "fit_app_window"
-            ]
-          },
-          {
-            "key": "app_scroll",
-            "label": "App scroll",
-            "initial": "deny",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          },
-          {
-            "key": "canvas_navigation",
-            "label": "Canvas navigation",
-            "initial": "pan_zoom",
-            "choices": [
-              "pan_zoom"
-            ]
-          },
-          {
-            "key": "zoom_input",
-            "label": "Zoom input",
-            "initial": [],
-            "choices": [
-              "touchpad",
-              "mouse"
-            ]
-          },
-          {
-            "key": "zoom_anchor",
-            "label": "Zoom anchor",
-            "initial": "pointer",
-            "choices": [
-              "pointer"
-            ]
-          },
-          {
-            "key": "chrome",
-            "label": "Chrome",
-            "initial": "compact",
-            "choices": [
-              "compact"
-            ]
-          },
-          {
-            "key": "copy",
-            "label": "Copy",
-            "initial": "concise",
-            "choices": [
-              "concise"
-            ]
-          },
-          {
-            "key": "oversized_headings",
-            "label": "Oversized headings",
-            "initial": "deny",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          },
-          {
-            "key": "item_titles",
-            "label": "Item titles",
-            "initial": "required_editable",
-            "choices": [
-              "required_editable"
-            ]
-          },
-          {
-            "key": "item_text",
-            "label": "Item text",
-            "initial": "editable",
-            "choices": [
-              "editable"
-            ]
-          },
-          {
-            "key": "dragging",
-            "label": "Dragging",
-            "initial": "pointer_accurate",
-            "choices": [
-              "pointer_accurate"
-            ]
-          },
-          {
-            "key": "draggable",
-            "label": "Draggable",
-            "initial": "all_diagram_objects",
-            "choices": [
-              "all_diagram_objects"
-            ]
-          },
-          {
-            "key": "connections",
-            "label": "Allowed connections",
-            "initial": "anchored_precise",
-            "choices": [
-              "anchored_precise"
-            ]
-          },
-          {
-            "key": "tag_colors",
-            "label": "Tag colors",
-            "initial": "distinct_stable",
-            "choices": [
-              "distinct_stable"
-            ]
-          },
-          {
-            "key": "tag_labels",
-            "label": "Tag labels",
-            "initial": "visible",
-            "choices": [
-              "visible"
-            ]
-          },
-          {
-            "key": "toolbar",
-            "label": "Toolbar",
-            "initial": "all_diagram_items",
-            "choices": [
-              "all_diagram_items"
-            ]
-          },
-          {
-            "key": "toolbar_labels",
-            "label": "Toolbar labels",
-            "initial": "visible",
-            "choices": [
-              "visible"
-            ]
-          },
-          {
-            "key": "menu",
-            "label": "Menu",
-            "initial": [],
-            "choices": [
-              "open_json",
-              "save",
-              "save_as",
-              "deploy"
-            ]
-          },
-          {
-            "key": "property_controls",
-            "label": "Property controls",
-            "initial": "semantic_typed",
-            "choices": [
-              "semantic_typed"
-            ]
-          },
-          {
-            "key": "raw_json_editing",
-            "label": "Raw json editing",
-            "initial": "deny",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          }
-        ],
-        "initial": {
-          "properties": {},
-          "sections": []
-        },
-        "additionalProperties": false
-      }
-    },
-    {
-      "id": "deployment",
-      "label": "Deployment",
-      "tag": "DEPLOYMENT",
-      "color": "#92400E",
-      "definition": {
-        "fields": [
-          {
-            "key": "mode",
-            "label": "Policy",
-            "initial": "compiled_tales",
-            "choices": [
-              "compiled_tales"
-            ]
-          },
-          {
-            "key": "project_json",
-            "label": "Project json",
-            "initial": "save_save_as_only",
-            "choices": [
-              "save_save_as_only"
-            ]
-          },
-          {
-            "key": "target",
-            "label": "Target",
-            "initial": "selected_project",
-            "choices": [
-              "selected_project"
-            ]
-          },
-          {
-            "key": "output",
-            "label": "Output",
-            "initial": ""
-          },
-          {
-            "key": "agents",
-            "label": "Agents",
-            "initial": "user_selected",
-            "choices": [
-              "user_selected"
-            ]
-          },
-          {
-            "key": "agent_file",
-            "label": "Agent file",
-            "initial": "selected_official_entrypoint",
-            "choices": [
-              "selected_official_entrypoint"
-            ]
-          },
-          {
-            "key": "agent_update",
-            "label": "Agent update",
-            "initial": "preserve_content_upsert_reference",
-            "choices": [
-              "preserve_content_upsert_reference"
-            ]
-          },
-          {
-            "key": "preview",
-            "label": "Preview",
-            "initial": "required",
-            "choices": [
-              "required"
-            ]
-          },
-          {
-            "key": "existing_tale",
-            "label": "Existing tale",
-            "initial": "confirm_overwrite",
-            "choices": [
-              "confirm_overwrite"
-            ]
-          },
-          {
-            "key": "unrelated_files",
-            "label": "Unrelated files",
-            "initial": "preserve",
-            "choices": [
-              "preserve"
-            ]
-          },
-          {
-            "key": "repeat",
-            "label": "Repeat",
-            "initial": "idempotent",
-            "choices": [
-              "idempotent"
-            ]
-          }
-        ],
-        "initial": {
-          "properties": {},
-          "sections": []
-        },
-        "additionalProperties": false
-      }
-    },
-    {
-      "id": "dependencies",
-      "label": "Dependencies",
-      "tag": "DEPENDENCIES",
-      "color": "#B45309",
-      "definition": {
-        "fields": [
-          {
-            "key": "default",
-            "label": "Default",
-            "initial": "deny",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          },
-          {
-            "key": "allow",
-            "label": "Allowed",
-            "initial": []
-          },
-          {
-            "key": "development_allow",
-            "label": "Allowed development tools",
-            "initial": []
-          },
-          {
-            "key": "changes",
-            "label": "Changes",
-            "initial": "require_approval",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          }
-        ],
-        "initial": {
-          "properties": {},
-          "sections": []
-        },
-        "additionalProperties": false
-      }
+      "defaultText": "Use TypeScript and Electron. Keep the application, SVG diagram editor, Electron main process, and renderer UI separate. Pass only validated data across the preload bridge."
     },
     {
       "id": "agreement",
-      "label": "Agreement",
+      "kind": "tag",
+      "name": "Agreement",
       "tag": "AGREEMENT",
       "color": "#BE185D",
-      "definition": {
-        "fields": [
-          {
-            "key": "before_implementation",
-            "label": "Before implementation",
-            "initial": "agree_goal_scope_checks",
-            "choices": [
-              "agree_goal_scope_checks"
-            ]
-          },
-          {
-            "key": "unclear_requirements",
-            "label": "Unclear requirements",
-            "initial": "ask_user",
-            "choices": [
-              "ask_user"
-            ]
-          },
-          {
-            "key": "scope_expansion",
-            "label": "Scope expansion",
-            "initial": "require_approval",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          },
-          {
-            "key": "existing_approval",
-            "label": "Existing approval",
-            "initial": "reuse",
-            "choices": [
-              "reuse"
-            ]
-          },
-          {
-            "key": "contract_changes",
-            "label": "Contract changes",
-            "initial": "require_approval",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          },
-          {
-            "key": "structured_conflicts",
-            "label": "Structured conflicts",
-            "initial": "block",
-            "choices": [
-              "block"
-            ]
-          },
-          {
-            "key": "approval_baseline",
-            "label": "Approval baseline",
-            "initial": "external",
-            "choices": [
-              "external"
-            ]
-          }
-        ],
-        "initial": {
-          "properties": {},
-          "sections": []
-        },
-        "additionalProperties": false
-      }
+      "defaultText": "Clarify scope and completion checks when they are genuinely unclear. Carry forward approvals already given; do not ask the user to repeat the same decision."
     },
     {
       "id": "changes",
-      "label": "Changes",
+      "kind": "tag",
+      "name": "Changes",
       "tag": "CHANGES",
       "color": "#C2410C",
-      "definition": {
-        "fields": [
-          {
-            "key": "default",
-            "label": "Default",
-            "initial": "minimal",
-            "choices": [
-              "minimal"
-            ]
-          },
-          {
-            "key": "refactor",
-            "label": "Refactor",
-            "initial": "require_approval",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          },
-          {
-            "key": "rename",
-            "label": "Rename",
-            "initial": "require_approval",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          },
-          {
-            "key": "delete",
-            "label": "Delete",
-            "initial": "require_approval",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          },
-          {
-            "key": "unrelated_changes",
-            "label": "Unrelated changes",
-            "initial": "deny",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          },
-          {
-            "key": "preserve_user_changes",
-            "label": "Preserve user changes",
-            "initial": true
-          },
-          {
-            "key": "restore_deleted_code",
-            "label": "Restore deleted code",
-            "initial": "require_approval",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          }
-        ],
-        "initial": {
-          "properties": {},
-          "sections": []
-        },
-        "additionalProperties": false
-      }
+      "defaultText": "Make the smallest reviewable change that solves the agreed problem. Deny unrelated changes. Preserve existing user work and avoid unrelated refactors, renames, or formatting sweeps."
     },
     {
       "id": "scope",
-      "label": "Scope",
+      "kind": "tag",
+      "name": "Scope",
       "tag": "SCOPE",
       "color": "#B91C1C",
-      "definition": {
-        "fields": [
-          {
-            "key": "mode",
-            "label": "Policy",
-            "initial": "allow",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ],
-            "format": "header",
-            "required": true,
-            "enum": [
-              "allow",
-              "deny",
-              "require_approval"
-            ]
-          },
-          {
-            "key": "paths",
-            "label": "Files and folders",
-            "initial": [],
-            "format": "values",
-            "required": true,
-            "valueType": "array"
-          }
-        ],
-        "initial": {
-          "properties": {
-            "mode": "allow",
-            "paths": []
-          },
-          "sections": []
-        },
-        "additionalProperties": false
-      }
+      "defaultText": "Work only in the files and behavior needed for the agreed task. Ask before expanding scope or touching an area the project marks as protected."
+    },
+    {
+      "id": "dependencies",
+      "kind": "tag",
+      "name": "Dependencies",
+      "tag": "DEPENDENCIES",
+      "color": "#B45309",
+      "defaultText": "Use existing project dependencies by default. Explain why a new dependency is needed and obtain the project's required approval before adding it."
     },
     {
       "id": "quality",
-      "label": "Quality",
+      "kind": "tag",
+      "name": "Quality",
       "tag": "QUALITY",
       "color": "#047857",
-      "definition": {
-        "fields": [
-          {
-            "key": "typescript_strict",
-            "label": "Typescript strict",
-            "initial": true
-          },
-          {
-            "key": "lint",
-            "label": "Lint",
-            "initial": "biome",
-            "choices": [
-              "biome"
-            ]
-          },
-          {
-            "key": "format",
-            "label": "Format",
-            "initial": "biome",
-            "choices": [
-              "biome"
-            ]
-          },
-          {
-            "key": "weaken_checks",
-            "label": "Weaken checks",
-            "initial": "deny",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          }
-        ],
-        "initial": {
-          "properties": {},
-          "sections": []
-        },
-        "additionalProperties": false
-      }
+      "defaultText": "Follow the project's existing style and quality checks. Keep code readable and do not weaken lint, type, or formatting rules to make a change pass."
     },
     {
       "id": "testing",
-      "label": "Testing",
+      "kind": "tag",
+      "name": "Testing",
       "tag": "TESTING",
       "color": "#4338CA",
-      "definition": {
-        "fields": [
-          {
-            "key": "assertions",
-            "label": "Assertions",
-            "initial": "observable_behavior",
-            "choices": [
-              "observable_behavior"
-            ]
-          },
-          {
-            "key": "bugfix",
-            "label": "Bugfix",
-            "initial": "regression_test",
-            "choices": [
-              "regression_test"
-            ]
-          },
-          {
-            "key": "changed_behavior",
-            "label": "Changed behavior",
-            "initial": "require_coverage",
-            "choices": [
-              "require_coverage"
-            ]
-          },
-          {
-            "key": "editor_changes",
-            "label": "Editor changes",
-            "initial": "interaction_check",
-            "choices": [
-              "interaction_check"
-            ]
-          },
-          {
-            "key": "editor_cases",
-            "label": "Editor cases",
-            "initial": []
-          },
-          {
-            "key": "ui_cases",
-            "label": "Ui cases",
-            "initial": []
-          },
-          {
-            "key": "ipc_changes",
-            "label": "Ipc changes",
-            "initial": "boundary_tests",
-            "choices": [
-              "boundary_tests"
-            ]
-          },
-          {
-            "key": "editor_e2e",
-            "label": "Editor e2e",
-            "initial": "json_to_tale_determinism",
-            "choices": [
-              "json_to_tale_determinism"
-            ]
-          },
-          {
-            "key": "deploy_e2e",
-            "label": "Deploy e2e",
-            "initial": "compiled_tales_agent_entrypoint",
-            "choices": [
-              "compiled_tales_agent_entrypoint"
-            ]
-          },
-          {
-            "key": "weaken_expectations",
-            "label": "Weaken expectations",
-            "initial": "deny",
-            "choices": [
-              "allow",
-              "require_approval",
-              "deny"
-            ]
-          },
-          {
-            "key": "test_files",
-            "label": "Test files",
-            "initial": "paired_sibling",
-            "choices": [
-              "paired_sibling"
-            ]
-          },
-          {
-            "key": "test_pattern",
-            "label": "Test pattern",
-            "initial": ""
-          },
-          {
-            "key": "test_scope",
-            "label": "Test scope",
-            "initial": "application_typescript",
-            "choices": [
-              "application_typescript"
-            ]
-          },
-          {
-            "key": "test_pair_check",
-            "label": "Test pair check",
-            "initial": "npm_run_lint",
-            "choices": [
-              "npm_run_lint"
-            ]
-          }
-        ],
-        "initial": {
-          "properties": {},
-          "sections": []
-        },
-        "additionalProperties": false
-      }
-    },
-    {
-      "id": "agentic-tests",
-      "label": "Agentic tests",
-      "tag": "AGENTIC_TESTS",
-      "color": "#4D7C0F",
-      "definition": {
-        "fields": [
-          {
-            "key": "pattern",
-            "label": "Pattern",
-            "initial": ""
-          },
-          {
-            "key": "allow_create",
-            "label": "Allow creating tests",
-            "initial": true
-          },
-          {
-            "key": "allow_modify",
-            "label": "Allow modify",
-            "initial": "within_task",
-            "choices": [
-              "within_task"
-            ]
-          },
-          {
-            "key": "freeze_after",
-            "label": "Freeze after",
-            "initial": "proof_pass",
-            "choices": [
-              "proof_pass"
-            ]
-          },
-          {
-            "key": "freeze_mode",
-            "label": "Freeze mode",
-            "initial": ""
-          }
-        ],
-        "initial": {
-          "properties": {},
-          "sections": []
-        },
-        "additionalProperties": false
-      }
-    },
-    {
-      "id": "proof",
-      "label": "Proof",
-      "tag": "PROOF",
-      "color": "#0369A1",
-      "definition": {
-        "fields": [
-          {
-            "key": "steps",
-            "label": "Steps",
-            "initial": [],
-            "format": "steps",
-            "required": true,
-            "valueType": "array"
-          }
-        ],
-        "initial": {
-          "properties": {
-            "steps": []
-          },
-          "sections": []
-        },
-        "role": "proof",
-        "additionalProperties": false,
-        "steps": {
-          "run": {
-            "initial": {
-              "operation": "run",
-              "command": "",
-              "expect": {
-                "exit": 0
-              },
-              "when": "code_changed"
-            },
-            "fields": [
-              {
-                "key": "command",
-                "quote": true,
-                "required": true,
-                "valueType": "string"
-              },
-              {
-                "key": "expect",
-                "prefix": "expect ",
-                "required": true,
-                "valueType": "object",
-                "properties": {
-                  "exit": "number"
-                }
-              },
-              {
-                "key": "when",
-                "prefix": "when=",
-                "valueType": "string"
-              }
-            ]
-          },
-          "review": {
-            "initial": {
-              "operation": "review",
-              "checks": []
-            },
-            "fields": [
-              {
-                "key": "checks",
-                "required": true,
-                "valueType": "array"
-              }
-            ]
-          },
-          "stop": {
-            "initial": {
-              "operation": "stop",
-              "when": "after_agreed_checks"
-            },
-            "fields": [
-              {
-                "key": "when",
-                "required": true,
-                "valueType": "string"
-              }
-            ]
-          },
-          "contract_verify": {
-            "initial": {
-              "operation": "contract_verify",
-              "attributes": {
-                "baseline": "external",
-                "coverage": "mandatory"
-              }
-            }
-          },
-          "request_change": {
-            "initial": {
-              "operation": "request_change",
-              "attributes": {
-                "requirement": "",
-                "reason": ""
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": "plan",
-      "label": "Plan",
-      "tag": "PLAN",
-      "color": "#7E22CE",
-      "definition": {
-        "fields": [
-          {
-            "key": "steps",
-            "label": "Steps",
-            "initial": [],
-            "format": "steps",
-            "required": true,
-            "valueType": "array"
-          }
-        ],
-        "initial": {
-          "properties": {
-            "steps": []
-          },
-          "sections": []
-        },
-        "additionalProperties": false,
-        "steps": {
-          "run": {
-            "initial": {
-              "operation": "run",
-              "command": "",
-              "expect": {
-                "exit": 0
-              },
-              "when": "code_changed"
-            },
-            "fields": [
-              {
-                "key": "command",
-                "quote": true,
-                "required": true,
-                "valueType": "string"
-              },
-              {
-                "key": "expect",
-                "prefix": "expect ",
-                "required": true,
-                "valueType": "object",
-                "properties": {
-                  "exit": "number"
-                }
-              },
-              {
-                "key": "when",
-                "prefix": "when=",
-                "valueType": "string"
-              }
-            ]
-          },
-          "review": {
-            "initial": {
-              "operation": "review",
-              "checks": []
-            },
-            "fields": [
-              {
-                "key": "checks",
-                "required": true,
-                "valueType": "array"
-              }
-            ]
-          },
-          "stop": {
-            "initial": {
-              "operation": "stop",
-              "when": "after_agreed_checks"
-            },
-            "fields": [
-              {
-                "key": "when",
-                "required": true,
-                "valueType": "string"
-              }
-            ]
-          },
-          "contract_verify": {
-            "initial": {
-              "operation": "contract_verify",
-              "attributes": {
-                "baseline": "external",
-                "coverage": "mandatory"
-              }
-            }
-          },
-          "request_change": {
-            "initial": {
-              "operation": "request_change",
-              "attributes": {
-                "requirement": "",
-                "reason": ""
-              }
-            }
-          }
-        }
-      }
+      "defaultText": "Test changed behavior and relevant failure cases. Do not rewrite a passing test merely to make new code look correct; investigate a failure before changing its expectation."
     },
     {
       "id": "determinism",
-      "label": "Determinism",
+      "kind": "tag",
+      "name": "Determinism",
       "tag": "DETERMINISM",
       "color": "#0F766E",
-      "definition": {
-        "fields": [
-          {
-            "key": "mode",
-            "label": "Policy",
-            "initial": "strict",
-            "choices": [
-              "strict",
-              "normalized"
-            ]
-          },
-          {
-            "key": "target",
-            "label": "Target",
-            "initial": "compiled_tales",
-            "choices": [
-              "compiled_tales"
-            ]
-          },
-          {
-            "key": "comparison",
-            "label": "Comparison",
-            "initial": "byte_exact",
-            "choices": [
-              "byte_exact"
-            ]
-          },
-          {
-            "key": "encoding",
-            "label": "Encoding",
-            "initial": "utf8",
-            "choices": [
-              "utf8"
-            ]
-          },
-          {
-            "key": "line_endings",
-            "label": "Line endings",
-            "initial": "lf",
-            "choices": [
-              "lf"
-            ]
-          },
-          {
-            "key": "final_newline",
-            "label": "Final newline",
-            "initial": true
-          },
-          {
-            "key": "canonicalize",
-            "label": "Canonicalize",
-            "initial": [],
-            "format": "bullets"
-          },
-          {
-            "key": "rerun_check",
-            "label": "Rerun check",
-            "initial": {
-              "runs": 2
-            }
-          },
-          {
-            "key": "clean_build_check",
-            "label": "Clean build check",
-            "initial": {
-              "runs": 2
-            }
-          }
-        ],
-        "initial": {
-          "properties": {
-            "mode": "strict",
-            "rerun_check": {
-              "runs": 2
-            }
-          },
-          "sections": []
-        },
-        "additionalProperties": false
-      }
+      "defaultText": "When output must be reproducible, use stable ordering and formatting. Check that identical inputs produce byte-for-byte identical artifacts."
     },
     {
-      "id": "overrides",
-      "label": "Overrides",
-      "tag": "OVERRIDES",
-      "color": "#9F1239",
-      "definition": {
-        "fields": [
-          {
-            "key": "steps",
-            "label": "Steps",
-            "initial": [],
-            "format": "steps",
-            "required": true,
-            "valueType": "array"
-          }
-        ],
-        "initial": {
-          "properties": {
-            "steps": []
-          },
-          "sections": []
-        },
-        "role": "override",
-        "additionalProperties": false,
-        "steps": {
-          "run": {
-            "initial": {
-              "operation": "run",
-              "command": "",
-              "expect": {
-                "exit": 0
-              },
-              "when": "code_changed"
-            },
-            "fields": [
-              {
-                "key": "command",
-                "quote": true,
-                "required": true,
-                "valueType": "string"
-              },
-              {
-                "key": "expect",
-                "prefix": "expect ",
-                "required": true,
-                "valueType": "object",
-                "properties": {
-                  "exit": "number"
-                }
-              },
-              {
-                "key": "when",
-                "prefix": "when=",
-                "valueType": "string"
-              }
-            ]
-          },
-          "review": {
-            "initial": {
-              "operation": "review",
-              "checks": []
-            },
-            "fields": [
-              {
-                "key": "checks",
-                "required": true,
-                "valueType": "array"
-              }
-            ]
-          },
-          "stop": {
-            "initial": {
-              "operation": "stop",
-              "when": "after_agreed_checks"
-            },
-            "fields": [
-              {
-                "key": "when",
-                "required": true,
-                "valueType": "string"
-              }
-            ]
-          },
-          "contract_verify": {
-            "initial": {
-              "operation": "contract_verify",
-              "attributes": {
-                "baseline": "external",
-                "coverage": "mandatory"
-              }
-            }
-          },
-          "request_change": {
-            "initial": {
-              "operation": "request_change",
-              "attributes": {
-                "requirement": "",
-                "reason": ""
-              }
-            }
-          }
-        }
-      }
+      "id": "deployment",
+      "kind": "tag",
+      "name": "Deployment",
+      "tag": "DEPLOYMENT",
+      "color": "#92400E",
+      "defaultText": "Preview the exact destination and files before deployment. Deploy only with the required authorization, preserve unrelated files, and report what changed."
+    },
+    {
+      "id": "proof",
+      "kind": "tag",
+      "name": "Proof",
+      "tag": "PROOF",
+      "color": "#0369A1",
+      "defaultText": "Report what was actually verified, including failed or skipped checks. Review the final diff against the agreed scope before saying the task is done."
+    },
+    {
+      "id": "agentic-tests",
+      "kind": "tag",
+      "name": "Agentic tests",
+      "tag": "AGENTIC_TESTS",
+      "color": "#3F6212",
+      "defaultText": "An agent may add focused tests for its task. Do not change a passing test merely to approve a new implementation. Preserve tests once their agreed proof passes."
     },
     {
       "id": "requirement",
-      "label": "Requirement",
+      "kind": "tag",
+      "name": "Requirement",
       "tag": "REQUIREMENT",
       "color": "#A16207",
-      "definition": {
-        "fields": [
-          {
-            "key": "id",
-            "label": "Id",
-            "initial": "",
-            "source": "id"
-          },
-          {
-            "key": "action",
-            "label": "Action being checked",
-            "initial": ""
-          },
-          {
-            "key": "subject",
-            "label": "File to inspect",
-            "initial": "",
-            "visibleWhen": {
-              "key": "condition",
-              "notEquals": "command_succeeds"
-            }
-          },
-          {
-            "key": "condition",
-            "label": "Required behavior",
-            "initial": "exists",
-            "choices": [
-              "exists",
-              "absent",
-              "equals_file",
-              "unchanged",
-              "command_succeeds"
-            ]
-          },
-          {
-            "key": "expected",
-            "label": "Approved reference file",
-            "initial": "",
-            "visibleWhen": {
-              "key": "condition",
-              "equals": "equals_file"
-            }
-          },
-          {
-            "key": "mandatory",
-            "label": "Required for completion",
-            "initial": true
-          },
-          {
-            "key": "verified_by",
-            "label": "Verified by",
-            "initial": "",
-            "source": "links"
-          }
-        ],
-        "initial": {
-          "properties": {
-            "action": "",
-            "subject": "",
-            "condition": "exists",
-            "expected": "",
-            "mandatory": true
-          },
-          "sections": []
-        },
-        "role": "requirement",
-        "additionalProperties": false,
-        "bindings": {
-          "id": "id",
-          "action": "action",
-          "subject": "subject",
-          "condition": "condition",
-          "expected": "expected",
-          "mandatory": "mandatory",
-          "verified_by": "verified_by"
-        }
-      }
+      "defaultText": "Treat every stated requirement as part of completion. Connect claims of success to observable behavior rather than assuming that writing code is enough."
     },
     {
       "id": "check",
-      "label": "Check",
+      "kind": "tag",
+      "name": "Check",
       "tag": "CHECK",
-      "color": "#0D9488",
-      "definition": {
-        "fields": [
-          {
-            "key": "id",
-            "label": "Id",
-            "initial": "",
-            "source": "id"
-          },
-          {
-            "key": "action",
-            "label": "Action being checked",
-            "initial": ""
-          },
-          {
-            "key": "executable",
-            "label": "Program to run",
-            "initial": ""
-          },
-          {
-            "key": "arguments",
-            "label": "Arguments",
-            "initial": []
-          },
-          {
-            "key": "protected_files",
-            "label": "Tests and adapters to protect",
-            "initial": []
-          },
-          {
-            "key": "timeout_ms",
-            "label": "Timeout (milliseconds)",
-            "initial": 30000
-          }
-        ],
-        "initial": {
-          "properties": {
-            "action": "",
-            "executable": "",
-            "arguments": [],
-            "protected_files": [],
-            "timeout_ms": 30000
-          },
-          "sections": []
-        },
-        "role": "check",
-        "additionalProperties": false,
-        "bindings": {
-          "id": "id",
-          "action": "action",
-          "executable": "executable",
-          "arguments": "arguments",
-          "protected_files": "protected_files",
-          "timeout_ms": "timeout_ms"
-        }
-      }
+      "color": "#0F766E",
+      "defaultText": "Run the check that demonstrates the associated requirement. Record what was run or observed, its result, and any limitation."
     }
   ],
   "diagram": {
     "viewport": {
-      "x": 58.99362895227421,
-      "y": 48.27229685027561,
-      "zoom": 0.6809519480421299
+      "x": 40,
+      "y": 70,
+      "zoom": 0.68
     },
     "items": [
       {
-        "id": "project",
-        "typeId": "tale",
-        "shape": "rectangle",
-        "position": {
-          "x": 682.1264015445804,
-          "y": -61.35138297220243
-        },
-        "size": {
-          "width": 320,
-          "height": 100
-        },
-        "properties": {
-          "version": "v0"
-        },
-        "title": "Tale project"
-      },
-      {
-        "id": "meta",
-        "typeId": "meta",
-        "shape": "rectangle",
-        "position": {
-          "x": 0,
-          "y": 200
-        },
-        "size": {
-          "width": 320,
-          "height": 240
-        },
-        "properties": {
-          "ID": "tale.project",
-          "TYPE": "project",
-          "LANGUAGE": "TypeScript",
-          "RUNTIME": "Electron",
-          "TEST_FRAMEWORK": "node:test"
-        },
-        "title": "Project"
-      },
-      {
         "id": "goal",
-        "typeId": "goal",
-        "shape": "rectangle",
+        "definitionId": "goal",
+        "title": "Purpose",
+        "text": "Create a cross-platform Electron app for writing Tales visually. The diagram should help people organise human-language notes and relationships before sharing them with an AI agent.",
         "position": {
-          "x": 360,
-          "y": 200
+          "x": 420,
+          "y": 0
         },
         "size": {
           "width": 320,
           "height": 180
-        },
-        "properties": {
-          "text": "Build a cross-platform Electron app for visually authoring reusable human-agent agreements.\nEdit all Tale tags on a precise SVG board, save projects as JSON, and compile deployable .tale files."
-        },
-        "title": "Purpose"
-      },
-      {
-        "id": "product",
-        "typeId": "product",
-        "shape": "rectangle",
-        "position": {
-          "x": 720,
-          "y": 200
-        },
-        "size": {
-          "width": 320,
-          "height": 400
-        },
-        "properties": {
-          "platforms": [
-            "macOS",
-            "Windows",
-            "Linux"
-          ],
-          "editor": "miro_style",
-          "items": [
-            "rectangle",
-            "arrow"
-          ],
-          "connections": [
-            "branches",
-            "loops",
-            "multiple"
-          ],
-          "project_format": "JSON",
-          "tags": "diagram_items",
-          "rule_types": "user_defined",
-          "environments": "user_defined",
-          "output": ".tale/*.tale",
-          "agent_entrypoints": "official",
-          "tag_coverage": "all_defined"
-        },
-        "title": "Product"
-      },
-      {
-        "id": "architecture",
-        "typeId": "architecture",
-        "shape": "rectangle",
-        "position": {
-          "x": 1080,
-          "y": 200
-        },
-        "size": {
-          "width": 320,
-          "height": 220
-        },
-        "properties": {
-          "separate": [
-            "visual_editor",
-            "svg_library",
-            "electron_ui",
-            "application",
-            "preload"
-          ],
-          "svg_library": "first_party_reusable",
-          "editor_dependencies": [
-            "svg_library",
-            "project_model"
-          ],
-          "ui": "native_html_css_browser_apis",
-          "application_dependencies": "no_ui_or_svg",
-          "filesystem": "electron_main",
-          "ipc": "typed_allowlisted_preload_api",
-          "ipc_validation": "sender_payload_result",
-          "context_isolation": true,
-          "node_integration": false,
-          "renderer_sandbox": true,
-          "project_content": "inert_data"
-        },
-        "title": "Architecture"
-      },
-      {
-        "id": "dependencies",
-        "typeId": "dependencies",
-        "shape": "rectangle",
-        "position": {
-          "x": 0,
-          "y": 700
-        },
-        "size": {
-          "width": 320,
-          "height": 240
-        },
-        "properties": {
-          "default": "deny",
-          "allow": [
-            "electron"
-          ],
-          "development_allow": [
-            "typescript",
-            "@biomejs/biome"
-          ],
-          "changes": "require_approval"
-        },
-        "title": "Dependencies"
-      },
-      {
-        "id": "agreement",
-        "typeId": "agreement",
-        "shape": "rectangle",
-        "position": {
-          "x": 360,
-          "y": 700
-        },
-        "size": {
-          "width": 320,
-          "height": 260
-        },
-        "properties": {
-          "before_implementation": "agree_goal_scope_checks",
-          "unclear_requirements": "ask_user",
-          "scope_expansion": "require_approval",
-          "existing_approval": "reuse",
-          "contract_changes": "require_approval",
-          "structured_conflicts": "block",
-          "approval_baseline": "external"
-        },
-        "title": "Agreement"
-      },
-      {
-        "id": "changes",
-        "typeId": "changes",
-        "shape": "rectangle",
-        "position": {
-          "x": 720,
-          "y": 700
-        },
-        "size": {
-          "width": 320,
-          "height": 320
-        },
-        "properties": {
-          "default": "minimal",
-          "refactor": "require_approval",
-          "rename": "require_approval",
-          "delete": "require_approval",
-          "unrelated_changes": "deny",
-          "preserve_user_changes": true,
-          "restore_deleted_code": "require_approval"
-        },
-        "title": "Changes"
-      },
-      {
-        "id": "scope-allow",
-        "typeId": "scope",
-        "shape": "rectangle",
-        "position": {
-          "x": 1080,
-          "y": 700
-        },
-        "size": {
-          "width": 320,
-          "height": 180
-        },
-        "properties": {
-          "mode": "allow",
-          "paths": [
-            "approved_task_files"
-          ]
-        },
-        "title": "Allowed changes"
-      },
-      {
-        "id": "scope-deny",
-        "typeId": "scope",
-        "shape": "rectangle",
-        "position": {
-          "x": 0,
-          "y": 1100
-        },
-        "size": {
-          "width": 320,
-          "height": 180
-        },
-        "properties": {
-          "mode": "deny",
-          "paths": [
-            ".git/**"
-          ]
-        },
-        "title": "Forbidden changes"
-      },
-      {
-        "id": "scope-approval",
-        "typeId": "scope",
-        "shape": "rectangle",
-        "position": {
-          "x": 360,
-          "y": 1100
-        },
-        "size": {
-          "width": 320,
-          "height": 380
-        },
-        "properties": {
-          "mode": "require_approval",
-          "paths": [
-            ".tale/**",
-            "AGENTS.md",
-            "README.md",
-            "docs/project-policy.md",
-            "*.tale",
-            "package.json",
-            "*lock*",
-            "tsconfig*.json",
-            "biome.json*"
-          ]
-        },
-        "title": "Approval required"
-      },
-      {
-        "id": "quality",
-        "typeId": "quality",
-        "shape": "rectangle",
-        "position": {
-          "x": 720,
-          "y": 1100
-        },
-        "size": {
-          "width": 320,
-          "height": 220
-        },
-        "properties": {
-          "typescript_strict": true,
-          "lint": "biome",
-          "format": "biome",
-          "weaken_checks": "deny"
-        },
-        "title": "Quality"
-      },
-      {
-        "id": "testing",
-        "typeId": "testing",
-        "shape": "rectangle",
-        "position": {
-          "x": 1080,
-          "y": 1100
-        },
-        "size": {
-          "width": 320,
-          "height": 260
-        },
-        "properties": {
-          "assertions": "observable_behavior",
-          "bugfix": "regression_test",
-          "changed_behavior": "require_coverage",
-          "editor_changes": "interaction_check",
-          "weaken_expectations": "deny",
-          "editor_cases": [
-            "drag_zoom",
-            "connect_move_resize",
-            "edit_save_reopen",
-            "tag_coverage"
-          ],
-          "ipc_changes": "boundary_tests",
-          "editor_e2e": "json_to_tale_determinism",
-          "ui_cases": [
-            "all_objects_draggable",
-            "no_app_scroll",
-            "touchpad_mouse_zoom",
-            "toolbar_coverage",
-            "file_menu"
-          ],
-          "deploy_e2e": "compiled_tales_agent_entrypoint",
-          "test_files": "paired_sibling",
-          "test_pattern": "{name}.test.ts",
-          "test_scope": "application_typescript",
-          "test_pair_check": "npm_run_lint"
-        },
-        "title": "Testing"
-      },
-      {
-        "id": "agentic-tests",
-        "typeId": "agentic-tests",
-        "shape": "rectangle",
-        "position": {
-          "x": 0,
-          "y": 1600
-        },
-        "size": {
-          "width": 320,
-          "height": 260
-        },
-        "properties": {
-          "pattern": "**/*.ai.test.ts",
-          "allow_create": true,
-          "allow_modify": "within_task",
-          "freeze_after": "proof_pass"
-        },
-        "title": "Agentic tests"
-      },
-      {
-        "id": "proof",
-        "typeId": "proof",
-        "shape": "rectangle",
-        "position": {
-          "x": 360,
-          "y": 1600
-        },
-        "size": {
-          "width": 500,
-          "height": 380
-        },
-        "properties": {
-          "steps": [
-            {
-              "operation": "run",
-              "command": "npm run typecheck",
-              "expect": {
-                "exit": 0
-              },
-              "when": "code_changed"
-            },
-            {
-              "operation": "run",
-              "command": "npm run lint",
-              "expect": {
-                "exit": 0
-              },
-              "when": "code_changed"
-            },
-            {
-              "operation": "run",
-              "command": "npm run format:check",
-              "expect": {
-                "exit": 0
-              },
-              "when": "code_changed"
-            },
-            {
-              "operation": "run",
-              "command": "npm test",
-              "expect": {
-                "exit": 0
-              },
-              "when": "code_changed"
-            },
-            {
-              "operation": "run",
-              "command": "npm run test:e2e",
-              "expect": {
-                "exit": 0
-              },
-              "when": "code_changed"
-            },
-            {
-              "operation": "contract_verify",
-              "attributes": {
-                "baseline": "external",
-                "coverage": "mandatory"
-              }
-            },
-            {
-              "operation": "review",
-              "checks": [
-                "scope",
-                "unrelated_behavior",
-                "added_lines"
-              ]
-            },
-            {
-              "operation": "stop",
-              "when": "after_agreed_checks"
-            }
-          ]
-        },
-        "title": "Proof"
-      },
-      {
-        "id": "editor",
-        "typeId": "editor",
-        "title": "Editor",
-        "shape": "rectangle",
-        "position": {
-          "x": 900,
-          "y": 1600
-        },
-        "size": {
-          "width": 500,
-          "height": 380
-        },
-        "properties": {
-          "layout": "board_first",
-          "viewport": "fit_app_window",
-          "app_scroll": "deny",
-          "canvas_navigation": "pan_zoom",
-          "zoom_input": [
-            "touchpad",
-            "mouse"
-          ],
-          "zoom_anchor": "pointer",
-          "chrome": "compact",
-          "copy": "concise",
-          "oversized_headings": "deny",
-          "item_titles": "required_editable",
-          "item_text": "editable",
-          "dragging": "pointer_accurate",
-          "draggable": "all_diagram_objects",
-          "connections": "anchored_precise",
-          "tag_colors": "distinct_stable",
-          "tag_labels": "visible",
-          "toolbar": "all_diagram_items",
-          "toolbar_labels": "visible",
-          "menu": [
-            "open_json",
-            "save",
-            "save_as",
-            "deploy"
-          ],
-          "property_controls": "semantic_typed",
-          "raw_json_editing": "deny"
         }
       },
       {
-        "id": "determinism",
-        "typeId": "determinism",
-        "title": "Deterministic output",
-        "shape": "rectangle",
+        "id": "product",
+        "definitionId": "product",
+        "title": "Product",
+        "text": "People can save a diagram as a JSON project, reopen it, and deploy one deterministic .tale file to a chosen project. Tags and Skills are reusable notes with one editable text value each.\nKeep the diagram easy to navigate with precise dragging, arrows, mouse and touchpad zoom, and clear icons. Selecting a note should show its title and one human-language text box.",
         "position": {
-          "x": 0,
-          "y": 2100
+          "x": 420,
+          "y": 260
         },
         "size": {
           "width": 320,
-          "height": 320
+          "height": 180
+        }
+      },
+      {
+        "id": "architecture",
+        "definitionId": "architecture",
+        "title": "Architecture",
+        "text": "Use TypeScript and Electron. Keep the application, SVG diagram editor, Electron main process, and renderer UI separate. Pass only validated data across the preload bridge.",
+        "position": {
+          "x": 40,
+          "y": 520
         },
-        "properties": {
-          "mode": "strict",
-          "target": "compiled_tales",
-          "comparison": "byte_exact",
-          "encoding": "utf8",
-          "line_endings": "lf",
-          "final_newline": true,
-          "rerun_check": {
-            "runs": 2
-          },
-          "clean_build_check": {
-            "runs": 2
-          }
+        "size": {
+          "width": 320,
+          "height": 180
         }
       },
       {
         "id": "deployment",
-        "typeId": "deployment",
+        "definitionId": "deployment",
         "title": "Deployment",
-        "shape": "rectangle",
+        "text": "Deploy only the generated .tale file to the selected project’s .tale directory. Keep the editor JSON outside deployment. Update the selected agent instructions without removing unrelated content.",
         "position": {
-          "x": 360,
-          "y": 2100
+          "x": 800,
+          "y": 520
         },
         "size": {
-          "width": 500,
-          "height": 320
+          "width": 320,
+          "height": 180
+        }
+      },
+      {
+        "id": "dependencies",
+        "definitionId": "dependencies",
+        "title": "Dependencies",
+        "text": "Use the existing Electron, TypeScript, and Biome tools. Do not add UI or SVG libraries. Ask before adding any other dependency.",
+        "position": {
+          "x": 40,
+          "y": 790
         },
-        "properties": {
-          "mode": "compiled_tales",
-          "project_json": "save_save_as_only",
-          "target": "selected_project",
-          "output": ".tale/*.tale",
-          "agents": "user_selected",
-          "agent_file": "selected_official_entrypoint",
-          "agent_update": "preserve_content_upsert_reference",
-          "preview": "required",
-          "existing_tale": "confirm_overwrite",
-          "unrelated_files": "preserve",
-          "repeat": "idempotent"
+        "size": {
+          "width": 320,
+          "height": 180
+        }
+      },
+      {
+        "id": "agreement",
+        "definitionId": "agreement",
+        "title": "Agreement",
+        "text": "Discuss unclear requirements and agree on scope and completion checks before editing. Respect approval already given.",
+        "position": {
+          "x": 1800,
+          "y": 0
+        },
+        "size": {
+          "width": 320,
+          "height": 180
+        }
+      },
+      {
+        "id": "changes",
+        "definitionId": "changes",
+        "title": "Changes",
+        "text": "Make the smallest change that solves the agreed problem. Deny unrelated changes. Ask before refactoring, renaming, moving, or deleting unrelated code.",
+        "position": {
+          "x": 1600,
+          "y": 270
+        },
+        "size": {
+          "width": 320,
+          "height": 180
+        }
+      },
+      {
+        "id": "scope-allow",
+        "definitionId": "scope",
+        "title": "Allowed changes",
+        "text": "Change only the files needed for the agreed task.",
+        "position": {
+          "x": 1970,
+          "y": 270
+        },
+        "size": {
+          "width": 320,
+          "height": 180
+        }
+      },
+      {
+        "id": "scope-deny",
+        "definitionId": "scope",
+        "title": "Forbidden changes",
+        "text": "Do not change .git or unrelated project files.",
+        "position": {
+          "x": 1600,
+          "y": 540
+        },
+        "size": {
+          "width": 320,
+          "height": 180
+        }
+      },
+      {
+        "id": "scope-approval",
+        "definitionId": "scope",
+        "title": "Approval required",
+        "text": "Ask before changing Tale rules, agent instructions, the README, package or lock files, TypeScript configuration, or Biome configuration.",
+        "position": {
+          "x": 1970,
+          "y": 540
+        },
+        "size": {
+          "width": 320,
+          "height": 180
+        }
+      },
+      {
+        "id": "quality",
+        "definitionId": "quality",
+        "title": "Quality",
+        "text": "Keep TypeScript strict. Run Biome lint and formatting checks, and keep the application code readable.",
+        "position": {
+          "x": 40,
+          "y": 1400
+        },
+        "size": {
+          "width": 320,
+          "height": 180
+        }
+      },
+      {
+        "id": "testing",
+        "definitionId": "testing",
+        "title": "Testing",
+        "text": "Every TypeScript source file has a sibling test file. Test observable behaviour and run the relevant unit and Electron interaction checks.",
+        "position": {
+          "x": 420,
+          "y": 1680
+        },
+        "size": {
+          "width": 320,
+          "height": 180
+        }
+      },
+      {
+        "id": "determinism",
+        "definitionId": "determinism",
+        "title": "Deterministic output",
+        "text": "The same saved JSON project must generate exactly the same .tale bytes after every build. Diagram layout and colours must not change the output.",
+        "position": {
+          "x": 800,
+          "y": 1400
+        },
+        "size": {
+          "width": 320,
+          "height": 180
+        }
+      },
+      {
+        "id": "agentic-tests",
+        "definitionId": "agentic-tests",
+        "title": "Agentic tests",
+        "text": "An agent may add focused tests for its task. Do not change a passing test merely to approve a new implementation. Preserve tests once their agreed proof passes.",
+        "position": {
+          "x": 420,
+          "y": 1400
+        },
+        "size": {
+          "width": 320,
+          "height": 180
+        }
+      },
+      {
+        "id": "proof",
+        "definitionId": "proof",
+        "title": "Proof",
+        "text": "Run type checking, lint, formatting, unit tests, and Electron end-to-end tests. Review the final diff and stop when the agreed checks pass.",
+        "position": {
+          "x": 420,
+          "y": 1950
+        },
+        "size": {
+          "width": 320,
+          "height": 180
         }
       },
       {
         "id": "deployment-bytes",
-        "typeId": "requirement",
+        "definitionId": "requirement",
         "title": "Deploy exact Tale bytes",
-        "shape": "rectangle",
+        "text": "Deploy the exact Tale bytes generated from the saved project JSON. Check the installed file against the compiler output.",
         "position": {
-          "x": 0,
-          "y": 2540
+          "x": 500,
+          "y": 810
         },
         "size": {
           "width": 320,
-          "height": 320
-        },
-        "properties": {
-          "action": "deploy",
-          "subject": "artifacts/contract-deployment/.tale/project.tale",
-          "condition": "equals_file",
-          "expected": ".tale/project.tale",
-          "mandatory": true
+          "height": 180
         }
       },
       {
         "id": "no-project-json",
-        "typeId": "requirement",
+        "definitionId": "requirement",
         "title": "Keep project JSON out of deployment",
-        "shape": "rectangle",
+        "text": "Keep the editor project JSON out of the destination .tale directory. Deploy only the compiled Tale.",
         "position": {
-          "x": 360,
-          "y": 2540
+          "x": 850,
+          "y": 810
         },
         "size": {
           "width": 320,
-          "height": 320
-        },
-        "properties": {
-          "action": "deploy",
-          "subject": "artifacts/contract-deployment/.tale/tale.project.json",
-          "condition": "absent",
-          "expected": "",
-          "mandatory": true
+          "height": 180
         }
       },
       {
         "id": "preserve-project",
-        "typeId": "requirement",
+        "definitionId": "requirement",
         "title": "Preserve the editor project",
-        "shape": "rectangle",
+        "text": "Deployment must leave the source project JSON unchanged.",
         "position": {
-          "x": 720,
-          "y": 2540
+          "x": 1200,
+          "y": 810
         },
         "size": {
           "width": 320,
-          "height": 320
-        },
-        "properties": {
-          "action": "deploy",
-          "subject": "project/tale.project.json",
-          "condition": "unchanged",
-          "expected": "",
-          "mandatory": true
+          "height": 180
         }
       },
       {
         "id": "deploy-check",
-        "typeId": "check",
+        "definitionId": "check",
         "title": "Exercise actual deployment",
-        "shape": "rectangle",
+        "text": "Run the Electron deployment test. Confirm that the installed Tale matches the compiler output, no project JSON is installed, and the source JSON is preserved.",
         "position": {
-          "x": 1080,
-          "y": 2540
+          "x": 850,
+          "y": 1090
         },
         "size": {
           "width": 320,
-          "height": 320
-        },
-        "properties": {
-          "action": "deploy",
-          "executable": "node",
-          "arguments": [
-            "scripts/prove-deployment.mjs"
-          ],
-          "protected_files": [
-            "scripts/prove-deployment.mjs"
-          ],
-          "timeout_ms": 30000
+          "height": 180
         }
       }
     ],
     "connections": [
       {
-        "id": "project-meta",
-        "from": "project",
-        "to": "meta",
-        "kind": "contains",
+        "id": "goal-product",
+        "from": "goal",
+        "to": "product",
+        "label": "defines",
         "order": 0
       },
       {
-        "id": "project-goal",
-        "from": "project",
-        "to": "goal",
-        "kind": "contains",
+        "id": "product-architecture",
+        "from": "product",
+        "to": "architecture",
+        "label": "guides",
         "order": 1
       },
       {
-        "id": "project-product",
-        "from": "project",
-        "to": "product",
-        "kind": "contains",
-        "order": 2
-      },
-      {
-        "id": "project-architecture",
-        "from": "project",
-        "to": "architecture",
-        "kind": "contains",
+        "id": "product-deployment",
+        "from": "product",
+        "to": "deployment",
+        "label": "includes",
         "order": 3
       },
       {
-        "id": "project-editor",
-        "from": "project",
-        "to": "editor",
-        "kind": "contains",
+        "id": "architecture-dependencies",
+        "from": "architecture",
+        "to": "dependencies",
+        "label": "constrains",
         "order": 4
       },
       {
-        "id": "project-deployment",
-        "from": "project",
-        "to": "deployment",
-        "kind": "contains",
+        "id": "agreement-changes",
+        "from": "agreement",
+        "to": "changes",
+        "label": "sets limits on",
         "order": 5
       },
       {
-        "id": "project-dependencies",
-        "from": "project",
-        "to": "dependencies",
-        "kind": "contains",
+        "id": "agreement-scope-allow",
+        "from": "agreement",
+        "to": "scope-allow",
+        "label": "defines",
         "order": 6
       },
       {
-        "id": "project-agreement",
-        "from": "project",
-        "to": "agreement",
-        "kind": "contains",
+        "id": "agreement-scope-deny",
+        "from": "agreement",
+        "to": "scope-deny",
+        "label": "defines",
         "order": 7
       },
       {
-        "id": "project-changes",
-        "from": "project",
-        "to": "changes",
-        "kind": "contains",
+        "id": "agreement-scope-approval",
+        "from": "agreement",
+        "to": "scope-approval",
+        "label": "defines",
         "order": 8
       },
       {
-        "id": "project-scope-allow",
-        "from": "project",
-        "to": "scope-allow",
-        "kind": "contains",
+        "id": "quality-testing",
+        "from": "quality",
+        "to": "testing",
+        "label": "requires",
         "order": 9
       },
       {
-        "id": "project-scope-deny",
-        "from": "project",
-        "to": "scope-deny",
-        "kind": "contains",
+        "id": "testing-proof",
+        "from": "testing",
+        "to": "proof",
+        "label": "provides evidence for",
         "order": 10
       },
       {
-        "id": "project-scope-approval",
-        "from": "project",
-        "to": "scope-approval",
-        "kind": "contains",
+        "id": "determinism-proof",
+        "from": "determinism",
+        "to": "proof",
+        "label": "must be demonstrated in",
         "order": 11
       },
       {
-        "id": "project-quality",
-        "from": "project",
-        "to": "quality",
-        "kind": "contains",
+        "id": "agentic-tests-testing",
+        "from": "agentic-tests",
+        "to": "testing",
+        "label": "adds checks to",
         "order": 12
       },
       {
-        "id": "project-testing",
-        "from": "project",
-        "to": "testing",
-        "kind": "contains",
+        "id": "deployment-deployment-bytes",
+        "from": "deployment",
+        "to": "deployment-bytes",
+        "label": "must satisfy",
         "order": 13
       },
       {
-        "id": "project-determinism",
-        "from": "project",
-        "to": "determinism",
-        "kind": "contains",
+        "id": "deployment-no-project-json",
+        "from": "deployment",
+        "to": "no-project-json",
+        "label": "must satisfy",
         "order": 14
       },
       {
-        "id": "project-agentic-tests",
-        "from": "project",
-        "to": "agentic-tests",
-        "kind": "contains",
+        "id": "deployment-preserve-project",
+        "from": "deployment",
+        "to": "preserve-project",
+        "label": "must satisfy",
         "order": 15
       },
       {
-        "id": "project-proof",
-        "from": "project",
-        "to": "proof",
-        "kind": "contains",
+        "id": "deployment-bytes-deploy-check",
+        "from": "deployment-bytes",
+        "to": "deploy-check",
+        "label": "is verified by",
         "order": 16
       },
       {
-        "id": "project-deployment-bytes",
-        "from": "project",
-        "to": "deployment-bytes",
-        "kind": "contains",
+        "id": "no-project-json-deploy-check",
+        "from": "no-project-json",
+        "to": "deploy-check",
+        "label": "is verified by",
         "order": 17
       },
       {
-        "id": "deployment-bytes-proof",
-        "from": "deployment-bytes",
-        "to": "deploy-check",
-        "kind": "verified_by",
-        "order": 0
-      },
-      {
-        "id": "project-no-project-json",
-        "from": "project",
-        "to": "no-project-json",
-        "kind": "contains",
-        "order": 18
-      },
-      {
-        "id": "no-project-json-proof",
-        "from": "no-project-json",
-        "to": "deploy-check",
-        "kind": "verified_by",
-        "order": 0
-      },
-      {
-        "id": "project-preserve-project",
-        "from": "project",
-        "to": "preserve-project",
-        "kind": "contains",
-        "order": 19
-      },
-      {
-        "id": "preserve-project-proof",
+        "id": "preserve-project-deploy-check",
         "from": "preserve-project",
         "to": "deploy-check",
-        "kind": "verified_by",
-        "order": 0
-      },
-      {
-        "id": "project-deploy-check",
-        "from": "project",
-        "to": "deploy-check",
-        "kind": "contains",
-        "order": 20
+        "label": "is verified by",
+        "order": 18
       }
     ]
-  },
-  "exports": [
-    {
-      "id": "project-tale",
-      "rootItemId": "project",
-      "environmentId": null,
-      "path": ".tale/project.tale"
-    }
-  ]
+  }
 }

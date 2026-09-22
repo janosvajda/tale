@@ -10,9 +10,11 @@ test('startup wires native file actions to the correct named renderer commands',
 		submenu: { label: string; click?: () => void }[];
 	}[] = [];
 	let lifecycle = false;
+	let dockIcon = '';
 	const ready = Promise.resolve();
 	const electron = {
 		app: {
+			dock: { setIcon: (path: string) => (dockIcon = path) },
 			setName: () => {},
 			whenReady: () => ready,
 			getAppPath: () => '/app',
@@ -27,6 +29,7 @@ test('startup wires native file actions to the correct named renderer commands',
 	};
 	const modules: Record<string, unknown> = {
 		electron,
+		'./app-icons.js': { dockIcon: () => '/app/icon.png' },
 		'./lifecycle.js': {
 			quitWhenWindowsClose: () => {
 				lifecycle = true;
@@ -42,16 +45,17 @@ test('startup wires native file actions to the correct named renderer commands',
 	runInNewContext(await readFile('dist/node/src/main/index.js', 'utf8'), {
 		exports: {},
 		require: (name: string) => modules[name],
-		process: { platform: 'linux' },
+		process: { platform: 'darwin' },
 		console,
 	});
 	await new Promise((resolve) => setImmediate(resolve));
 	assert.equal(lifecycle, true);
+	assert.equal(dockIcon, '/app/icon.png');
 	const file = menu.find((item) => item.label === 'File');
 	assert.ok(file);
 	for (const item of file.submenu) item.click?.();
 	assert.deepEqual(
 		sent.map((args) => args[1]),
-		['new', 'open', 'save', 'saveAs', 'deploy', 'compile', 'verify', 'exit'],
+		['new', 'open', 'save', 'saveAs', 'deploy', 'compile', 'exit'],
 	);
 });

@@ -1,16 +1,10 @@
-import { definition, itemRole } from '../model/catalogue.js';
 import {
-	duplicateSection,
-	itemSummary,
-	sectionSummary,
-} from '../model/fields.js';
-import {
+	type Definition,
 	id,
 	type Point,
 	type Project,
 	validateProject,
 } from '../model/project.js';
-import { defaults } from '../model/tags.js';
 import { edgeGeometry, MIN_ZOOM, world, zoomAt } from '../svg/geometry.js';
 import { Scene } from '../svg/scene.js';
 import { Navigation } from './navigation.js';
@@ -185,32 +179,40 @@ export class Editor {
 		this.render();
 		this.onChange(true);
 	}
-	add(typeId: string) {
-		const type = this.project.itemTypes.find((t) => t.id === typeId);
+	add(typeId: string, availableType?: Definition) {
+		const rect = this.scene.element.getBoundingClientRect();
+		this.addAt(
+			typeId,
+			{ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 },
+			availableType,
+		);
+	}
+	addAt(typeId: string, client: Point, availableType?: Definition) {
+		const existing = this.project.definitions.find(
+			(type) => type.id === typeId,
+		);
+		const type = existing ?? availableType;
 		if (!type) return;
 		const rect = this.scene.element.getBoundingClientRect();
 		const position = world(
-			{ x: rect.width / 2, y: rect.height / 2 },
+			{ x: client.x - rect.left, y: client.y - rect.top },
 			this.project.diagram.viewport,
 		);
 		const itemId = id();
-		this.mutate((project) =>
+		this.mutate((project) => {
+			if (!existing) project.definitions.push(structuredClone(type));
 			project.diagram.items.push({
 				id: itemId,
-				typeId,
-				title: type.label,
-				shape: 'rectangle',
+				definitionId: typeId,
+				title: type.name,
+				text: type.defaultText,
 				position: {
 					x: position.x - interaction.newWidth / 2,
 					y: position.y - interaction.newHeight / 2,
 				},
 				size: { width: 280, height: 180 },
-				properties: defaults(type),
-				sections: (definition(type).initial?.sections ?? []).map(
-					duplicateSection,
-				),
-			}),
-		);
+			});
+		});
 		this.selected = new Set([itemId]);
 		this.render();
 		this.onChange(false);
@@ -227,17 +229,15 @@ export class Editor {
 					!this.selected.has(e.from) &&
 					!this.selected.has(e.to),
 			);
-			project.exports = project.exports.filter(
-				(e) => !this.selected.has(e.rootItemId),
-			);
 		});
 		this.selected.clear();
 		this.onChange(false);
 	}
 	duplicate() {
-		const originals = this.project.diagram.items.filter((i) =>
-			this.selected.has(i.id),
+		const originals = this.project.diagram.items.filter((item) =>
+			this.selected.has(item.id),
 		);
+		if (!originals.length) return;
 		const newIds = new Set<string>();
 		this.mutate((project) => {
 			for (const item of originals) {
@@ -420,13 +420,6 @@ export class Editor {
 				id: edgeId,
 				from: g.node,
 				to: hit.id,
-				kind:
-					itemRole(
-						this.project,
-						this.project.diagram.items.find((item) => item.id === g.node)!,
-					) === 'requirement' && itemRole(this.project, hit) === 'check'
-						? 'verified_by'
-						: 'contains',
 				order: siblings.length
 					? Math.max(...siblings.map((e) => e.order)) + 1
 					: 0,
@@ -445,25 +438,17 @@ export class Editor {
 		this.commit(g.before);
 	}
 	render(preview?: { start: Point; end: Point }) {
-		const types = new Map(this.project.itemTypes.map((t) => [t.id, t]));
+		const types = new Map(this.project.definitions.map((t) => [t.id, t]));
 		this.scene.draw(
 			this.project.diagram.items.map((item) => ({
 				id: item.id,
 				box: { ...item.position, ...item.size },
 				title: item.title,
-				badge: types.get(item.typeId)?.tag ?? 'UNKNOWN',
-				color: types.get(item.typeId)?.color ?? '#475569',
-				lines: [
-					...(item.sections ?? []).map(
-						(section) => `${section.title}: ${sectionSummary(section)}`,
-					),
-					...itemSummary(item.properties),
-				],
+				badge: types.get(item.definitionId)?.name ?? 'Unknown',
+				color: types.get(item.definitionId)?.color ?? '#475569',
+				lines: item.text.split('\n').filter(Boolean),
 			})),
-			this.project.diagram.connections.map((edge) => ({
-				...edge,
-				label: edge.kind === 'verified_by' ? 'Verified by' : undefined,
-			})),
+			this.project.diagram.connections,
 			this.project.diagram.viewport,
 			this.selected,
 			preview,

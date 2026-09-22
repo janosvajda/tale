@@ -17,6 +17,7 @@ import {
 	validateDirectory,
 	validateProject,
 } from '../model/project.js';
+import { windowIcon } from './app-icons.js';
 import {
 	commitDeployment,
 	type DeploymentPlan,
@@ -25,9 +26,6 @@ import {
 import { atomicWrite, exportTales, readProject } from './files.js';
 import { lastOpenDirectory, rememberOpenDirectory } from './preferences.js';
 import { createFromTemplate, listTemplates } from './templates.js';
-import { VerificationSession } from './verification.js';
-
-const maxApprovalReasonLength = 2000;
 export interface FileDialogs {
 	open(defaultPath?: string): Promise<string | undefined>;
 	save(): Promise<string | undefined>;
@@ -49,13 +47,12 @@ export async function createWindow(
 	options: {
 		hidden?: boolean;
 		dialogs?: FileDialogs;
-		approvalStore?: string;
 		preferencesPath?: string;
-		confirmApproval?: (details: string) => Promise<boolean>;
 	} = {},
 ): Promise<BrowserWindow> {
 	const url = pathToFileURL(join(root, 'dist/browser/ui/index.html')).href;
 	const win = new BrowserWindow({
+		icon: windowIcon(root),
 		width: 1440,
 		height: 940,
 		minWidth: 900,
@@ -110,9 +107,6 @@ export async function createWindow(
 			return r.response === 1;
 		},
 	};
-	const verification = new VerificationSession(
-		options.approvalStore ?? join(app.getPath('userData'), 'approvals'),
-	);
 	let deploymentTarget: string | undefined;
 	let deployment: DeploymentPlan | undefined;
 	let path: string | null = null;
@@ -289,47 +283,6 @@ export async function createWindow(
 			ok: true,
 			message: `Deployed Tale files and agent instructions to ${plan.preview.target}`,
 		};
-	});
-	handler('tale:prepare-verification', async (payload) => {
-		validateProject(payload);
-		const target = await dialogs.target();
-		if (!target) return { ok: true, cancelled: true };
-		return {
-			ok: true,
-			verification: await verification.prepare(payload, target),
-		};
-	});
-	handler('tale:approve-verification', async (payload) => {
-		check(
-			record(payload) &&
-				typeof payload.token === 'string' &&
-				typeof payload.reason === 'string' &&
-				payload.reason.length <= maxApprovalReasonLength,
-			'Invalid approval request',
-		);
-		const preview = await verification.approve(
-			payload.token,
-			payload.reason,
-			options.confirmApproval ??
-				(async (detail) => {
-					const answer = await dialog.showMessageBox(win, {
-						type: 'question',
-						message: 'Approve this contract and its executable checks?',
-						detail,
-						buttons: ['Cancel', 'Approve'],
-						defaultId: 0,
-						cancelId: 0,
-					});
-					return answer.response === 1;
-				}),
-		);
-		return preview
-			? { ok: true, verification: preview }
-			: { ok: true, cancelled: true };
-	});
-	handler('tale:run-verification', async (payload) => {
-		check(typeof payload === 'string', 'Invalid verification token');
-		return { ok: true, evidence: await verification.run(payload) };
 	});
 	handler('tale:dirty', (payload) => {
 		check(typeof payload === 'boolean', 'Invalid dirty state');

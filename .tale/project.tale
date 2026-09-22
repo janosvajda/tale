@@ -1,198 +1,80 @@
-TALE v0
-META
-  ID tale.project
-  TYPE project
-  LANGUAGE TypeScript
-  RUNTIME Electron
-  TEST_FRAMEWORK node:test
+TALE Tale
+
+ABOUT
+  Tale helps people and AI agents communicate project goals, expectations, boundaries, and evidence in a clear, reusable way.
 
 GOAL
-  Build a cross-platform Electron app for visually authoring reusable human-agent agreements.
-  Edit all Tale tags on a precise SVG board, save projects as JSON, and compile deployable .tale files.
+  Create a cross-platform Electron app for writing Tales visually. The diagram should help people organise human-language notes and relationships before sharing them with an AI agent.
+  Purpose defines Product.
 
 PRODUCT
-  platforms macOS Windows Linux
-  editor miro_style
-  items rectangle arrow
-  connections branches loops multiple
-  project_format JSON
-  tags diagram_items
-  tag_coverage all_defined
-  rule_types user_defined
-  environments user_defined
-  output .tale/*.tale
-  agent_entrypoints official
+  People can save a diagram as a JSON project, reopen it, and deploy one deterministic .tale file to a chosen project. Tags and Skills are reusable notes with one editable text value each.
+  Keep the diagram easy to navigate with precise dragging, arrows, mouse and touchpad zoom, and clear icons. Selecting a note should show its title and one human-language text box.
+  Product guides Architecture.
+  Product includes Deployment.
 
 ARCHITECTURE
-  separate visual_editor svg_library electron_ui application preload
-  svg_library first_party_reusable
-  editor_dependencies svg_library project_model
-  ui native_html_css_browser_apis
-  application_dependencies no_ui_or_svg
-  filesystem electron_main
-  ipc typed_allowlisted_preload_api
-  ipc_validation sender_payload_result
-  context_isolation true
-  node_integration false
-  renderer_sandbox true
-  project_content inert_data
-
-EDITOR
-  layout board_first
-  viewport fit_app_window
-  app_scroll deny
-  canvas_navigation pan_zoom
-  zoom_input touchpad mouse
-  zoom_anchor pointer
-  chrome compact
-  copy concise
-  oversized_headings deny
-  item_titles required_editable
-  item_text editable
-  dragging pointer_accurate
-  draggable all_diagram_objects
-  connections anchored_precise
-  tag_colors distinct_stable
-  tag_labels visible
-  toolbar all_diagram_items
-  toolbar_labels visible
-  menu open_json save save_as deploy
-  property_controls semantic_typed
-  raw_json_editing deny
+  Use TypeScript and Electron. Keep the application, SVG diagram editor, Electron main process, and renderer UI separate. Pass only validated data across the preload bridge.
+  Architecture constrains Dependencies.
 
 DEPLOYMENT
-  mode compiled_tales
-  project_json save_save_as_only
-  target selected_project
-  output .tale/*.tale
-  agents user_selected
-  agent_file selected_official_entrypoint
-  agent_update preserve_content_upsert_reference
-  preview required
-  existing_tale confirm_overwrite
-  unrelated_files preserve
-  repeat idempotent
+  Deploy only the generated .tale file to the selected project’s .tale directory. Keep the editor JSON outside deployment. Update the selected agent instructions without removing unrelated content.
+  Deployment must satisfy Deploy exact Tale bytes.
+  Deployment must satisfy Keep project JSON out of deployment.
+  Deployment must satisfy Preserve the editor project.
 
 DEPENDENCIES
-  default deny
-  allow electron
-  development_allow typescript @biomejs/biome
-  changes require_approval
+  Use the existing Electron, TypeScript, and Biome tools. Do not add UI or SVG libraries. Ask before adding any other dependency.
 
 AGREEMENT
-  before_implementation agree_goal_scope_checks
-  unclear_requirements ask_user
-  scope_expansion require_approval
-  existing_approval reuse
-  contract_changes require_approval
-  structured_conflicts block
-  approval_baseline external
+  Discuss unclear requirements and agree on scope and completion checks before editing. Respect approval already given.
+  Agreement sets limits on Changes.
+  Agreement defines Allowed changes.
+  Agreement defines Forbidden changes.
+  Agreement defines Approval required.
 
 CHANGES
-  default minimal
-  refactor require_approval
-  rename require_approval
-  delete require_approval
-  unrelated_changes deny
-  preserve_user_changes true
-  restore_deleted_code require_approval
+  Make the smallest change that solves the agreed problem. Deny unrelated changes. Ask before refactoring, renaming, moving, or deleting unrelated code.
 
-SCOPE allow
-  approved_task_files
+SCOPE Allowed changes
+  Change only the files needed for the agreed task.
 
-SCOPE deny
-  .git/**
+SCOPE Forbidden changes
+  Do not change .git or unrelated project files.
 
-SCOPE require_approval
-  .tale/**
-  AGENTS.md
-  README.md
-  docs/project-policy.md
-  *.tale
-  package.json
-  *lock*
-  tsconfig*.json
-  biome.json*
+SCOPE Approval required
+  Ask before changing Tale rules, agent instructions, the README, package or lock files, TypeScript configuration, or Biome configuration.
 
 QUALITY
-  typescript_strict true
-  lint biome
-  format biome
-  weaken_checks deny
+  Keep TypeScript strict. Run Biome lint and formatting checks, and keep the application code readable.
+  Quality requires Testing.
 
 TESTING
-  assertions observable_behavior
-  bugfix regression_test
-  changed_behavior require_coverage
-  editor_changes interaction_check
-  editor_cases drag_zoom connect_move_resize edit_save_reopen tag_coverage
-  ui_cases all_objects_draggable no_app_scroll touchpad_mouse_zoom toolbar_coverage file_menu
-  ipc_changes boundary_tests
-  editor_e2e json_to_tale_determinism
-  deploy_e2e compiled_tales_agent_entrypoint
-  weaken_expectations deny
-  test_files paired_sibling
-  test_pattern {name}.test.ts
-  test_scope application_typescript
-  test_pair_check npm_run_lint
+  Every TypeScript source file has a sibling test file. Test observable behaviour and run the relevant unit and Electron interaction checks.
+  Testing provides evidence for Proof.
 
-DETERMINISM
-  mode strict
-  target compiled_tales
-  comparison byte_exact
-  encoding utf8
-  line_endings lf
-  final_newline true
-  rerun_check runs=2
-  clean_build_check runs=2
+DETERMINISM Deterministic output
+  The same saved JSON project must generate exactly the same .tale bytes after every build. Diagram layout and colours must not change the output.
+  Deterministic output must be demonstrated in Proof.
 
 AGENTIC_TESTS
-  pattern **/*.ai.test.ts
-  allow_create true
-  allow_modify within_task
-  freeze_after proof_pass
+  An agent may add focused tests for its task. Do not change a passing test merely to approve a new implementation. Preserve tests once their agreed proof passes.
+  Agentic tests adds checks to Testing.
 
 PROOF
-  run "npm run typecheck" expect exit=0 when=code_changed
-  run "npm run lint" expect exit=0 when=code_changed
-  run "npm run format:check" expect exit=0 when=code_changed
-  run "npm test" expect exit=0 when=code_changed
-  run "npm run test:e2e" expect exit=0 when=code_changed
-  contract_verify baseline=external coverage=mandatory
-  review scope unrelated_behavior added_lines
-  stop after_agreed_checks
+  Run type checking, lint, formatting, unit tests, and Electron end-to-end tests. Review the final diff and stop when the agreed checks pass.
 
-REQUIREMENT
-  id deployment-bytes
-  action deploy
-  subject artifacts/contract-deployment/.tale/project.tale
-  condition equals_file
-  expected .tale/project.tale
-  mandatory true
-  verified_by deploy-check
+REQUIREMENT Deploy exact Tale bytes
+  Deploy the exact Tale bytes generated from the saved project JSON. Check the installed file against the compiler output.
+  Deploy exact Tale bytes is verified by Exercise actual deployment.
 
-REQUIREMENT
-  id no-project-json
-  action deploy
-  subject artifacts/contract-deployment/.tale/tale.project.json
-  condition absent
-  expected ""
-  mandatory true
-  verified_by deploy-check
+REQUIREMENT Keep project JSON out of deployment
+  Keep the editor project JSON out of the destination .tale directory. Deploy only the compiled Tale.
+  Keep project JSON out of deployment is verified by Exercise actual deployment.
 
-REQUIREMENT
-  id preserve-project
-  action deploy
-  subject project/tale.project.json
-  condition unchanged
-  expected ""
-  mandatory true
-  verified_by deploy-check
+REQUIREMENT Preserve the editor project
+  Deployment must leave the source project JSON unchanged.
+  Preserve the editor project is verified by Exercise actual deployment.
 
-CHECK
-  id deploy-check
-  action deploy
-  executable node
-  arguments scripts/prove-deployment.mjs
-  protected_files scripts/prove-deployment.mjs
-  timeout_ms 30000
+CHECK Exercise actual deployment
+  Run the Electron deployment test. Confirm that the installed Tale matches the compiler output, no project JSON is installed, and the source JSON is preserved.

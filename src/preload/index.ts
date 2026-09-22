@@ -3,15 +3,6 @@ import type { Bridge, MenuAction, Reply } from '../model/bridge.js';
 
 // Sandboxed preload stays self-contained: only type imports outside Electron.
 const bridge: Bridge = {
-	prepareVerification: (project) =>
-		ipcRenderer.invoke('tale:prepare-verification', project) as Promise<Reply>,
-	approveVerification: (token, reason) =>
-		ipcRenderer.invoke('tale:approve-verification', {
-			token,
-			reason,
-		}) as Promise<Reply>,
-	runVerification: (token) =>
-		ipcRenderer.invoke('tale:run-verification', token) as Promise<Reply>,
 	newProject: (request) =>
 		ipcRenderer.invoke('tale:new', request) as Promise<Reply>,
 	templates: () => ipcRenderer.invoke('tale:templates') as Promise<Reply>,
@@ -38,16 +29,9 @@ const bridge: Bridge = {
 		const listener = (_event: Electron.IpcRendererEvent, action: unknown) => {
 			if (
 				typeof action === 'string' &&
-				[
-					'new',
-					'open',
-					'save',
-					'saveAs',
-					'deploy',
-					'compile',
-					'verify',
-					'exit',
-				].includes(action)
+				['new', 'open', 'save', 'saveAs', 'deploy', 'compile', 'exit'].includes(
+					action,
+				)
 			)
 				callback(action as MenuAction);
 		};

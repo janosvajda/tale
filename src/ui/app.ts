@@ -1,714 +1,667 @@
-import { type Artifact, compile } from '../application/compiler.js';
+import { compile } from '../application/compiler.js';
 import { Editor } from '../editor/editor.js';
 import { navigationMode } from '../editor/navigation.js';
 import { type MenuAction, type Reply, validateReply } from '../model/bridge.js';
-import { definition, itemRole } from '../model/catalogue.js';
-import { inspectContract } from '../model/contract.js';
+import { catalogue } from '../model/catalogue.js';
 import {
 	check,
-	type DiagramItem,
+	type Definition,
 	id,
-	isColor,
 	type Project,
 	serializeProject,
 } from '../model/project.js';
-import { tags, unusedTagColor, validTag } from '../model/tags.js';
-import { contractFields } from './contract-fields.js';
+import { skillCatalogue } from '../model/skills.js';
+import { generatedTag, nameAvailable, unusedColor } from '../model/tags.js';
 import { openDeployment } from './deployment.js';
-import { ruleFields } from './fields.js';
-import { decorateIcon, type IconName, icon, iconButton } from './icons.js';
+import { decorateIcon, icon, iconButton } from './icons.js';
 import { openNewProject } from './new-project.js';
-import { openVerification } from './verification.js';
 
-function get<T extends HTMLElement = HTMLElement>(selector: string): T {
-	const value = document.querySelector<T>(selector);
-	if (!value) throw new Error(`Missing UI element: ${selector}`);
-	return value;
-}
-function element<K extends keyof HTMLElementTagNameMap>(
-	tag: K,
-	text?: string,
-	className?: string,
-): HTMLElementTagNameMap[K] {
-	const value = document.createElement(tag);
-	if (text !== undefined) value.textContent = text;
-	if (className) value.className = className;
-	return value;
-}
 const ui = {
 	errorMs: 10000,
 	messageMs: 4000,
-	maxTextRows: 8,
+	textRows: 8,
 	percent: 100,
 	zoomStep: 1.2,
 };
 
-let editor: Editor;
-let saved = '';
-let workingPath: string | null = null;
-let busy = false;
-function setBusy(value: boolean) {
-	busy = value;
-	document.body.dataset.busy = String(value);
-	for (const button of document.querySelectorAll<HTMLButtonElement>(
-		'[data-action], #export-tales',
-	))
-		button.disabled = value;
+function get<T extends HTMLElement = HTMLElement>(selector: string): T {
+	const node = document.querySelector<T>(selector);
+	if (!node) throw new Error(`Missing UI element: ${selector}`);
+	return node;
 }
-let settings = false;
-let artifacts: Artifact[] = [];
-let statusTimer: ReturnType<typeof setTimeout>;
-function notify(message: string, error = false) {
-	const status = get('#status');
-	status.textContent = message;
-	status.className = error ? 'visible error' : 'visible';
-	clearTimeout(statusTimer);
-	statusTimer = setTimeout(
-		() => {
-			status.className = '';
-		},
-		error ? ui.errorMs : ui.messageMs,
-	);
-}
-async function reply(
-	promise: Promise<Reply>,
-): Promise<Extract<Reply, { ok: true }>> {
-	const result: unknown = await promise;
-	validateReply(result);
-	if (!result.ok) throw new Error(result.error);
-	return result;
-}
-function guarded(action: () => void) {
-	try {
-		action();
-	} catch (error) {
-		notify(
-			error instanceof Error ? error.message : 'Unable to update project',
-			true,
-		);
-	}
-}
-function change(action: (project: Project) => void) {
-	guarded(() => editor.mutate(action));
+function el<K extends keyof HTMLElementTagNameMap>(
+	tag: K,
+	text?: string,
+	className?: string,
+): HTMLElementTagNameMap[K] {
+	const node = document.createElement(tag);
+	if (text !== undefined) node.textContent = text;
+	if (className) node.className = className;
+	return node;
 }
 function button(
 	label: string,
 	action: () => void,
 	className?: string,
 ): HTMLButtonElement {
-	const value = element('button', label, className);
-	value.type = 'button';
-	value.addEventListener('click', () => guarded(action));
-	return value;
+	const node = el('button', label, className);
+	node.type = 'button';
+	node.addEventListener('click', action);
+	return node;
+}
+async function response(promise: Promise<Reply>) {
+	const result: unknown = await promise;
+	validateReply(result);
+	if (!result.ok) throw new Error(result.error);
+	return result;
+}
+
+let editor: Editor;
+let saved = '';
+let projectReady = false;
+let busy = false;
+let paletteKind: 'tag' | 'skill' = 'tag';
+let managerKind: 'tag' | 'skill' = 'tag';
+let selectedDefinition: string | null = null;
+let projectSettingsOpen = false;
+let manager: HTMLDialogElement | undefined;
+let messageTimer: ReturnType<typeof setTimeout>;
+
+function notify(message: string, error = false) {
+	const status = get('#status');
+	status.textContent = message;
+	status.className = error ? 'visible error' : 'visible';
+	clearTimeout(messageTimer);
+	messageTimer = setTimeout(
+		() => {
+			status.className = '';
+		},
+		error ? ui.errorMs : ui.messageMs,
+	);
+}
+function safe(action: () => void) {
+	try {
+		action();
+	} catch (error) {
+		notify(error instanceof Error ? error.message : String(error), true);
+	}
+}
+function mutate(action: (project: Project) => void) {
+	safe(() => editor.mutate(action));
+}
+function updateActions() {
+	for (const control of document.querySelectorAll<HTMLButtonElement>(
+		'[data-action], #export-tales',
+	))
+		control.disabled =
+			busy || (control.dataset.action === 'deploy' && !projectReady);
+	get<HTMLButtonElement>('#library-settings').disabled = busy;
+}
+function setBusy(value: boolean) {
+	busy = value;
+	document.body.dataset.busy = String(value);
+	updateActions();
+}
+function availableDefinitions(): Definition[] {
+	const embedded = editor.project.definitions;
+	const ids = new Set(embedded.map((entry) => entry.id));
+	const names = new Set(embedded.map((entry) => entry.name.toLowerCase()));
+	return [
+		...embedded,
+		...[...catalogue.tags, ...skillCatalogue].filter(
+			(entry) => !ids.has(entry.id) && !names.has(entry.name.toLowerCase()),
+		),
+	];
+}
+function builtIn(id: string): Definition | undefined {
+	return [...catalogue.tags, ...skillCatalogue].find(
+		(entry) => entry.id === id,
+	);
+}
+function editDefinition(
+	id: string,
+	action: (definition: Definition, project: Project) => void,
+) {
+	mutate((project) => {
+		let definition = project.definitions.find((entry) => entry.id === id);
+		if (!definition) {
+			const preset = builtIn(id);
+			check(preset, 'Missing definition');
+			definition = structuredClone(preset);
+			project.definitions.push(definition);
+		}
+		action(definition, project);
+	});
+}
+function palette() {
+	const list = get('#type-list');
+	list.replaceChildren();
+	const query = get<HTMLInputElement>('#type-search')
+		.value.trim()
+		.toLowerCase();
+	get('#tag-tab').setAttribute('aria-selected', String(paletteKind === 'tag'));
+	get('#skill-tab').setAttribute(
+		'aria-selected',
+		String(paletteKind === 'skill'),
+	);
+	get<HTMLInputElement>('#type-search').placeholder = `Find a ${paletteKind}…`;
+	for (const definition of availableDefinitions().filter(
+		(entry) =>
+			entry.kind === paletteKind && entry.name.toLowerCase().includes(query),
+	)) {
+		const row = el('div', undefined, 'type-button');
+		row.dataset.typeId = definition.id;
+		row.draggable = true;
+		row.title = `Drag ${definition.name} onto the diagram`;
+		row.addEventListener('dragstart', (event) => {
+			event.dataTransfer?.setData('application/x-tale-type', definition.id);
+			if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy';
+		});
+		const dot = el('span', undefined, 'swatch');
+		dot.style.backgroundColor = definition.color;
+		const info = iconButton('info', `About ${definition.name}`, () => {
+			get<HTMLDetailsElement>('#palette').open = false;
+			openManager(definition);
+		});
+		info.classList.add('type-info');
+		info.title = `${definition.name}\n\n${definition.defaultText || 'No default text yet.'}\n\nClick to edit this default.`;
+		info.draggable = false;
+		info.addEventListener('dragstart', (event) => event.preventDefault());
+		row.append(
+			dot,
+			el('span', definition.name, 'type-name'),
+			info,
+			iconButton('plus', `Add ${definition.name} to diagram`, () => {
+				get<HTMLDetailsElement>('#palette').open = false;
+				projectSettingsOpen = false;
+				editor.add(definition.id, definition);
+			}),
+		);
+		list.append(row);
+	}
 }
 function field(
 	label: string,
 	value: string,
-	action: (value: string) => void,
+	changed: (value: string) => void,
 	multiline = false,
-): HTMLInputElement | HTMLTextAreaElement {
-	const wrapper = element('label', undefined, 'field');
-	wrapper.append(element('span', label));
-	const input = multiline ? element('textarea') : element('input');
+) {
+	const wrapper = el('label', undefined, 'field');
+	wrapper.append(el('span', label));
+	const input = multiline ? el('textarea') : el('input');
 	input.value = value;
 	input.setAttribute('aria-label', label);
-	if (input instanceof HTMLTextAreaElement)
-		input.rows = Math.min(
-			ui.maxTextRows,
-			Math.max(2, value.split('\n').length),
-		);
-	input.addEventListener('change', () => guarded(() => action(input.value)));
+	if (input instanceof HTMLTextAreaElement) input.rows = ui.textRows;
+	input.addEventListener('change', () => safe(() => changed(input.value)));
 	wrapper.append(input);
-	get('#inspector').append(wrapper);
-	return input;
+	return wrapper;
 }
-function heading(label: string) {
-	get('#inspector').append(element('div', label, 'section-label'));
+function closeInspector() {
+	projectSettingsOpen = false;
+	editor.selected.clear();
+	editor.render();
+	inspector();
 }
-function selection(
-	label: string,
-	value: string,
-	options: { value: string; label: string }[],
-	action: (value: string) => void,
-) {
-	const wrapper = element('label', undefined, 'field');
-	wrapper.append(element('span', label));
-	const select = element('select');
-	select.setAttribute('aria-label', label);
-	for (const option of options) {
-		const el = element('option', option.label);
-		el.value = option.value;
-		select.append(el);
+function inspector() {
+	const pane = get('#inspector');
+	pane.replaceChildren();
+	const selected = [...editor.selected][0];
+	const item = editor.project.diagram.items.find(
+		(entry) => entry.id === selected,
+	);
+	const edge = editor.project.diagram.connections.find(
+		(entry) => entry.id === selected,
+	);
+	pane.hidden = !projectSettingsOpen && !item && !edge;
+	if (pane.hidden) return;
+	const content = el('div', undefined, 'inspector-content');
+	const header = el('div', undefined, 'inspector-header');
+	header.append(
+		el('h2', projectSettingsOpen ? 'Project' : (item?.title ?? 'Arrow')),
+		iconButton('close', 'Close inspector', closeInspector),
+	);
+	pane.append(header, content);
+	if (projectSettingsOpen) {
+		content.append(
+			field('Project name', editor.project.name, (name) =>
+				mutate((project) => {
+					project.name = name;
+				}),
+			),
+		);
+		content.append(
+			field(
+				'About this project',
+				editor.project.description,
+				(text) =>
+					mutate((project) => {
+						project.description = text;
+					}),
+				true,
+			),
+		);
+		const environments = el('div', undefined, 'environments');
+		environments.append(el('h3', 'Environments'));
+		for (const environment of editor.project.environments) {
+			const row = el('div', undefined, 'environment-row');
+			row.append(
+				field('Environment name', environment.name, (name) =>
+					mutate((project) => {
+						const target = project.environments.find(
+							(entry) => entry.id === environment.id,
+						);
+						if (target) target.name = name;
+					}),
+				),
+				iconButton('trash', `Remove ${environment.name}`, () =>
+					mutate((project) => {
+						project.environments = project.environments.filter(
+							(entry) => entry.id !== environment.id,
+						);
+					}),
+				),
+			);
+			environments.append(row);
+		}
+		environments.append(
+			button(
+				'Add environment',
+				() =>
+					mutate((project) => {
+						project.environments.push({ id: id(), name: 'New environment' });
+					}),
+				'quiet',
+			),
+		);
+		content.append(environments);
+		return;
 	}
-	select.value = value;
-	select.addEventListener('change', () => guarded(() => action(select.value)));
-	wrapper.append(select);
-	get('#inspector').append(wrapper);
+	if (item) {
+		const definition = editor.project.definitions.find(
+			(entry) => entry.id === item.definitionId,
+		);
+		content.append(
+			el(
+				'p',
+				`${definition?.kind === 'skill' ? 'Skill' : 'Tag'} in this diagram`,
+				'inspector-context',
+			),
+		);
+		content.append(
+			field('Title', item.title, (title) =>
+				mutate((project) => {
+					const target = project.diagram.items.find(
+						(entry) => entry.id === item.id,
+					);
+					if (target) target.title = title;
+				}),
+			),
+		);
+		content.append(
+			field(
+				'Text',
+				item.text,
+				(text) =>
+					mutate((project) => {
+						const target = project.diagram.items.find(
+							(entry) => entry.id === item.id,
+						);
+						if (target) target.text = text;
+					}),
+				true,
+			),
+		);
+		content.append(
+			el(
+				'p',
+				'This text appears in the generated Tale. Editing it does not change the reusable default.',
+				'small-note',
+			),
+		);
+		const actions = el('div', undefined, 'inspector-item-actions');
+		actions.append(
+			iconButton('copy', 'Duplicate this item', () => {
+				editor.selected = new Set([item.id]);
+				editor.duplicate();
+			}),
+			iconButton('trash', 'Delete this item', () => {
+				editor.selected = new Set([item.id]);
+				editor.remove();
+			}),
+		);
+		content.append(actions);
+		return;
+	}
+	if (edge) {
+		content.append(el('p', 'Arrow between diagram items', 'small-note'));
+		const endpoints = el(
+			'p',
+			`${editor.project.diagram.items.find((entry) => entry.id === edge.from)?.title ?? 'Unknown'} → ${editor.project.diagram.items.find((entry) => entry.id === edge.to)?.title ?? 'Unknown'}`,
+		);
+		content.append(
+			endpoints,
+			field('Relationship (for example, guides)', edge.label ?? '', (label) =>
+				mutate((project) => {
+					const target = project.diagram.connections.find(
+						(entry) => entry.id === edge.id,
+					);
+					if (target) target.label = label;
+				}),
+			),
+			iconButton('trash', 'Delete arrow', () => editor.remove()),
+		);
+	}
 }
+
+function selectDefinition(definition: Definition) {
+	selectedDefinition = definition.id;
+	for (const row of manager?.querySelectorAll<HTMLButtonElement>(
+		'.definition-row',
+	) ?? [])
+		row.setAttribute(
+			'aria-current',
+			String(row.dataset.definitionId === definition.id),
+		);
+	const detail = manager?.querySelector<HTMLElement>('.definitions-detail');
+	if (!detail) return;
+	detail.replaceChildren();
+	renderDefinition(detail, definition);
+	detail.scrollTop = 0;
+}
+function renderManager(resetListScroll = false) {
+	if (!manager) return;
+	const scrollTop = resetListScroll
+		? 0
+		: (manager.querySelector<HTMLElement>('.definitions-list')?.scrollTop ?? 0);
+	manager.replaceChildren();
+	const header = el('div', undefined, 'dialog-header');
+	header.append(
+		el('h2', 'Tags & skills'),
+		iconButton('close', 'Close Tags and skills', () => manager?.close()),
+	);
+	const body = el('div', undefined, 'definitions-layout');
+	const sidebar = el('div', undefined, 'definitions-sidebar');
+	const tabs = el('div', undefined, 'manager-tabs');
+	for (const kind of ['tag', 'skill'] as const) {
+		const tab = button(kind === 'tag' ? 'Tags' : 'Skills', () => {
+			managerKind = kind;
+			selectedDefinition = null;
+			renderManager(true);
+		});
+		tab.setAttribute('aria-selected', String(managerKind === kind));
+		tabs.append(tab);
+	}
+	sidebar.append(tabs);
+	const list = el('div', undefined, 'definitions-list');
+	for (const definition of availableDefinitions().filter(
+		(entry) => entry.kind === managerKind,
+	)) {
+		const row = button(
+			definition.name,
+			() => selectDefinition(definition),
+			'definition-row',
+		);
+		row.dataset.definitionId = definition.id;
+		row.setAttribute(
+			'aria-current',
+			String(selectedDefinition === definition.id),
+		);
+		const dot = el('span', undefined, 'tag-card-colour');
+		dot.style.backgroundColor = definition.color;
+		row.prepend(dot);
+		list.append(row);
+	}
+	list.scrollTop = scrollTop;
+	sidebar.append(
+		list,
+		button(
+			`New ${managerKind}`,
+			() => {
+				const name = managerKind === 'skill' ? 'New skill' : 'New tag';
+				const definition: Definition = {
+					id: id(),
+					kind: managerKind,
+					name,
+					tag:
+						managerKind === 'skill'
+							? 'SKILL'
+							: generatedTag(name, editor.project.definitions),
+					color:
+						managerKind === 'skill'
+							? '#6D28D9'
+							: unusedColor(editor.project.definitions),
+					defaultText: '',
+				};
+				mutate((project) => {
+					definition.name = uniqueName(name, project.definitions);
+					project.definitions.push(definition);
+				});
+				selectedDefinition = definition.id;
+				renderManager();
+			},
+			'quiet wide',
+		),
+	);
+	const detail = el('div', undefined, 'definitions-detail');
+	const definition = availableDefinitions().find(
+		(entry) => entry.id === selectedDefinition && entry.kind === managerKind,
+	);
+	if (definition) renderDefinition(detail, definition);
+	else
+		detail.append(
+			el(
+				'p',
+				`Select a ${managerKind} to read or edit its default text.`,
+				'definitions-empty',
+			),
+		);
+	body.append(sidebar, detail);
+	manager.append(header, body);
+}
+function uniqueName(base: string, definitions: Definition[]): string {
+	let name = base;
+	let index = 2;
+	while (!nameAvailable(name, definitions)) {
+		name = `${base} ${index}`;
+		index++;
+	}
+	return name;
+}
+function renderDefinition(detail: HTMLElement, definition: Definition) {
+	detail.append(
+		el('h3', definition.name),
+		el('p', 'Default text for new diagram items', 'small-note'),
+	);
+	detail.append(
+		field('Name', definition.name, (name) => {
+			editDefinition(definition.id, (target, project) => {
+				check(
+					nameAvailable(name, project.definitions, target.id),
+					'A Tag or Skill with this name already exists',
+				);
+				target.name = name.trim();
+				if (target.kind === 'tag')
+					target.tag = generatedTag(
+						target.name,
+						project.definitions.filter((entry) => entry.id !== target.id),
+					);
+			});
+			renderManager();
+		}),
+	);
+	const colour = el('label', undefined, 'definition-colour');
+	colour.append(el('span', 'Colour'));
+	const swatch = el('input');
+	swatch.type = 'color';
+	swatch.value = definition.color;
+	swatch.setAttribute('aria-label', 'Colour');
+	swatch.addEventListener('change', () => {
+		editDefinition(definition.id, (target) => {
+			target.color = swatch.value;
+		});
+	});
+	colour.append(swatch);
+	detail.append(colour);
+	detail.append(
+		field(
+			'Default text',
+			definition.defaultText,
+			(text) =>
+				editDefinition(definition.id, (target) => {
+					target.defaultText = text;
+				}),
+			true,
+		),
+	);
+	detail.append(
+		el(
+			'p',
+			'New diagram items start with this text. Existing items keep their own text.',
+			'small-note',
+		),
+	);
+	const actions = el('div', undefined, 'definition-actions');
+	const original = builtIn(definition.id);
+	if (original)
+		actions.append(
+			button(
+				'Restore original',
+				() => {
+					if (!window.confirm(`Restore the original ${definition.name}?`))
+						return;
+					mutate((project) => {
+						const index = project.definitions.findIndex(
+							(entry) => entry.id === definition.id,
+						);
+						if (index >= 0)
+							project.definitions[index] = structuredClone(original);
+					});
+					renderManager();
+				},
+				'quiet',
+			),
+		);
+	else
+		actions.append(
+			iconButton('trash', `Delete ${definition.name}`, () => {
+				if (!window.confirm(`Delete ${definition.name}?`)) return;
+				mutate((project) => {
+					check(
+						!project.diagram.items.some(
+							(item) => item.definitionId === definition.id,
+						),
+						'Remove its diagram items first',
+					);
+					project.definitions = project.definitions.filter(
+						(entry) => entry.id !== definition.id,
+					);
+				});
+				selectedDefinition = null;
+				renderManager();
+			}),
+		);
+	detail.append(actions);
+}
+function openManager(selected?: Definition) {
+	if (!manager) {
+		manager = el('dialog');
+		manager.id = 'definitions-dialog';
+		manager.setAttribute('aria-label', 'Tags and skills');
+		document.body.append(manager);
+	}
+	managerKind = selected?.kind ?? managerKind;
+	selectedDefinition = selected?.id ?? null;
+	renderManager(true);
+	manager.showModal();
+}
+
 function refresh(edited: boolean) {
 	get('#project-name').textContent = editor.project.name;
 	const dirty = serializeProject(editor.project) !== saved;
 	get('#dirty').classList.toggle('visible', dirty);
 	document.title = `${dirty ? '• ' : ''}${editor.project.name} — Tale`;
 	if (edited)
-		void reply(window.tale.setDirty(dirty)).catch((error) =>
+		void response(window.tale.setDirty(dirty)).catch((error) =>
 			notify(String(error), true),
 		);
 	get('#zoom').textContent =
 		`${Math.round(editor.project.diagram.viewport.zoom * ui.percent)}%`;
 	get('#board-count').textContent =
-		`${editor.project.diagram.items.length} tags · ${editor.project.diagram.connections.length} connections`;
+		`${editor.project.diagram.items.length} notes · ${editor.project.diagram.connections.length} arrows`;
 	for (const tool of ['select', 'hand', 'arrow'])
 		get(`#${tool}-tool`).classList.toggle('active', editor.tool === tool);
 	palette();
-	const issues = inspectContract(editor.project).issues;
-	const affected = new Set(issues.flatMap((issue) => issue.items));
-	for (const node of document.querySelectorAll<SVGGElement>('[data-node]'))
-		node.classList.toggle(
-			'contract-invalid',
-			affected.has(node.dataset.node ?? ''),
-		);
-	get('#contract-status').textContent = issues.length
-		? `Check agreement · ${issues.length}`
-		: 'Check agreement';
 	inspector();
 }
-function palette() {
-	const list = get('#type-list');
-	const search = get<HTMLInputElement>('#type-search').value.toLowerCase();
-	list.replaceChildren();
-	for (const type of editor.project.itemTypes) {
-		if (!`${type.label} ${type.tag}`.toLowerCase().includes(search)) continue;
-		const add = button(
-			type.label,
-			() => {
-				editor.add(type.id);
-				settings = false;
-				get<HTMLDetailsElement>('#palette').open = false;
-				inspector();
-			},
-			'type-button',
-		);
-		add.dataset.typeId = type.id;
-		add.title = `${type.tag} rectangle`;
-		const swatch = element('span', undefined, 'swatch');
-		swatch.style.backgroundColor = type.color;
-		add.prepend(swatch);
-		list.append(add);
-	}
-}
-function itemActions(item: DiagramItem): HTMLElement {
-	const row = element('div', undefined, 'inspector-item-actions');
-	row.append(
-		iconButton('save', 'Save as predefined tag', () =>
-			change((project) => {
-				const type = project.itemTypes.find((type) => type.id === item.typeId);
-				check(type, 'Missing tag definition');
-				project.itemTypes.push({
-					...structuredClone(type),
-					id: id(),
-					label: item.title,
-					definition: {
-						...structuredClone(definition(type)),
-						initial: {
-							properties: structuredClone(item.properties),
-							sections: structuredClone(item.sections ?? []),
-						},
-					},
-				});
-				notify('Predefined tag added to the palette');
-			}),
-		),
-		iconButton('copy', 'Duplicate tag', () =>
-			guarded(() => {
-				editor.selected = new Set([item.id]);
-				editor.duplicate();
-			}),
-		),
-		iconButton('trash', 'Delete tag', () =>
-			guarded(() => {
-				editor.selected = new Set([item.id]);
-				editor.remove();
-			}),
-		),
-	);
-	row.lastElementChild?.classList.add('danger');
-	return row;
-}
-function inspector() {
-	const pane = get('#inspector');
-	const context = `${editor.project.id}:${settings ? 'settings' : [...editor.selected].join(',')}`;
-	const same = pane.dataset.context === context;
-	const scroll = same
-		? (pane.querySelector('.inspector-content')?.scrollTop ?? 0)
-		: 0;
-	const sections = new Map(
-		[...pane.querySelectorAll<HTMLDetailsElement>('[data-section]')].map(
-			(section) => [section.dataset.section, section.open],
-		),
-	);
-	const active = document.activeElement;
-	const focused =
-		same && pane.contains(active) && active instanceof HTMLElement
-			? {
-					label: active.getAttribute('aria-label'),
-					section:
-						active.closest<HTMLElement>('[data-section]')?.dataset.section,
-					option: active.closest<HTMLElement>('[data-option]')?.dataset.option,
-				}
-			: undefined;
-	renderInspector();
-	pane.dataset.context = context;
-	const header = pane.querySelector('.inspector-header');
-	const toolbar = pane.querySelector('.section-toolbar');
-	const content = element('div', undefined, 'inspector-content');
-	if (toolbar) pane.append(toolbar);
-	for (const child of [...pane.children])
-		if (child !== header && child !== toolbar) content.append(child);
-	pane.append(content);
-	restoreInspector(content, same, sections, focused, scroll);
-}
-function restoreInspector(
-	content: HTMLElement,
-	same: boolean,
-	sections: Map<string | undefined, boolean>,
-	focused:
-		| { label: string | null; section?: string; option?: string }
-		| undefined,
-	scroll: number,
-) {
-	let added: HTMLDetailsElement | undefined;
-	if (same)
-		for (const section of content.querySelectorAll<HTMLDetailsElement>(
-			'[data-section]',
-		)) {
-			section.open = sections.get(section.dataset.section) ?? true;
-			if (!sections.has(section.dataset.section)) added = section;
-		}
-	content.scrollTop = scroll;
-	if (added) {
-		added.open = true;
-		added.scrollIntoView({ block: 'nearest' });
-		added
-			.querySelector<HTMLElement>('input, select, textarea')
-			?.focus({ preventScroll: true });
-	} else if (focused?.label) {
-		const scope =
-			[
-				...content.querySelectorAll<HTMLElement>(
-					'[data-option], [data-section]',
-				),
-			].find((node) =>
-				focused.option
-					? node.dataset.option === focused.option
-					: node.dataset.section === focused.section,
-			) ?? content;
-		[...scope.querySelectorAll<HTMLElement>('[aria-label]')]
-			.find((node) => node.getAttribute('aria-label') === focused.label)
-			?.focus({ preventScroll: true });
-	}
-}
-function knownRelationship(kind: string) {
-	return ['contains', 'verified_by'].includes(kind);
-}
-function isContractType(
-	type: import('../model/project.js').ItemType | undefined,
-) {
-	return (
-		type !== undefined &&
-		['requirement', 'check'].includes(definition(type).role ?? '')
-	);
-}
-function relationshipOptions(kind: string) {
-	return [
-		{ value: 'contains', label: 'Contains' },
-		{ value: 'verified_by', label: 'Verified by' },
-		...(!knownRelationship(kind) ? [{ value: kind, label: kind }] : []),
-	];
-}
-function renderInspector() {
-	const pane = get('#inspector');
-	pane.replaceChildren();
-	const selected = [...editor.selected][0];
-	const item = editor.project.diagram.items.find((i) => i.id === selected);
-	const edge = editor.project.diagram.connections.find(
-		(e) => e.id === selected,
-	);
-	pane.hidden = !settings && !item && !edge;
-	if (pane.hidden) return;
-	const header = element('div', undefined, 'inspector-header');
-	header.append(
-		element('h2', settings ? 'Project' : item ? item.title : 'Connection'),
-		iconButton('close', 'Close inspector', () => {
-			settings = false;
-			editor.selected.clear();
-			editor.render();
-			inspector();
-		}),
-	);
-	pane.append(header);
-	if (settings) {
-		projectSettings();
-		return;
-	}
-	if (item) {
-		field('Title', item.title, (title) =>
-			change((p) => {
-				const target = p.diagram.items.find((i) => i.id === item.id);
-				if (target) target.title = title;
-			}),
-		);
-		const type = editor.project.itemTypes.find((t) => t.id === item.typeId);
-		pane.append(
-			element(
-				'p',
-				`${type?.tag} · ${editor.selected.size > 1 ? `${editor.selected.size} selected` : 'Rectangle'}`,
-				'small-note',
-			),
-		);
-		header.append(itemActions(item));
-		if (isContractType(type)) {
-			pane.append(contractFields(editor.project, item, change));
-			return;
-		}
-		pane.append(
-			ruleFields(
-				type ?? '',
-				item.properties,
-				(key, value) =>
-					change((p) => {
-						const target = p.diagram.items.find((i) => i.id === item.id);
-						if (target) target.properties[key] = value;
-					}),
-				(key) =>
-					change((p) => {
-						const target = p.diagram.items.find((i) => i.id === item.id);
-						if (target)
-							target.properties = Object.fromEntries(
-								Object.entries(target.properties).filter(
-									([name]) => name !== key,
-								),
-							);
-					}),
-				item.sections ?? [],
-				(sections) =>
-					change((p) => {
-						const target = p.diagram.items.find((i) => i.id === item.id);
-						if (target) target.sections = sections;
-					}),
-			),
-		);
-	} else if (edge) {
-		selection(
-			'From',
-			edge.from,
-			editor.project.diagram.items.map((i) => ({
-				value: i.id,
-				label: i.title,
-			})),
-			(value) =>
-				change((p) => {
-					const e = p.diagram.connections.find((e) => e.id === edge.id);
-					if (e) e.from = value;
-				}),
-		);
-		selection(
-			'To',
-			edge.to,
-			editor.project.diagram.items.map((i) => ({
-				value: i.id,
-				label: i.title,
-			})),
-			(value) =>
-				change((p) => {
-					const e = p.diagram.connections.find((e) => e.id === edge.id);
-					if (e) e.to = value;
-				}),
-		);
-		selection(
-			'Relationship',
-			edge.kind,
-			relationshipOptions(edge.kind),
-			(value) =>
-				change((p) => {
-					const e = p.diagram.connections.find((e) => e.id === edge.id);
-					if (e) e.kind = value;
-				}),
-		);
-		pane.append(
-			element(
-				'p',
-				'Drag the line to shape it. Drag an endpoint to reconnect.',
-				'small-note',
-			),
-		);
-		pane.append(
-			button(
-				'Reset curve',
-				() =>
-					change((p) => {
-						const e = p.diagram.connections.find((e) => e.id === edge.id);
-						if (e)
-							p.diagram.connections = p.diagram.connections.map((connection) =>
-								connection === e
-									? (Object.fromEntries(
-											Object.entries(connection).filter(
-												([key]) => key !== 'bend',
-											),
-										) as typeof e)
-									: connection,
-							);
-					}),
-				'wide quiet',
-			),
-			button('Delete connection', () => editor.remove(), 'wide danger'),
-		);
-	}
-}
-function projectSettings() {
-	const pane = get('#inspector');
-	field('Project name', editor.project.name, (name) =>
-		change((p) => {
-			p.name = name;
-		}),
-	);
-	pane.append(element('p', workingPath ?? 'Unsaved project', 'small-note'));
-	heading('Environments');
-	for (const env of editor.project.environments) {
-		field('Environment name', env.name, (name) =>
-			change((p) => {
-				const e = p.environments.find((e) => e.id === env.id);
-				if (e) e.name = name;
-			}),
-		);
-		pane.append(
-			button(
-				`Remove ${env.name}`,
-				() =>
-					change((p) => {
-						p.environments = p.environments.filter((e) => e.id !== env.id);
-						for (const output of p.exports)
-							if (output.environmentId === env.id) output.environmentId = null;
-					}),
-				'danger',
-			),
-		);
-	}
-	pane.append(
-		button(
-			'＋ Environment',
-			() =>
-				change((p) =>
-					p.environments.push({ id: id(), name: 'New environment' }),
-				),
-			'wide quiet',
-		),
-	);
-	heading('Tags');
-	const newLabel = field('Tag name', '', () => {});
-	newLabel.placeholder = 'Tag name';
-	newLabel.setAttribute('aria-label', 'New tag name');
-
-	const newTag = field('Tag identifier', '', () => {});
-	newTag.setAttribute('aria-label', 'New tag identifier');
-	newTag.placeholder = 'e.g. TEAM_RULES';
-	newTag.setAttribute('list', 'tag-suggestions');
-	const suggestions = element('datalist');
-	suggestions.id = 'tag-suggestions';
-	for (const tag of tags) {
-		const option = element('option', tag);
-		option.value = tag;
-		suggestions.append(option);
-	}
-	pane.append(suggestions);
-	pane.append(
-		button(
-			'＋ Add tag',
-			() =>
-				change((p) => {
-					check(newLabel.value.trim(), 'Give the tag a name');
-					const tag = newTag.value.trim().toUpperCase();
-					check(
-						validTag(tag),
-						'Use a tag starting with a letter, then letters, numbers, or underscores',
-					);
-					const same = p.itemTypes.find((t) => t.tag === tag);
-					p.itemTypes.push({
-						id: id(),
-						label: newLabel.value.trim(),
-						tag,
-						definition: structuredClone(definition(tag)),
-						color:
-							same?.color ??
-							unusedTagColor(p.itemTypes.map((type) => type.color)),
-					});
-				}),
-			'wide quiet',
-		),
-	);
-	heading('Tags in this project');
-	for (const type of editor.project.itemTypes) {
-		const row = element('div', undefined, 'tag-definition');
-		const color = element('input');
-		color.type = 'color';
-		color.value = type.color;
-		color.setAttribute('aria-label', `${type.label} colour`);
-		color.className = 'tag-color';
-		color.addEventListener('change', () =>
-			change((p) => {
-				check(isColor(color.value), 'Invalid colour');
-				for (const t of p.itemTypes)
-					if (t.tag === type.tag) t.color = color.value;
-			}),
-		);
-		const label = element('input');
-		label.value = type.label;
-		label.setAttribute('aria-label', `${type.tag} label`);
-		label.addEventListener('change', () =>
-			change((p) => {
-				const t = p.itemTypes.find((t) => t.id === type.id);
-				if (t) t.label = label.value;
-			}),
-		);
-		const name = element('label', undefined, 'tag-label');
-		name.append(element('span', type.tag), label);
-		row.append(color, name);
-		pane.append(row);
-	}
-	deploymentSettings();
-}
-function deploymentSettings() {
-	const pane = get('#inspector');
-	heading('Deployment');
-	pane.append(
-		element(
-			'p',
-			'One Tale file. Environments are listed in the agent instructions.',
-			'small-note',
-		),
-	);
-	pane.append(
-		element(
-			'p',
-			editor.project.exports[0]?.path ?? '.tale/project.tale',
-			'small-note',
-		),
-	);
-	const roots = editor.project.diagram.items.filter(
-		(item) => itemRole(editor.project, item) === 'document',
-	);
-	if (roots.length > 1 || editor.project.exports.length > 1) {
-		selection(
-			'Tale to deploy',
-			editor.project.exports.length === 1
-				? editor.project.exports[0]!.rootItemId
-				: '',
-			[
-				{ value: '', label: 'Choose a Tale' },
-				...roots.map((root) => ({ value: root.id, label: root.title })),
-			],
-			(rootItemId) =>
-				change((project) => {
-					check(rootItemId, 'Choose a Tale to deploy');
-					project.exports = [
-						{
-							id: 'project',
-							rootItemId,
-							environmentId: null,
-							path: project.exports[0]?.path ?? '.tale/project.tale',
-						},
-					];
-				}),
-		);
-	}
-}
-
 function previewTales() {
-	artifacts = compile(editor.project);
-	check(
-		artifacts.length,
-		'Add a Tale tag and connect your tags before previewing',
-	);
+	const artifact = compile(editor.project)[0];
+	check(artifact, 'Nothing to preview');
 	const select = get<HTMLSelectElement>('#artifact-select');
-	select.replaceChildren();
-	for (const artifact of artifacts) {
-		const option = element('option', artifact.path);
-		option.value = artifact.path;
-		select.append(option);
-	}
-	showArtifact();
+	select.replaceChildren(el('option', artifact.path));
+	select.value = artifact.path;
+	get<HTMLTextAreaElement>('#compiled-output').value = artifact.content;
 	get<HTMLDialogElement>('#preview').showModal();
 }
-async function newProject() {
-	const document = await openNewProject();
-	if (!document) return;
-	editor.setProject(document.project);
+async function createDocument() {
+	const result = await openNewProject();
+	if (!result) return;
+	editor.setProject(result.project);
 	saved = '';
-	workingPath = null;
-	settings = false;
-	if (document.project.diagram.items.length) editor.fit();
+	projectReady = true;
+	projectSettingsOpen = false;
+	if (editor.project.diagram.items.length) editor.fit();
 	refresh(false);
 }
-
+async function openOrSave(command: 'open' | 'save' | 'saveAs') {
+	const result = await response(
+		command === 'open'
+			? window.tale.open()
+			: window.tale.save(editor.project, command === 'saveAs'),
+	);
+	if (result.cancelled) return;
+	if (result.document) {
+		if (command === 'open') editor.setProject(result.document.project);
+		saved = serializeProject(result.document.project);
+		projectReady = true;
+		projectSettingsOpen = false;
+		await response(
+			window.tale.setDirty(serializeProject(editor.project) !== saved),
+		);
+		refresh(false);
+	}
+	if (result.message) notify(result.message);
+}
 async function action(command: MenuAction) {
 	if (busy) return;
-	setBusy(true);
 	get<HTMLDetailsElement>('#file-menu').open = false;
+	if (command === 'compile') {
+		safe(previewTales);
+		return;
+	}
+	if (command === 'deploy') {
+		if (!projectReady) {
+			notify('Create or open a project first.', true);
+			return;
+		}
+		openDeployment(structuredClone(editor.project), notify);
+		return;
+	}
+	setBusy(true);
 	try {
-		switch (command) {
-			case 'verify':
-				openVerification(structuredClone(editor.project), (ids) => {
-					editor.selected = new Set(ids);
-					settings = false;
-					editor.render();
-					refresh(false);
-				});
-				return;
-			case 'exit':
-				await reply(window.tale.exit());
-				return;
-			case 'deploy':
-				openDeployment(structuredClone(editor.project), (message) =>
-					notify(message),
-				);
-				return;
-			case 'compile':
-				previewTales();
-				return;
-			case 'new':
-				await newProject();
-				return;
+		if (command === 'exit') {
+			await response(window.tale.exit());
+			return;
 		}
-		const result = await reply(
-			command === 'open'
-				? window.tale.open()
-				: window.tale.save(editor.project, command === 'saveAs'),
-		);
-		if (result.cancelled) return;
-		if (result.document) {
-			saved = serializeProject(result.document.project);
-			workingPath = result.document.path;
-			if (command === 'open') editor.setProject(result.document.project);
-			await reply(
-				window.tale.setDirty(serializeProject(editor.project) !== saved),
-			);
-			refresh(false);
-		}
-		if (result.message) notify(result.message);
+		if (command === 'new') await createDocument();
+		else await openOrSave(command);
 	} catch (error) {
-		notify(error instanceof Error ? error.message : 'Operation failed', true);
+		notify(error instanceof Error ? error.message : String(error), true);
 	} finally {
 		setBusy(false);
 	}
 }
-function showArtifact() {
-	get<HTMLTextAreaElement>('#compiled-output').value =
-		artifacts.find(
-			(a) => a.path === get<HTMLSelectElement>('#artifact-select').value,
-		)?.content ?? '';
-}
-function toolbarIcons() {
-	const controls: [string, IconName, string][] = [
+function icons() {
+	for (const [selector, name, label] of [
 		['#undo', 'undo', 'Undo'],
 		['#redo', 'redo', 'Redo'],
 		['#zoom-in', 'plus', 'Zoom in'],
@@ -717,18 +670,21 @@ function toolbarIcons() {
 		['#select-tool', 'select', 'Select and move'],
 		['#hand-tool', 'hand', 'Pan'],
 		['#arrow-tool', 'arrow', 'Draw arrow'],
-		['#palette > summary', 'plus', 'Add tag'],
+		['#palette > summary', 'plus', 'Add a note'],
 		['#close-preview', 'close', 'Close preview'],
 		['.appbar > [data-action="save"]', 'save', 'Save'],
 		['.appbar > [data-action="exit"]', 'exit', 'Exit Tale'],
 		['.appbar > [data-action="compile"]', 'eye', 'Preview Tale'],
-	];
+	] as const)
+		decorateIcon(get(selector), name, label);
+	get('#library-settings').replaceChildren(
+		icon('edit'),
+		el('span', 'Tags & skills'),
+	);
 	get('.appbar > [data-action="deploy"]').replaceChildren(
 		icon('deploy'),
-		element('span', 'Deploy Tale'),
+		el('span', 'Deploy Tale'),
 	);
-	for (const [selector, name, label] of controls)
-		decorateIcon(get(selector), name, label);
 }
 function dismissMenus() {
 	const menus = [
@@ -757,45 +713,43 @@ function dismissMenus() {
 	);
 }
 function navigationControls() {
-	const select = get<HTMLSelectElement>('#navigation-mode');
+	const control = get<HTMLSelectElement>('#navigation-mode');
 	function apply(value: string | null) {
 		const mode = navigationMode(value);
 		editor.navigation.mode = mode;
-		select.value = mode;
-		const hints = {
-			mouse: 'Right / Space + drag to pan · Wheel or pinch to zoom',
-			trackpad: 'Two fingers to pan · Pinch or Ctrl / ⌘ + wheel to zoom',
-		};
-		get('#navigation-hint').textContent = hints[mode];
+		control.value = mode;
+		get('#navigation-hint').textContent =
+			mode === 'mouse'
+				? 'Right / Space + drag to pan · Wheel or pinch to zoom'
+				: 'Two fingers to pan · Pinch or Ctrl / ⌘ + wheel to zoom';
 		localStorage.setItem('tale.navigation', mode);
 	}
 	apply(localStorage.getItem('tale.navigation'));
-	select.addEventListener('change', () => {
-		apply(select.value);
-	});
+	control.addEventListener('change', () => apply(control.value));
 }
 async function start() {
-	toolbarIcons();
-	const result = await reply(window.tale.load());
+	icons();
+	const result = await response(window.tale.load());
 	check(result.document, 'No project received');
-	saved = serializeProject(result.document.project);
 	editor = new Editor(get('#canvas'), result.document.project);
+	saved = serializeProject(result.document.project);
+	projectReady = Boolean(result.document.path);
 	dismissMenus();
 	navigationControls();
 	editor.onChange = (edited) => {
-		if (!edited && editor.selected.size) settings = false;
+		if (!edited && editor.selected.size) projectSettingsOpen = false;
 		refresh(edited);
 	};
 	editor.onEdit = () => {
-		settings = false;
+		projectSettingsOpen = false;
 		inspector();
 		get<HTMLInputElement>('#inspector input[aria-label="Title"]').focus();
 	};
-	for (const target of document.querySelectorAll<HTMLButtonElement>(
+	for (const control of document.querySelectorAll<HTMLButtonElement>(
 		'[data-action]',
 	))
-		target.addEventListener('click', () => {
-			void action(target.dataset.action as MenuAction);
+		control.addEventListener('click', () => {
+			void action(control.dataset.action as MenuAction);
 		});
 	window.tale.onMenu((command) => {
 		void action(command);
@@ -807,12 +761,36 @@ async function start() {
 			refresh(false);
 		});
 	get('#type-search').addEventListener('input', palette);
-	for (const name of ['project-settings', 'manage-types'])
-		get(`#${name}`).addEventListener('click', () => {
-			settings = true;
-			get<HTMLDetailsElement>('#palette').open = false;
-			inspector();
+	for (const kind of ['tag', 'skill'] as const)
+		get(`#${kind}-tab`).addEventListener('click', () => {
+			paletteKind = kind;
+			get<HTMLInputElement>('#type-search').value = '';
+			palette();
 		});
+	get('#project-settings').addEventListener('click', () => {
+		projectSettingsOpen = true;
+		get<HTMLDetailsElement>('#palette').open = false;
+		inspector();
+	});
+	get('#library-settings').addEventListener('click', () => openManager());
+	const canvas = get('#canvas');
+	canvas.addEventListener('dragover', (event) => {
+		if (!event.dataTransfer?.types.includes('application/x-tale-type')) return;
+		event.preventDefault();
+		event.dataTransfer.dropEffect = 'copy';
+	});
+	canvas.addEventListener('drop', (event) => {
+		const typeId = event.dataTransfer?.getData('application/x-tale-type');
+		if (!typeId) return;
+		event.preventDefault();
+		const definition = availableDefinitions().find(
+			(entry) => entry.id === typeId,
+		);
+		if (!definition) return;
+		get<HTMLDetailsElement>('#palette').open = false;
+		projectSettingsOpen = false;
+		editor.addAt(typeId, { x: event.clientX, y: event.clientY }, definition);
+	});
 	get('#undo').addEventListener('click', () => editor.undo());
 	get('#redo').addEventListener('click', () => editor.redo());
 	get('#zoom-in').addEventListener('click', () => editor.zoom(ui.zoomStep));
@@ -820,23 +798,21 @@ async function start() {
 		editor.zoom(1 / ui.zoomStep),
 	);
 	get('#fit').addEventListener('click', () => editor.fit());
-	get('#artifact-select').addEventListener('change', showArtifact);
 	get('#close-preview').addEventListener('click', () =>
 		get<HTMLDialogElement>('#preview').close(),
 	);
 	get('#export-tales').addEventListener('click', () => {
 		if (busy) return;
 		setBusy(true);
-		void reply(window.tale.exportTales(editor.project))
+		void response(window.tale.exportTales(editor.project))
 			.then((result) => {
 				if (result.message) notify(result.message);
 			})
 			.catch((error) => notify(String(error), true))
-			.finally(() => {
-				setBusy(false);
-			});
+			.finally(() => setBusy(false));
 	});
 	refresh(false);
+	updateActions();
 	document.body.dataset.ready = 'true';
 }
 void start().catch((error) =>

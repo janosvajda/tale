@@ -11,7 +11,7 @@ asks for the destination again, then previews the generated Tale and agent files
 | [node-typescript-biome-webpack.json](node-typescript-biome-webpack.json) | Node.js, strict TypeScript, Biome linting/formatting, Webpack with ts-loader, behavior tests and completion checks. |
 | [rust-clippy.json](rust-clippy.json) | Rust, Cargo, Clippy, rustfmt, behavior tests and completion checks. |
 
-These files contain editable **agreement diagrams**, not application scaffolding.
+These files contain editable **agreement diagrams**, not application scaffolding. The nonblank templates connect their starting notes with meaningful, editable relationships.
 Creating a project copies the selected diagram, assigns a fresh project ID and
 uses the entered title. It does not run commands, install dependencies, or write
 to the deployment directory. Review the starting rules for your application.
@@ -19,7 +19,7 @@ Save / Save As writes your editor project JSON; Deploy writes the compiled
 `.tale/project.tale` and the selected agent instructions.
 
 Templates use the ordinary [project JSON format](../docs/project-format.md),
-including their Tag definitions, sections, connections and layout. Add a valid
+including their Tag and Skill definitions, plain-language notes, connections and layout. Add a valid
 project JSON file to this directory to offer another template; its `name` is the
 label in the dialog. No TypeScript changes or template registration are needed.
 Template files remain unchanged when users edit the copied diagrams. A project's

@@ -62,6 +62,7 @@ let projectReady = false;
 let busy = false;
 let paletteKind: 'tag' | 'skill' = 'tag';
 let managerKind: 'tag' | 'skill' = 'tag';
+let managerQuery = '';
 let selectedDefinition: string | null = null;
 let projectSettingsOpen = false;
 let manager: HTMLDialogElement | undefined;
@@ -69,7 +70,15 @@ let messageTimer: ReturnType<typeof setTimeout>;
 
 function notify(message: string, error = false) {
 	const status = get('#status');
-	status.textContent = message;
+	status.replaceChildren(
+		icon(error ? 'warning' : 'info'),
+		el('span', message, 'status-message'),
+		iconButton('close', 'Dismiss message', () => {
+			clearTimeout(messageTimer);
+			status.className = '';
+		}),
+	);
+	status.setAttribute('role', error ? 'alert' : 'status');
 	status.className = error ? 'visible error' : 'visible';
 	clearTimeout(messageTimer);
 	messageTimer = setTimeout(
@@ -113,6 +122,15 @@ function availableDefinitions(): Definition[] {
 		),
 	];
 }
+function sortedDefinitions(kind: 'tag' | 'skill', query = ''): Definition[] {
+	const needle = query.trim().toLowerCase();
+	return availableDefinitions()
+		.filter(
+			(entry) =>
+				entry.kind === kind && entry.name.toLowerCase().includes(needle),
+		)
+		.sort((left, right) => left.name.localeCompare(right.name));
+}
 function builtIn(id: string): Definition | undefined {
 	return [...catalogue.tags, ...skillCatalogue].find(
 		(entry) => entry.id === id,
@@ -145,10 +163,7 @@ function palette() {
 		String(paletteKind === 'skill'),
 	);
 	get<HTMLInputElement>('#type-search').placeholder = `Find a ${paletteKind}…`;
-	for (const definition of availableDefinitions().filter(
-		(entry) =>
-			entry.kind === paletteKind && entry.name.toLowerCase().includes(query),
-	)) {
+	for (const definition of sortedDefinitions(paletteKind, query)) {
 		const row = el('div', undefined, 'type-button');
 		row.dataset.typeId = definition.id;
 		row.draggable = true;
@@ -320,7 +335,7 @@ function inspector() {
 		);
 		const actions = el('div', undefined, 'inspector-item-actions');
 		actions.append(
-			iconButton('copy', 'Duplicate this item', () => {
+			iconButton('duplicate', 'Duplicate this item', () => {
 				editor.selected = new Set([item.id]);
 				editor.duplicate();
 			}),
@@ -368,6 +383,41 @@ function selectDefinition(definition: Definition) {
 	renderDefinition(detail, definition);
 	detail.scrollTop = 0;
 }
+function renderDefinitionList(list: HTMLElement, detail: HTMLElement) {
+	const definitions = sortedDefinitions(managerKind, managerQuery);
+	if (!definitions.some((entry) => entry.id === selectedDefinition))
+		selectedDefinition = definitions[0]?.id ?? null;
+	list.replaceChildren();
+	for (const definition of definitions) {
+		const row = button(
+			definition.name,
+			() => selectDefinition(definition),
+			'definition-row',
+		);
+		row.dataset.definitionId = definition.id;
+		row.setAttribute(
+			'aria-current',
+			String(selectedDefinition === definition.id),
+		);
+		const dot = el('span', undefined, 'tag-card-colour');
+		dot.style.backgroundColor = definition.color;
+		row.prepend(dot);
+		list.append(row);
+	}
+	detail.replaceChildren();
+	const selected = definitions.find((entry) => entry.id === selectedDefinition);
+	if (selected) renderDefinition(detail, selected);
+	else
+		detail.append(
+			el(
+				'p',
+				managerQuery
+					? `No matching ${managerKind}s.`
+					: `No ${managerKind}s yet.`,
+				'definitions-empty',
+			),
+		);
+}
 function renderManager(resetListScroll = false) {
 	if (!manager) return;
 	const scrollTop = resetListScroll
@@ -385,32 +435,29 @@ function renderManager(resetListScroll = false) {
 	for (const kind of ['tag', 'skill'] as const) {
 		const tab = button(kind === 'tag' ? 'Tags' : 'Skills', () => {
 			managerKind = kind;
+			managerQuery = '';
 			selectedDefinition = null;
 			renderManager(true);
+			manager?.querySelector<HTMLInputElement>('.definitions-search')?.focus();
 		});
 		tab.setAttribute('aria-selected', String(managerKind === kind));
 		tabs.append(tab);
 	}
-	sidebar.append(tabs);
+	const search = el('input');
+	search.type = 'search';
+	search.className = 'definitions-search';
+	search.placeholder = `Find a ${managerKind}…`;
+	search.setAttribute('aria-label', `Find a ${managerKind}`);
+	search.value = managerQuery;
+	sidebar.append(tabs, search);
 	const list = el('div', undefined, 'definitions-list');
-	for (const definition of availableDefinitions().filter(
-		(entry) => entry.kind === managerKind,
-	)) {
-		const row = button(
-			definition.name,
-			() => selectDefinition(definition),
-			'definition-row',
-		);
-		row.dataset.definitionId = definition.id;
-		row.setAttribute(
-			'aria-current',
-			String(selectedDefinition === definition.id),
-		);
-		const dot = el('span', undefined, 'tag-card-colour');
-		dot.style.backgroundColor = definition.color;
-		row.prepend(dot);
-		list.append(row);
-	}
+	const detail = el('div', undefined, 'definitions-detail');
+	search.addEventListener('input', () => {
+		managerQuery = search.value;
+		renderDefinitionList(list, detail);
+		list.scrollTop = 0;
+	});
+	renderDefinitionList(list, detail);
 	list.scrollTop = scrollTop;
 	sidebar.append(
 		list,
@@ -437,24 +484,12 @@ function renderManager(resetListScroll = false) {
 					project.definitions.push(definition);
 				});
 				selectedDefinition = definition.id;
+				managerQuery = '';
 				renderManager();
 			},
 			'quiet wide',
 		),
 	);
-	const detail = el('div', undefined, 'definitions-detail');
-	const definition = availableDefinitions().find(
-		(entry) => entry.id === selectedDefinition && entry.kind === managerKind,
-	);
-	if (definition) renderDefinition(detail, definition);
-	else
-		detail.append(
-			el(
-				'p',
-				`Select a ${managerKind} to read or edit its default text.`,
-				'definitions-empty',
-			),
-		);
 	body.append(sidebar, detail);
 	manager.append(header, body);
 }
@@ -567,12 +602,39 @@ function openManager(selected?: Definition) {
 		manager = el('dialog');
 		manager.id = 'definitions-dialog';
 		manager.setAttribute('aria-label', 'Tags and skills');
+		manager.addEventListener('keydown', (event) => {
+			if (
+				event.key.length !== 1 ||
+				event.altKey ||
+				event.ctrlKey ||
+				event.metaKey
+			)
+				return;
+			const target = event.target;
+			if (
+				target instanceof HTMLInputElement ||
+				target instanceof HTMLTextAreaElement ||
+				target instanceof HTMLSelectElement ||
+				(target instanceof HTMLElement && target.isContentEditable)
+			)
+				return;
+			const search = manager?.querySelector<HTMLInputElement>(
+				'.definitions-search',
+			);
+			if (!search) return;
+			search.focus();
+			search.value += event.key;
+			search.dispatchEvent(new Event('input', { bubbles: true }));
+			event.preventDefault();
+		});
 		document.body.append(manager);
 	}
 	managerKind = selected?.kind ?? managerKind;
+	managerQuery = '';
 	selectedDefinition = selected?.id ?? null;
 	renderManager(true);
 	manager.showModal();
+	manager.querySelector<HTMLInputElement>('.definitions-search')?.focus();
 }
 
 function refresh(edited: boolean) {
@@ -612,10 +674,13 @@ async function createDocument() {
 	if (editor.project.diagram.items.length) editor.fit();
 	refresh(false);
 }
-async function openOrSave(command: 'open' | 'save' | 'saveAs') {
+async function openOrSave(
+	command: 'open' | 'save' | 'saveAs',
+	recentPath?: string,
+) {
 	const result = await response(
 		command === 'open'
-			? window.tale.open()
+			? window.tale.open(recentPath)
 			: window.tale.save(editor.project, command === 'saveAs'),
 	);
 	if (result.cancelled) return;
@@ -631,7 +696,21 @@ async function openOrSave(command: 'open' | 'save' | 'saveAs') {
 	}
 	if (result.message) notify(result.message);
 }
-async function action(command: MenuAction) {
+async function showRecentProjects() {
+	const result = await response(window.tale.recentProjects());
+	const list = get('#recent-project-list');
+	list.replaceChildren();
+	for (const path of result.recentProjects ?? []) {
+		const name = path.replaceAll('\\', '/').split('/').at(-1) ?? path;
+		const entry = button('', () => void action('open', path), 'recent-project');
+		entry.title = path;
+		entry.setAttribute('aria-label', `Open recent project ${name}`);
+		entry.append(el('span', name), el('small', path));
+		list.append(entry);
+	}
+	get('#recent-projects').hidden = !list.childElementCount;
+}
+async function action(command: MenuAction, recentPath?: string) {
 	if (busy) return;
 	get<HTMLDetailsElement>('#file-menu').open = false;
 	if (command === 'compile') {
@@ -653,7 +732,7 @@ async function action(command: MenuAction) {
 			return;
 		}
 		if (command === 'new') await createDocument();
-		else await openOrSave(command);
+		else await openOrSave(command, recentPath);
 	} catch (error) {
 		notify(error instanceof Error ? error.message : String(error), true);
 	} finally {
@@ -754,6 +833,12 @@ async function start() {
 	window.tale.onMenu((command) => {
 		void action(command);
 	});
+	get<HTMLDetailsElement>('#file-menu').addEventListener('toggle', (event) => {
+		if ((event.currentTarget as HTMLDetailsElement).open)
+			void showRecentProjects().catch((error) =>
+				notify(error instanceof Error ? error.message : String(error), true),
+			);
+	});
 	for (const tool of ['select', 'hand', 'arrow'] as const)
 		get(`#${tool}-tool`).addEventListener('click', () => {
 			editor.tool = tool;
@@ -761,6 +846,10 @@ async function start() {
 			refresh(false);
 		});
 	get('#type-search').addEventListener('input', palette);
+	get<HTMLDetailsElement>('#palette').addEventListener('toggle', (event) => {
+		if ((event.currentTarget as HTMLDetailsElement).open)
+			get<HTMLInputElement>('#type-search').focus();
+	});
 	for (const kind of ['tag', 'skill'] as const)
 		get(`#${kind}-tab`).addEventListener('click', () => {
 			paletteKind = kind;

@@ -19,6 +19,7 @@ const dialogs: FileDialogs = {
 	discard: () => Promise.resolve(true),
 };
 const wait = { timeoutMs: 10000, intervalMs: 30 };
+const minimumWindowSize = { width: 900, height: 640 };
 function evaluate<T>(script: string): Promise<T> {
 	return window.webContents.executeJavaScript(script, true) as Promise<T>;
 }
@@ -62,6 +63,38 @@ async function run() {
 	);
 	await click('#library-settings');
 	await until('document.querySelector("#definitions-dialog")?.open');
+	const tagNames = await evaluate<string[]>(
+		`[...document.querySelectorAll('#definitions-dialog .definition-row')].map(row => row.textContent.trim())`,
+	);
+	assert.deepEqual(
+		tagNames,
+		[...tagNames].sort((a, b) => a.localeCompare(b)),
+	);
+	await evaluate(`(() => {
+		const search = document.querySelector('#definitions-dialog .definitions-search');
+		search.value = 'scope';
+		search.dispatchEvent(new Event('input', { bubbles: true }));
+	})()`);
+	assert.deepEqual(
+		await evaluate<string[]>(
+			`[...document.querySelectorAll('#definitions-dialog .definition-row')].map(row => row.textContent.trim())`,
+		),
+		['Scope'],
+	);
+	await evaluate(`(() => {
+		const search = document.querySelector('#definitions-dialog .definitions-search');
+		search.value = '';
+		search.dispatchEvent(new Event('input', { bubbles: true }));
+	})()`);
+	await click('#definitions-dialog .definition-row');
+	assert.equal(
+		await evaluate(
+			'document.querySelector("#definitions-dialog .definition-row").getAttribute("aria-current")',
+		),
+		'true',
+	);
+	const { width: originalWidth, height: originalHeight } = window.getBounds();
+	window.setSize(minimumWindowSize.width, minimumWindowSize.height);
 	const dialogFits = await evaluate<boolean>(`(() => {
 		const dialog = document.querySelector('#definitions-dialog').getBoundingClientRect();
 		const title = document.querySelector('#definitions-dialog h2').getBoundingClientRect();
@@ -69,7 +102,15 @@ async function run() {
 			dialog.right <= innerWidth && dialog.bottom <= innerHeight &&
 			title.left >= dialog.left && title.top >= dialog.top;
 	})()`);
-	assert.equal(dialogFits, true, 'Library title and dialog stay in the window');
+	assert.equal(
+		dialogFits,
+		true,
+		'Library title and dialog stay in the minimum-size window',
+	);
+	window.setSize(originalWidth, originalHeight);
+	await evaluate(
+		'new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))',
+	);
 	const listScroll = await evaluate<number>(`(() => {
 		const list = document.querySelector('#definitions-dialog .definitions-list');
 		list.scrollTop = list.scrollHeight;
@@ -117,6 +158,22 @@ async function run() {
 		(await evaluate<number>('document.querySelectorAll(".edge").length')) > 0,
 		'The example opens with its connected diagram',
 	);
+	const itemCount = await evaluate<number>(
+		'document.querySelectorAll(".node").length',
+	);
+	await evaluate(`(() => {
+		const node = document.querySelector('[data-node] .node-body');
+		node.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerId: 1 }));
+		node.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, button: 0, pointerId: 1 }));
+	})()`);
+	window.webContents.copy();
+	window.webContents.paste();
+	await until(`document.querySelectorAll('.node').length === ${itemCount + 1}`);
+	await click('#undo');
+	assert.equal(
+		await evaluate<number>('document.querySelectorAll(".node").length'),
+		itemCount,
+	);
 	const browserFixture = parseProject(
 		await readFile('project/tale.project.json', 'utf8'),
 	);
@@ -141,7 +198,7 @@ async function run() {
 		await evaluate(
 			'document.querySelectorAll("#definitions-dialog textarea").length',
 		),
-		0,
+		1,
 	);
 	await click('#definitions-dialog .definition-row');
 	assert.equal(
@@ -158,6 +215,13 @@ async function run() {
 	);
 	await change('#definitions-dialog textarea', 'Deny unrelated changes.');
 	await click('#definitions-dialog .manager-tabs button:nth-child(2)');
+	const skillNames = await evaluate<string[]>(
+		`[...document.querySelectorAll('#definitions-dialog .definition-row')].map(row => row.textContent.trim())`,
+	);
+	assert.deepEqual(
+		skillNames,
+		[...skillNames].sort((a, b) => a.localeCompare(b)),
+	);
 	assert.equal(
 		await evaluate(
 			'Boolean([...document.querySelectorAll("#definitions-dialog .definition-row")].find(row => row.textContent.trim() === "Skill"))',
@@ -227,6 +291,20 @@ async function run() {
 	);
 	const saved = await saveAs(join(directory, 'edited.json'));
 	assert.equal(saved.formatVersion, 2);
+	await click('#file-menu summary');
+	await until(
+		'document.querySelectorAll("#recent-project-list button").length === 2',
+	);
+	const recent = await evaluate<string[]>(
+		`[...document.querySelectorAll('#recent-project-list button')].map(button => button.title)`,
+	);
+	assert.ok(recent[0]?.endsWith('edited.json'));
+	assert.equal(new Set(recent).size, recent.length);
+	openPath = undefined;
+	await click('#recent-project-list button');
+	await until(
+		'!document.querySelector("#dirty").classList.contains("visible")',
+	);
 	assert.ok(saved.diagram.connections.length > 0);
 	assert.equal(
 		saved.diagram.items[0]?.text,
@@ -248,18 +326,88 @@ async function run() {
 	target = join(directory, 'destination');
 	await import('node:fs/promises').then(({ mkdir }) => mkdir(target!));
 	await click('.appbar > [data-action="deploy"]');
+	await until(
+		'!document.querySelector("#deployment [aria-label=\\"Choose project folder\\"]").disabled',
+	);
 	await click('[aria-label="Choose project folder"]');
 	await until('!document.querySelector("#confirm-deployment").disabled');
 	await click('#confirm-deployment');
-	await until('!document.querySelector("#deployment")');
+	await until(
+		'document.querySelector("#deployment .deployment-progress")?.textContent?.includes("Deployment complete")',
+	);
 	assert.equal(
-		await readFile(join(target, '.tale/project.tale'), 'utf8'),
+		await evaluate('document.querySelector("#deployment progress").value'),
+		2,
+	);
+	await click('#deployment .dialog-footer button');
+	await until('!document.querySelector("#deployment")');
+	const deployedTarget = target;
+	target = undefined;
+	openPath = join(process.cwd(), 'project/tale.project.json');
+	await click('[data-action="open"]');
+	await click('.appbar > [data-action="deploy"]');
+	await until(
+		'!document.querySelector("#deployment [aria-label=\\"Choose project folder\\"]").disabled',
+	);
+	assert.equal(
+		await evaluate(
+			'document.querySelector("#deployment .deployment-preview").childElementCount',
+		),
+		0,
+		'A different project must not reuse the previous destination',
+	);
+	await click('#deployment [aria-label="Close deployment"]');
+	await until('!document.querySelector("#deployment")');
+	openPath = savePath;
+	await click('[data-action="open"]');
+	await click('.appbar > [data-action="deploy"]');
+	await until(
+		'document.querySelector("#deployment .deployment-preview")?.textContent?.includes("Already up to date")',
+	);
+	assert.equal(
+		await evaluate(
+			'document.querySelector("#deployment .deployment-folder").textContent.includes("destination")',
+		),
+		true,
+	);
+	assert.equal(
+		await evaluate(
+			'document.querySelector("#deployment #confirm-deployment").disabled',
+		),
+		true,
+	);
+	assert.equal(
+		await evaluate(
+			'document.querySelector("#deployment .deployment-overwrite").hidden',
+		),
+		true,
+	);
+	await click('#deployment [aria-label="Close deployment"]');
+	await until('!document.querySelector("#deployment")');
+	assert.ok(deployedTarget);
+	assert.equal(
+		await readFile(join(deployedTarget, '.tale/project.tale'), 'utf8'),
 		first,
 	);
-	assert.deepEqual(await readdir(join(target, '.tale')), ['project.tale']);
+	assert.deepEqual(await readdir(join(deployedTarget, '.tale')), [
+		'project.tale',
+	]);
 	assert.match(
-		await readFile(join(target, 'AGENTS.md'), 'utf8'),
+		await readFile(join(deployedTarget, 'AGENTS.md'), 'utf8'),
 		/project\.tale/,
+	);
+	assert.equal(
+		await evaluate(
+			'document.querySelector("#status .status-message")?.textContent?.length > 0',
+		),
+		true,
+	);
+	await click('#status [aria-label="Dismiss message"]');
+	assert.equal(
+		await evaluate(
+			'document.querySelector("#status").classList.contains("visible")',
+		),
+		false,
 	);
 	window.close();
 	await new Promise<void>((resolve) => window.once('closed', () => resolve()));

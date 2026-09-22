@@ -28,13 +28,24 @@ test('deployment previews validate across the renderer boundary', () => {
 		token: 'preview',
 		target: '/project',
 		taleExists: true,
-		files: [{ path: 'AGENTS.md', action: 'update', content: 'Read the Tale' }],
+		files: [
+			{
+				path: 'AGENTS.md',
+				action: 'update',
+				before: 'Old rule',
+				content: 'Read the Tale',
+			},
+		],
 		notes: [],
 	};
 	validateDeploymentPreview(preview);
 	for (const patch of [
 		{ taleExists: 'yes' },
-		{ files: [{ path: 'AGENTS.md', action: 'delete', content: '' }] },
+		{
+			files: [
+				{ path: 'AGENTS.md', action: 'delete', before: null, content: '' },
+			],
+		},
 		{ notes: [false] },
 		{ token: null },
 	]) {

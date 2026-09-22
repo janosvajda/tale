@@ -26,7 +26,7 @@ void app
 				label: 'File',
 				submenu: [
 					action('New', 'new', 'CmdOrCtrl+N'),
-					action('Open…', 'open', 'CmdOrCtrl+O'),
+					action('Open project…', 'open', 'CmdOrCtrl+O'),
 					action('Save', 'save', 'CmdOrCtrl+S'),
 					action('Save As…', 'saveAs', 'CmdOrCtrl+Shift+S'),
 					{ type: 'separator' },

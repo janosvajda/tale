@@ -13,10 +13,19 @@ import {
 	type AgentSelection,
 	agents,
 	type DeploymentPreview,
+	type DeploymentProgress,
+	type ReferencePlacement,
+	requiresTaleOverwrite,
 	validateAgentSelection,
 } from '../model/deployment.js';
 import { check, type Project, record } from '../model/project.js';
-import { agentReference, atomicWrite, existing } from './files.js';
+import {
+	agentReference,
+	atomicWrite,
+	existing,
+	hasUnmanagedTaleInstruction,
+	withoutManagedReference,
+} from './files.js';
 
 interface Change {
 	path: string;
@@ -216,6 +225,7 @@ export async function prepareDeployment(
 	target: string,
 	project: Project,
 	selection: AgentSelection[],
+	placement: ReferencePlacement = 'end',
 ): Promise<DeploymentPlan> {
 	validateAgentSelection(selection);
 	const artifacts = compile(project);
@@ -244,15 +254,20 @@ export async function prepareDeployment(
 
 	for (const [path, selected] of chosen) {
 		const before = await readWatched(root, path, watched);
-		const after = agentReference(
-			activation(path, before ?? ''),
-			instructions(
-				path,
-				selected,
-				artifacts.map((artifact) => artifact.path),
-				project.environments,
-			),
-		);
+		const activated = activation(path, before ?? '');
+		const outputs = artifacts.map((artifact) => artifact.path);
+		const unmanaged = hasUnmanagedTaleInstruction(activated, outputs);
+		const after = unmanaged
+			? withoutManagedReference(activated)
+			: agentReference(
+					activated,
+					instructions(path, selected, outputs, project.environments),
+					placement,
+				);
+		if (unmanaged)
+			notes.push(
+				`${path} already tells the agent to read the Tale outside managed markers. Kept that instruction and removed any redundant managed block.`,
+			);
 		changes.push({ path, before, after });
 	}
 	notes.push(
@@ -265,6 +280,7 @@ export async function prepareDeployment(
 			taleExists,
 			files: changes.map((change) => ({
 				path: change.path,
+				before: change.before,
 				action:
 					change.before === null
 						? 'create'
@@ -283,6 +299,7 @@ export async function commitDeployment(
 	plan: DeploymentPlan,
 	overwrite: boolean,
 	write = atomicWrite,
+	onProgress?: (progress: Omit<DeploymentProgress, 'token'>) => void,
 ): Promise<void> {
 	const root = plan.preview.target;
 	check(await directory(root), 'The destination no longer exists');
@@ -292,8 +309,8 @@ export async function commitDeployment(
 		'The target changed. Preview deployment again.',
 	);
 	check(
-		!taleExists || overwrite,
-		'Confirm overwriting the existing .tale deployment first',
+		!requiresTaleOverwrite(plan.preview) || overwrite,
+		'Confirm replacing the changed .tale file first',
 	);
 	for (const [path, before] of plan.watched) {
 		await safeParents(root, path);
@@ -305,8 +322,15 @@ export async function commitDeployment(
 	const completed: Change[] = [];
 	const created: string[] = [];
 	try {
-		for (const change of plan.changes) {
-			if (change.before === change.after) continue;
+		for (const [index, change] of plan.changes.entries()) {
+			if (change.before === change.after) {
+				onProgress?.({
+					completed: index + 1,
+					total: plan.changes.length,
+					path: change.path,
+				});
+				continue;
+			}
 			await safeParents(root, change.path, created);
 			check(
 				(await existing(join(root, change.path))) === change.before,
@@ -314,6 +338,11 @@ export async function commitDeployment(
 			);
 			await write(join(root, change.path), change.after);
 			completed.push(change);
+			onProgress?.({
+				completed: index + 1,
+				total: plan.changes.length,
+				path: change.path,
+			});
 		}
 	} catch (error) {
 		for (const change of completed.reverse()) {

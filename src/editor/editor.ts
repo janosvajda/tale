@@ -1,5 +1,7 @@
 import {
 	type Definition,
+	type Connection,
+	type DiagramItem,
 	id,
 	type Point,
 	type Project,
@@ -18,6 +20,12 @@ const interaction = {
 	newWidth: 280,
 	newHeight: 180,
 };
+const diagramClipboardType = 'application/x-tale-diagram';
+
+interface DiagramClipboard {
+	items: DiagramItem[];
+	connections: Connection[];
+}
 
 type Gesture = {
 	mode: 'move' | 'pan' | 'resize' | 'connect' | 'bend' | 'reconnect';
@@ -41,6 +49,7 @@ export class Editor {
 	private space = false;
 	private zoomBefore?: Project;
 	private zoomTimer?: ReturnType<typeof setTimeout>;
+	private pasteCount = 0;
 	constructor(host: HTMLElement, project: Project) {
 		this.project = structuredClone(project);
 		this.scene = new Scene(host);
@@ -82,6 +91,8 @@ export class Editor {
 			if ((event.target as Element).closest('[data-node]')) this.onEdit();
 		});
 		svg.addEventListener('keydown', (event) => this.keydown(event));
+		svg.addEventListener('copy', (event) => this.copy(event));
+		svg.addEventListener('paste', (event) => this.paste(event));
 		svg.addEventListener('keyup', (event) => {
 			if (event.code === 'Space') this.space = false;
 		});
@@ -91,6 +102,15 @@ export class Editor {
 		this.render();
 	}
 	private keydown(event: KeyboardEvent) {
+		const deleteNode = (event.target as Element).closest<SVGGElement>(
+			'[data-delete]',
+		)?.dataset.delete;
+		if (deleteNode && (event.key === 'Enter' || event.key === ' ')) {
+			event.preventDefault();
+			this.selected = new Set([deleteNode]);
+			this.remove();
+			return;
+		}
 		if (event.code === 'Space') {
 			this.space = true;
 			event.preventDefault();
@@ -126,6 +146,65 @@ export class Editor {
 			else this.selected.add(node);
 		} else if (!this.selected.has(node)) this.selected = new Set([node]);
 	}
+	private copy(event: ClipboardEvent) {
+		if (!event.clipboardData) return;
+		const items = this.project.diagram.items.filter((item) =>
+			this.selected.has(item.id),
+		);
+		const connections = this.project.diagram.connections.filter(
+			(edge) =>
+				this.selected.has(edge.id) ||
+				(this.selected.has(edge.from) && this.selected.has(edge.to)),
+		);
+		if (!items.length && !connections.length) return;
+		event.clipboardData.setData(
+			diagramClipboardType,
+			JSON.stringify({ items, connections } satisfies DiagramClipboard),
+		);
+		event.preventDefault();
+		this.pasteCount = 0;
+	}
+	private paste(event: ClipboardEvent) {
+		const raw = event.clipboardData?.getData(diagramClipboardType);
+		if (!raw) return;
+		try {
+			const copied: DiagramClipboard = JSON.parse(raw);
+			if (!Array.isArray(copied.items) || !Array.isArray(copied.connections))
+				return;
+			const itemIds = new Map<string, string>();
+			const edgeIds = new Set<string>();
+			const offset = interaction.duplicateOffset * (this.pasteCount + 1);
+			this.mutate((project) => {
+				for (const item of copied.items) {
+					const duplicate = structuredClone(item);
+					duplicate.id = id();
+					duplicate.position.x += offset;
+					duplicate.position.y += offset;
+					project.diagram.items.push(duplicate);
+					itemIds.set(item.id, duplicate.id);
+				}
+				for (const edge of copied.connections) {
+					const duplicate = structuredClone(edge);
+					duplicate.id = id();
+					duplicate.from = itemIds.get(edge.from) ?? edge.from;
+					duplicate.to = itemIds.get(edge.to) ?? edge.to;
+					if (duplicate.bend) {
+						duplicate.bend.x += offset;
+						duplicate.bend.y += offset;
+					}
+					project.diagram.connections.push(duplicate);
+					edgeIds.add(duplicate.id);
+				}
+			});
+			this.pasteCount++;
+			this.selected = new Set([...itemIds.values(), ...edgeIds]);
+			this.render();
+			this.onChange(false);
+			event.preventDefault();
+		} catch {
+			// Ignore clipboard data that is not valid for this diagram.
+		}
+	}
 
 	setProject(project: Project) {
 		validateProject(project);
@@ -135,6 +214,7 @@ export class Editor {
 		this.selected.clear();
 		this.history = [];
 		this.future = [];
+		this.pasteCount = 0;
 		this.render();
 		this.onChange(false);
 	}
@@ -298,6 +378,11 @@ export class Editor {
 		const target = event.target as Element;
 		const node = target.closest<SVGGElement>('[data-node]')?.dataset.node;
 		const edge = target.closest<SVGGElement>('[data-edge]')?.dataset.edge;
+		if (event.button === 0 && node && target.closest('[data-delete]')) {
+			this.selected = new Set([node]);
+			this.remove();
+			return;
+		}
 		const start = this.local(event);
 		const before = structuredClone(this.project);
 		if (event.button !== 0 || this.space || this.tool === 'hand')

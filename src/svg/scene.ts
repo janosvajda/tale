@@ -17,6 +17,7 @@ const layout = {
 	detailsHeight: 85,
 	lineHeight: 23,
 	detailY: 83,
+	deleteRightInset: 32,
 };
 
 export function svg<K extends keyof SVGElementTagNameMap>(
@@ -231,6 +232,22 @@ export class Scene {
 				'data-port': node.id,
 			}),
 		);
+		const remove = svg('g', {
+			class: 'node-delete',
+			'data-delete': node.id,
+			role: 'button',
+			tabindex: '0',
+			'aria-label': `Delete ${node.title}`,
+			transform: `translate(${box.width - layout.deleteRightInset} 8)`,
+		});
+		remove.append(
+			svg('title', {}, `Delete ${node.title}`),
+			svg('rect', { width: 24, height: 24, rx: 4 }),
+			svg('path', {
+				d: 'M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13M10 10v7M14 10v7',
+			}),
+		);
+		group.append(remove);
 		if (selected.has(node.id))
 			group.append(
 				svg('rect', {

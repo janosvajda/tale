@@ -2,7 +2,7 @@
 import { decorateIcon, iconButton } from './icons.js';
 export function run() {
 	let clicks = 0;
-	const button = iconButton('copy', 'Duplicate item', () => {
+	const button = iconButton('duplicate', 'Duplicate item', () => {
 		clicks++;
 	});
 	if (button.textContent || !button.querySelector('svg path'))

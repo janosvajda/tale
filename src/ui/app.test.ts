@@ -8,7 +8,7 @@ export function run() {
 	if (document.querySelector('#type-list [data-type-id="document"]'))
 		throw new Error('The project document must not be a Tag');
 	const info = document.querySelector<HTMLButtonElement>(
-		'#type-list .type-info',
+		'#type-list [data-type-id="goal"] .type-info',
 	);
 	if (
 		!info?.querySelector('svg path') ||

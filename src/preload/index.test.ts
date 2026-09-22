@@ -50,6 +50,10 @@ test('preload exposes a frozen allowlist, filters menu events and removes subscr
 	]);
 	await bridge.exit();
 	assert.deepEqual(calls.at(-1), ['tale:exit']);
+	await bridge.recentProjects();
+	assert.deepEqual(calls.at(-1), ['tale:recent-projects']);
+	await bridge.open('/recent/project.json');
+	assert.deepEqual(calls.at(-1), ['tale:open', '/recent/project.json']);
 	const actions: string[] = [];
 	const unsubscribe = bridge.onMenu((action) => actions.push(action));
 	listener?.({}, 'open');
@@ -59,4 +63,18 @@ test('preload exposes a frozen allowlist, filters menu events and removes subscr
 	assert.deepEqual(actions, ['open', 'exit']);
 	unsubscribe();
 	assert.equal(removed, true);
+	const progress: number[] = [];
+	const stop = bridge.onDeploymentProgress((value) =>
+		progress.push(value.completed),
+	);
+	listener?.(
+		{},
+		{ token: 'preview', completed: 1, total: 2, path: '.tale/project.tale' },
+	);
+	listener?.(
+		{},
+		{ token: 'preview', completed: 3, total: 2, path: '.tale/project.tale' },
+	);
+	assert.deepEqual(progress, [1]);
+	stop();
 });

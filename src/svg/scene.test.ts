@@ -28,6 +28,12 @@ export function run() {
 			throw new Error('Selected objects need resize handles');
 		if (!host.querySelector('[data-port="unsafe"]'))
 			throw new Error('Objects need precise connection handles');
+		const remove = host.querySelector('[data-delete="unsafe"]');
+		if (
+			remove?.getAttribute('aria-label') !==
+			'Delete <img src=x onerror=alert(1)>'
+		)
+			throw new Error('Each box needs an accessible delete control');
 	} finally {
 		host.remove();
 	}

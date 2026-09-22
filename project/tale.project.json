@@ -180,7 +180,7 @@
         "id": "deployment",
         "definitionId": "deployment",
         "title": "Deployment",
-        "text": "Deploy only the generated .tale file to the selected project’s .tale directory. Keep the editor JSON outside deployment. Update the selected agent instructions without removing unrelated content.",
+        "text": "Deploy only the generated .tale file to the selected project’s .tale directory. Keep the editor JSON outside deployment. Update the selected agent instructions without removing unrelated content..",
         "position": {
           "x": 800,
           "y": 520

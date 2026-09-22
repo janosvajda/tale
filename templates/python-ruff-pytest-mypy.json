@@ -1,0 +1,224 @@
+{
+  "format": "tale-project",
+  "formatVersion": 2,
+  "id": "python-ruff-pytest-mypy",
+  "name": "Python with Ruff, pytest, and mypy",
+  "description": "A Python application or library using Ruff, pytest, and mypy.",
+  "environments": [],
+  "definitions": [
+    {
+      "id": "goal",
+      "kind": "tag",
+      "name": "Purpose",
+      "tag": "GOAL",
+      "color": "#15803D",
+      "defaultText": "Build or maintain a Python application or library for the agreed user need. Define observable completion before editing."
+    },
+    {
+      "id": "scope",
+      "kind": "tag",
+      "name": "Scope",
+      "tag": "SCOPE",
+      "color": "#B91C1C",
+      "defaultText": "Change only the requested behavior and its needed tests. Preserve public interfaces and existing user work; ask before broad refactoring."
+    },
+    {
+      "id": "architecture",
+      "kind": "tag",
+      "name": "Architecture",
+      "tag": "ARCHITECTURE",
+      "color": "#0E7490",
+      "defaultText": "Keep domain logic separate from entry points and external services. Follow the existing package layout and pyproject.toml configuration."
+    },
+    {
+      "id": "dependencies",
+      "kind": "tag",
+      "name": "Dependencies",
+      "tag": "DEPENDENCIES",
+      "color": "#B45309",
+      "defaultText": "Use the existing dependency and lockfile workflow. Explain and agree on new runtime or development dependencies before adding them."
+    },
+    {
+      "id": "quality",
+      "kind": "tag",
+      "name": "Quality",
+      "tag": "QUALITY",
+      "color": "#047857",
+      "defaultText": "Run ruff check, ruff format --check, and mypy on the configured project paths. Do not weaken rules to silence errors; if a tool is absent, report that before changing configuration."
+    },
+    {
+      "id": "testing",
+      "kind": "tag",
+      "name": "Testing",
+      "tag": "TESTING",
+      "color": "#4338CA",
+      "defaultText": "Add focused pytest cases for changed behavior and meaningful failure paths. Run the relevant tests, then the project test suite when appropriate."
+    },
+    {
+      "id": "proof",
+      "kind": "tag",
+      "name": "Proof",
+      "tag": "PROOF",
+      "color": "#0369A1",
+      "defaultText": "Report the focused diff, Ruff, mypy, and pytest results. Identify skipped checks and stop when the agreed behavior is verified."
+    }
+  ],
+  "diagram": {
+    "viewport": {
+      "x": 30,
+      "y": 50,
+      "zoom": 0.8
+    },
+    "items": [
+      {
+        "id": "goal-1",
+        "definitionId": "goal",
+        "title": "Purpose",
+        "text": "Build or maintain a Python application or library for the agreed user need. Define observable completion before editing.",
+        "position": {
+          "x": 410,
+          "y": 0
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "scope-1",
+        "definitionId": "scope",
+        "title": "Scope",
+        "text": "Change only the requested behavior and its needed tests. Preserve public interfaces and existing user work; ask before broad refactoring.",
+        "position": {
+          "x": 0,
+          "y": 250
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "architecture-1",
+        "definitionId": "architecture",
+        "title": "Architecture",
+        "text": "Keep domain logic separate from entry points and external services. Follow the existing package layout and pyproject.toml configuration.",
+        "position": {
+          "x": 410,
+          "y": 250
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "dependencies-1",
+        "definitionId": "dependencies",
+        "title": "Dependencies",
+        "text": "Use the existing dependency and lockfile workflow. Explain and agree on new runtime or development dependencies before adding them.",
+        "position": {
+          "x": 820,
+          "y": 250
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "quality-1",
+        "definitionId": "quality",
+        "title": "Quality",
+        "text": "Run ruff check, ruff format --check, and mypy on the configured project paths. Do not weaken rules to silence errors; if a tool is absent, report that before changing configuration.",
+        "position": {
+          "x": 410,
+          "y": 500
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "testing-1",
+        "definitionId": "testing",
+        "title": "Testing",
+        "text": "Add focused pytest cases for changed behavior and meaningful failure paths. Run the relevant tests, then the project test suite when appropriate.",
+        "position": {
+          "x": 410,
+          "y": 750
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "proof-1",
+        "definitionId": "proof",
+        "title": "Proof",
+        "text": "Report the focused diff, Ruff, mypy, and pytest results. Identify skipped checks and stop when the agreed behavior is verified.",
+        "position": {
+          "x": 410,
+          "y": 1000
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      }
+    ],
+    "connections": [
+      {
+        "id": "goal-scope",
+        "from": "goal-1",
+        "to": "scope-1",
+        "label": "sets boundaries for",
+        "order": 0
+      },
+      {
+        "id": "goal-architecture",
+        "from": "goal-1",
+        "to": "architecture-1",
+        "label": "guides",
+        "order": 1
+      },
+      {
+        "id": "architecture-dependencies",
+        "from": "architecture-1",
+        "to": "dependencies-1",
+        "label": "constrains",
+        "order": 2
+      },
+      {
+        "id": "architecture-quality",
+        "from": "architecture-1",
+        "to": "quality-1",
+        "label": "sets standards for",
+        "order": 3
+      },
+      {
+        "id": "scope-testing",
+        "from": "scope-1",
+        "to": "testing-1",
+        "label": "limits",
+        "order": 4
+      },
+      {
+        "id": "quality-testing",
+        "from": "quality-1",
+        "to": "testing-1",
+        "label": "requires",
+        "order": 5
+      },
+      {
+        "id": "testing-proof",
+        "from": "testing-1",
+        "to": "proof-1",
+        "label": "provides evidence for",
+        "order": 6
+      }
+    ]
+  }
+}

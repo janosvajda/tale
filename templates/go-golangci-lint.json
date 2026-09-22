@@ -1,0 +1,224 @@
+{
+  "format": "tale-project",
+  "formatVersion": 2,
+  "id": "go-golangci-lint",
+  "name": "Go with golangci-lint",
+  "description": "A Go application or module using standard Go checks and golangci-lint.",
+  "environments": [],
+  "definitions": [
+    {
+      "id": "goal",
+      "kind": "tag",
+      "name": "Purpose",
+      "tag": "GOAL",
+      "color": "#15803D",
+      "defaultText": "Build or maintain a Go application or module for the agreed user need. Define observable completion before editing."
+    },
+    {
+      "id": "scope",
+      "kind": "tag",
+      "name": "Scope",
+      "tag": "SCOPE",
+      "color": "#B91C1C",
+      "defaultText": "Change only the requested behavior and its needed tests. Preserve exported APIs and existing user work; ask before broad refactoring."
+    },
+    {
+      "id": "architecture",
+      "kind": "tag",
+      "name": "Architecture",
+      "tag": "ARCHITECTURE",
+      "color": "#0E7490",
+      "defaultText": "Follow the existing go.mod module and package boundaries. Keep business logic apart from transport, storage, and command entry points."
+    },
+    {
+      "id": "dependencies",
+      "kind": "tag",
+      "name": "Dependencies",
+      "tag": "DEPENDENCIES",
+      "color": "#B45309",
+      "defaultText": "Use existing modules where practical. Review go.mod and go.sum changes and explain new dependencies before adding them."
+    },
+    {
+      "id": "quality",
+      "kind": "tag",
+      "name": "Quality",
+      "tag": "QUALITY",
+      "color": "#047857",
+      "defaultText": "Run gofmt, go vet ./..., and golangci-lint run with the repository configuration. Do not disable checks to make code pass; if golangci-lint is absent, report that before changing tooling."
+    },
+    {
+      "id": "testing",
+      "kind": "tag",
+      "name": "Testing",
+      "tag": "TESTING",
+      "color": "#4338CA",
+      "defaultText": "Add focused *_test.go cases for changed behavior and errors. Run go test ./...; use go test -race for relevant concurrent code when supported."
+    },
+    {
+      "id": "proof",
+      "kind": "tag",
+      "name": "Proof",
+      "tag": "PROOF",
+      "color": "#0369A1",
+      "defaultText": "Report the focused diff and actual formatting, vet, lint, and test results. Identify skipped checks and stop when the agreed behavior is verified."
+    }
+  ],
+  "diagram": {
+    "viewport": {
+      "x": 30,
+      "y": 50,
+      "zoom": 0.8
+    },
+    "items": [
+      {
+        "id": "goal-1",
+        "definitionId": "goal",
+        "title": "Purpose",
+        "text": "Build or maintain a Go application or module for the agreed user need. Define observable completion before editing.",
+        "position": {
+          "x": 410,
+          "y": 0
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "scope-1",
+        "definitionId": "scope",
+        "title": "Scope",
+        "text": "Change only the requested behavior and its needed tests. Preserve exported APIs and existing user work; ask before broad refactoring.",
+        "position": {
+          "x": 0,
+          "y": 250
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "architecture-1",
+        "definitionId": "architecture",
+        "title": "Architecture",
+        "text": "Follow the existing go.mod module and package boundaries. Keep business logic apart from transport, storage, and command entry points.",
+        "position": {
+          "x": 410,
+          "y": 250
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "dependencies-1",
+        "definitionId": "dependencies",
+        "title": "Dependencies",
+        "text": "Use existing modules where practical. Review go.mod and go.sum changes and explain new dependencies before adding them.",
+        "position": {
+          "x": 820,
+          "y": 250
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "quality-1",
+        "definitionId": "quality",
+        "title": "Quality",
+        "text": "Run gofmt, go vet ./..., and golangci-lint run with the repository configuration. Do not disable checks to make code pass; if golangci-lint is absent, report that before changing tooling.",
+        "position": {
+          "x": 410,
+          "y": 500
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "testing-1",
+        "definitionId": "testing",
+        "title": "Testing",
+        "text": "Add focused *_test.go cases for changed behavior and errors. Run go test ./...; use go test -race for relevant concurrent code when supported.",
+        "position": {
+          "x": 410,
+          "y": 750
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      },
+      {
+        "id": "proof-1",
+        "definitionId": "proof",
+        "title": "Proof",
+        "text": "Report the focused diff and actual formatting, vet, lint, and test results. Identify skipped checks and stop when the agreed behavior is verified.",
+        "position": {
+          "x": 410,
+          "y": 1000
+        },
+        "size": {
+          "width": 320,
+          "height": 190
+        }
+      }
+    ],
+    "connections": [
+      {
+        "id": "goal-scope",
+        "from": "goal-1",
+        "to": "scope-1",
+        "label": "sets boundaries for",
+        "order": 0
+      },
+      {
+        "id": "goal-architecture",
+        "from": "goal-1",
+        "to": "architecture-1",
+        "label": "guides",
+        "order": 1
+      },
+      {
+        "id": "architecture-dependencies",
+        "from": "architecture-1",
+        "to": "dependencies-1",
+        "label": "constrains",
+        "order": 2
+      },
+      {
+        "id": "architecture-quality",
+        "from": "architecture-1",
+        "to": "quality-1",
+        "label": "sets standards for",
+        "order": 3
+      },
+      {
+        "id": "scope-testing",
+        "from": "scope-1",
+        "to": "testing-1",
+        "label": "limits",
+        "order": 4
+      },
+      {
+        "id": "quality-testing",
+        "from": "quality-1",
+        "to": "testing-1",
+        "label": "requires",
+        "order": 5
+      },
+      {
+        "id": "testing-proof",
+        "from": "testing-1",
+        "to": "proof-1",
+        "label": "provides evidence for",
+        "order": 6
+      }
+    ]
+  }
+}

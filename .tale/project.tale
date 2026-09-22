@@ -18,7 +18,7 @@ ARCHITECTURE
   Architecture constrains Dependencies.
 
 DEPLOYMENT
-  Deploy only the generated .tale file to the selected project’s .tale directory. Keep the editor JSON outside deployment. Update the selected agent instructions without removing unrelated content.
+  Deploy only the generated .tale file to the selected project’s .tale directory. Keep the editor JSON outside deployment. Update the selected agent instructions without removing unrelated content..
   Deployment must satisfy Deploy exact Tale bytes.
   Deployment must satisfy Keep project JSON out of deployment.
   Deployment must satisfy Preserve the editor project.

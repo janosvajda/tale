@@ -4,17 +4,17 @@ ABOUT
   Tale helps people and AI agents communicate project goals, expectations, boundaries, and evidence in a clear, reusable way.
 
 GOAL
-  Create a cross-platform Electron app for writing Tales visually. The diagram should help people organise human-language notes and relationships before sharing them with an AI agent.
+  Create a visual Tale editor delivered as both a cross-platform Electron app and a Chrome extension. The diagram should help people organise human-language notes and relationships before sharing them with an AI agent.
   Purpose defines Product.
 
 PRODUCT
-  People can save a diagram as a JSON project, reopen it, and deploy one deterministic .tale file to a chosen project. Tags and Skills are reusable notes with one editable text value each.
+  People can use the same Tale editor as an Electron desktop app or a Chrome extension. Both builds open and save JSON projects and compile identical deterministic .tale output. Tags and Skills are reusable notes with one editable text value each.
   Keep the diagram easy to navigate with precise dragging, arrows, mouse and touchpad zoom, and clear icons. Selecting a note should show its title and one human-language text box.
   Product guides Architecture.
   Product includes Deployment.
 
 ARCHITECTURE
-  Use TypeScript and Electron. Keep the application, SVG diagram editor, Electron main process, and renderer UI separate. Pass only validated data across the preload bridge.
+  Use TypeScript. Share the model, compiler, SVG editor, templates, deployment content, and UI between Electron and Chrome. Keep Electron and Chrome filesystem, lifecycle, and permission code behind separate platform adapters. Do not duplicate shared behaviour. Pass only validated data across platform boundaries.
   Architecture constrains Dependencies.
 
 DEPLOYMENT
@@ -50,7 +50,7 @@ QUALITY
   Quality requires Testing.
 
 TESTING
-  Every TypeScript source file has a sibling test file. Test observable behaviour and run the relevant unit and Electron interaction checks.
+  Every TypeScript source file has a sibling test file. Test observable behaviour and run the relevant unit, Electron interaction, and Chrome package checks.
   Testing provides evidence for Proof.
 
 DETERMINISM Deterministic output
@@ -62,7 +62,7 @@ AGENTIC_TESTS
   Agentic tests adds checks to Testing.
 
 PROOF
-  Run type checking, lint, formatting, unit tests, and Electron end-to-end tests. Review the final diff and stop when the agreed checks pass.
+  Run type checking, lint, formatting, unit tests, Electron end-to-end tests, and Chrome extension package checks. Verify that Electron and Chrome compile identical Tale bytes. Review the final diff and stop when the agreed checks pass.
 
 REQUIREMENT Deploy exact Tale bytes
   Deploy the exact Tale bytes generated from the saved project JSON. Check the installed file against the compiler output.
@@ -77,4 +77,4 @@ REQUIREMENT Preserve the editor project
   Preserve the editor project is verified by Exercise actual deployment.
 
 CHECK Exercise actual deployment
-  Run the Electron deployment test. Confirm that the installed Tale matches the compiler output, no project JSON is installed, and the source JSON is preserved.
+  Exercise Electron and Chrome deployment. Confirm that the installed Tale matches the shared compiler output, no project JSON is installed, the source JSON is preserved, and both builds produce identical Tale bytes.

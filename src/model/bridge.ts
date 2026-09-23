@@ -1,7 +1,7 @@
 import {
 	type AgentSelection,
-	type DeploymentProgress,
 	type DeploymentPreview,
+	type DeploymentProgress,
 	type ReferencePlacement,
 	validateDeploymentPreview,
 } from './deployment.js';
@@ -118,6 +118,6 @@ export function validateReply(value: unknown): asserts value is Reply {
 }
 declare global {
 	interface Window {
-		tale: Bridge;
+		tale?: Bridge;
 	}
 }

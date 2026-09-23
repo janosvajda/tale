@@ -1,0 +1,21 @@
+{
+	"manifest_version": 3,
+	"name": "Tale",
+	"version": "0.0.0",
+	"description": "Create and deploy visual project agreements for AI coding agents.",
+	"action": {
+		"default_title": "Open Tale"
+	},
+	"background": {
+		"service_worker": "service-worker.js"
+	},
+	"icons": {
+		"16": "resources/tale_electron_icons/tale-16.png",
+		"32": "resources/tale_electron_icons/tale-32.png",
+		"48": "resources/tale_electron_icons/tale-48.png",
+		"128": "resources/tale_electron_icons/tale-128.png"
+	},
+	"content_security_policy": {
+		"extension_pages": "script-src 'self'; object-src 'none'"
+	}
+}

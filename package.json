@@ -8,6 +8,7 @@
   "scripts": {
     "start": "node scripts/start.mjs",
     "build": "node scripts/build.mjs",
+    "build:chrome": "node scripts/build-chrome.mjs",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.browser.json --noEmit",
     "lint": "biome lint . && node scripts/test-pairs.mjs",
     "format:check": "biome format .",

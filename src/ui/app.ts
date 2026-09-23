@@ -12,6 +12,7 @@ import {
 } from '../model/project.js';
 import { skillCatalogue } from '../model/skills.js';
 import { generatedTag, nameAvailable, unusedColor } from '../model/tags.js';
+import { applicationBridge } from '../platform/runtime.js';
 import { openDeployment } from './deployment.js';
 import { decorateIcon, icon, iconButton } from './icons.js';
 import { openNewProject } from './new-project.js';
@@ -23,6 +24,7 @@ const ui = {
 	percent: 100,
 	zoomStep: 1.2,
 };
+const api = applicationBridge();
 
 function get<T extends HTMLElement = HTMLElement>(selector: string): T {
 	const node = document.querySelector<T>(selector);
@@ -643,7 +645,7 @@ function refresh(edited: boolean) {
 	get('#dirty').classList.toggle('visible', dirty);
 	document.title = `${dirty ? '• ' : ''}${editor.project.name} — Tale`;
 	if (edited)
-		void response(window.tale.setDirty(dirty)).catch((error) =>
+		void response(api.setDirty(dirty)).catch((error) =>
 			notify(String(error), true),
 		);
 	get('#zoom').textContent =
@@ -665,7 +667,7 @@ function previewTales() {
 	get<HTMLDialogElement>('#preview').showModal();
 }
 async function createDocument() {
-	const result = await openNewProject();
+	const result = await openNewProject(api);
 	if (!result) return;
 	editor.setProject(result.project);
 	saved = '';
@@ -680,8 +682,8 @@ async function openOrSave(
 ) {
 	const result = await response(
 		command === 'open'
-			? window.tale.open(recentPath)
-			: window.tale.save(editor.project, command === 'saveAs'),
+			? api.open(recentPath)
+			: api.save(editor.project, command === 'saveAs'),
 	);
 	if (result.cancelled) return;
 	if (result.document) {
@@ -689,15 +691,13 @@ async function openOrSave(
 		saved = serializeProject(result.document.project);
 		projectReady = true;
 		projectSettingsOpen = false;
-		await response(
-			window.tale.setDirty(serializeProject(editor.project) !== saved),
-		);
+		await response(api.setDirty(serializeProject(editor.project) !== saved));
 		refresh(false);
 	}
 	if (result.message) notify(result.message);
 }
 async function showRecentProjects() {
-	const result = await response(window.tale.recentProjects());
+	const result = await response(api.recentProjects());
 	const list = get('#recent-project-list');
 	list.replaceChildren();
 	for (const path of result.recentProjects ?? []) {
@@ -722,13 +722,13 @@ async function action(command: MenuAction, recentPath?: string) {
 			notify('Create or open a project first.', true);
 			return;
 		}
-		openDeployment(structuredClone(editor.project), notify);
+		openDeployment(structuredClone(editor.project), notify, api);
 		return;
 	}
 	setBusy(true);
 	try {
 		if (command === 'exit') {
-			await response(window.tale.exit());
+			await response(api.exit());
 			return;
 		}
 		if (command === 'new') await createDocument();
@@ -808,7 +808,7 @@ function navigationControls() {
 }
 async function start() {
 	icons();
-	const result = await response(window.tale.load());
+	const result = await response(api.load());
 	check(result.document, 'No project received');
 	editor = new Editor(get('#canvas'), result.document.project);
 	saved = serializeProject(result.document.project);
@@ -830,7 +830,7 @@ async function start() {
 		control.addEventListener('click', () => {
 			void action(control.dataset.action as MenuAction);
 		});
-	window.tale.onMenu((command) => {
+	api.onMenu((command) => {
 		void action(command);
 	});
 	get<HTMLDetailsElement>('#file-menu').addEventListener('toggle', (event) => {
@@ -893,7 +893,7 @@ async function start() {
 	get('#export-tales').addEventListener('click', () => {
 		if (busy) return;
 		setBusy(true);
-		void response(window.tale.exportTales(editor.project))
+		void response(api.exportTales(editor.project))
 			.then((result) => {
 				if (result.message) notify(result.message);
 			})

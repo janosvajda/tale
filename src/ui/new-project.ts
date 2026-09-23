@@ -32,10 +32,7 @@ function inputField(title: string, name: string) {
 	return { label, input };
 }
 export function openNewProject(
-	api: Pick<
-		Bridge,
-		'templates' | 'chooseDirectory' | 'newProject'
-	> = window.tale,
+	api: Pick<Bridge, 'templates' | 'chooseDirectory' | 'newProject'>,
 ): Promise<Document | undefined> {
 	const dialog = el('dialog');
 	dialog.id = 'new-project';

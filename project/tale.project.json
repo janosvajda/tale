@@ -20,7 +20,7 @@
       "name": "Product",
       "tag": "PRODUCT",
       "color": "#7C3AED",
-      "defaultText": "People can save a diagram as a JSON project, reopen it, and deploy one deterministic .tale file to a chosen project. Tags and Skills are reusable notes with one editable text value each.\nKeep the diagram easy to navigate with precise dragging, arrows, mouse and touchpad zoom, and clear icons. Selecting a note should show its title and one human-language text box."
+      "defaultText": "People can use the same Tale editor as an Electron desktop app or a Chrome extension. Both builds open and save JSON projects and compile identical deterministic .tale output. Tags and Skills are reusable notes with one editable text value each.\nKeep the diagram easy to navigate with precise dragging, arrows, mouse and touchpad zoom, and clear icons. Selecting a note should show its title and one human-language text box."
     },
     {
       "id": "architecture",
@@ -28,7 +28,7 @@
       "name": "Architecture",
       "tag": "ARCHITECTURE",
       "color": "#0E7490",
-      "defaultText": "Use TypeScript and Electron. Keep the application, SVG diagram editor, Electron main process, and renderer UI separate. Pass only validated data across the preload bridge."
+      "defaultText": "Use TypeScript. Share the model, compiler, SVG editor, templates, deployment content, and UI between Electron and Chrome. Keep Electron and Chrome filesystem, lifecycle, and permission code behind separate platform adapters. Do not duplicate shared behaviour. Pass only validated data across platform boundaries."
     },
     {
       "id": "agreement",
@@ -138,7 +138,7 @@
         "id": "goal",
         "definitionId": "goal",
         "title": "Purpose",
-        "text": "Create a cross-platform Electron app for writing Tales visually. The diagram should help people organise human-language notes and relationships before sharing them with an AI agent.",
+        "text": "Create a visual Tale editor delivered as both a cross-platform Electron app and a Chrome extension. The diagram should help people organise human-language notes and relationships before sharing them with an AI agent.",
         "position": {
           "x": 420,
           "y": 0
@@ -152,7 +152,7 @@
         "id": "product",
         "definitionId": "product",
         "title": "Product",
-        "text": "People can save a diagram as a JSON project, reopen it, and deploy one deterministic .tale file to a chosen project. Tags and Skills are reusable notes with one editable text value each.\nKeep the diagram easy to navigate with precise dragging, arrows, mouse and touchpad zoom, and clear icons. Selecting a note should show its title and one human-language text box.",
+        "text": "People can use the same Tale editor as an Electron desktop app or a Chrome extension. Both builds open and save JSON projects and compile identical deterministic .tale output. Tags and Skills are reusable notes with one editable text value each.\nKeep the diagram easy to navigate with precise dragging, arrows, mouse and touchpad zoom, and clear icons. Selecting a note should show its title and one human-language text box.",
         "position": {
           "x": 420,
           "y": 260
@@ -166,7 +166,7 @@
         "id": "architecture",
         "definitionId": "architecture",
         "title": "Architecture",
-        "text": "Use TypeScript and Electron. Keep the application, SVG diagram editor, Electron main process, and renderer UI separate. Pass only validated data across the preload bridge.",
+        "text": "Use TypeScript. Share the model, compiler, SVG editor, templates, deployment content, and UI between Electron and Chrome. Keep Electron and Chrome filesystem, lifecycle, and permission code behind separate platform adapters. Do not duplicate shared behaviour. Pass only validated data across platform boundaries.",
         "position": {
           "x": 40,
           "y": 520
@@ -292,7 +292,7 @@
         "id": "testing",
         "definitionId": "testing",
         "title": "Testing",
-        "text": "Every TypeScript source file has a sibling test file. Test observable behaviour and run the relevant unit and Electron interaction checks.",
+        "text": "Every TypeScript source file has a sibling test file. Test observable behaviour and run the relevant unit, Electron interaction, and Chrome package checks.",
         "position": {
           "x": 420,
           "y": 1680
@@ -334,7 +334,7 @@
         "id": "proof",
         "definitionId": "proof",
         "title": "Proof",
-        "text": "Run type checking, lint, formatting, unit tests, and Electron end-to-end tests. Review the final diff and stop when the agreed checks pass.",
+        "text": "Run type checking, lint, formatting, unit tests, Electron end-to-end tests, and Chrome extension package checks. Verify that Electron and Chrome compile identical Tale bytes. Review the final diff and stop when the agreed checks pass.",
         "position": {
           "x": 420,
           "y": 1950
@@ -390,7 +390,7 @@
         "id": "deploy-check",
         "definitionId": "check",
         "title": "Exercise actual deployment",
-        "text": "Run the Electron deployment test. Confirm that the installed Tale matches the compiler output, no project JSON is installed, and the source JSON is preserved.",
+        "text": "Exercise Electron and Chrome deployment. Confirm that the installed Tale matches the shared compiler output, no project JSON is installed, the source JSON is preserved, and both builds produce identical Tale bytes.",
         "position": {
           "x": 850,
           "y": 1090

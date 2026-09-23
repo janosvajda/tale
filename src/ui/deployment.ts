@@ -33,10 +33,7 @@ function hasChanges(plan: DeploymentPreview | undefined): boolean {
 export function openDeployment(
 	project: Project,
 	notify: (message: string) => void,
-	api: Pick<
-		Bridge,
-		'prepareDeployment' | 'deploy' | 'onDeploymentProgress'
-	> = window.tale,
+	api: Pick<Bridge, 'prepareDeployment' | 'deploy' | 'onDeploymentProgress'>,
 ): void {
 	if (document.querySelector('#deployment')) return;
 	const dialog = el('dialog');

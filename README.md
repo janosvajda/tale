@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Tale helps people explain goals, boundaries, decisions, and completion checks to AI coding agents. The desktop editor lets you arrange and connect these instructions visually. You save the editable diagram as a JSON project; Tale compiles its notes and relationships into one deterministic `.tale/project.tale` that agents can read through their project instruction files.
+Tale helps people explain goals, boundaries, decisions, and completion checks to AI coding agents. The Electron app and Chrome extension use the same visual editor, compiler, templates, and deployment rules. You save the editable diagram as a JSON project; Tale compiles its notes and relationships into one deterministic `.tale/project.tale` that agents can read through their project instruction files.
 
 ![An opened Tale project with connected notes and the Tag palette](templates/tale-screenshot-1.png)
 
@@ -182,7 +182,9 @@ A Tale makes intentions, boundaries, decisions, and checks visible. It does not 
 
 ## Development
 
-The app keeps the model and compiler (`src/model`, `src/application`), SVG board (`src/svg`, `src/editor`), UI (`src/ui`), and Electron main/preload code (`src/main`, `src/preload`) separate. It uses no UI or diagram library.
+The model, compiler, deployment content, SVG board, templates, and UI are shared. Electron filesystem and lifecycle code lives in `src/main` and `src/preload`; Chrome file permissions and browser storage live in `src/platform/chrome.ts`. Both implement the same validated application bridge. It uses no UI or diagram library.
+
+Run `npm start` for Electron. Run `npm run build:chrome` to create an unpacked extension in `dist/chrome` and a Chrome Web Store archive at `dist/tale-chrome-extension.zip`. For local testing, open `chrome://extensions`, enable Developer mode, and choose **Load unpacked** → `dist/chrome`. The extension requests access only when you choose a project file or deployment directory.
 
 Run `npm run verify` for type checking, Biome, unit tests, and Electron end-to-end tests. Every TypeScript source file has a sibling `.test.ts`. This project's own instructions are in [.tale/project.tale](.tale/project.tale).
 

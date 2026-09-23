@@ -12,11 +12,13 @@
     "src/application/**/*.ts",
     "src/svg/**/*.ts",
     "src/editor/**/*.ts",
+    "src/platform/**/*.ts",
     "src/ui/**/*.ts"
   ],
   "exclude": [
     "src/model/**/*.test.ts",
     "src/application/**/*.test.ts",
+    "src/platform/**/*.test.ts",
     "src/svg/geometry.test.ts"
   ]
 }
